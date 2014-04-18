@@ -95,12 +95,42 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitGetIndexNode(GetIndexNode Node) {
+		this.GenerateExpression(Node.RecvNode());
+		this.GenerateExpression("[", Node.IndexNode(), " + 1]");
 	}
 
 	@Override public void VisitMethodCallNode(MethodCallNode Node) {
+		BNode Reciever = Node.RecvNode();
+		String RecieverName = ((GetNameNode)Reciever).GivenName;
+		String MethodName = Node.MethodName();
+		if(MethodName.equals("add")) {
+			this.GenerateExpression(Reciever);
+			this.Source.Append(" <- c(");
+			this.GenerateListNode(RecieverName + ", ", Node, ",", ")");
+		}
+		else if(MethodName.equals("size")) {
+			this.Source.Append("length(");
+			this.GenerateExpression(Reciever);
+			this.Source.Append(")");
+		}
+		else if(MethodName.equals("insert")) {
+			this.GenerateExpression(Reciever);
+			this.Source.Append(" <- append(" + RecieverName);
+			@Var int i = Node.GetListSize();
+			while(i-- != 0) {
+				this.Source.Append(", ");			
+				if(i == 0) {
+					this.Source.Append("after=");			
+				}
+				@Var BNode ParamNode = Node.GetListAt(i);
+				this.GenerateExpression(ParamNode);
+			}
+			this.Source.Append(")");			
+		}
 	}
 
 	@Override public void VisitThrowNode(BunThrowNode Node) {
+		this.Source.Append("stop(\"throw\")");
 	}
 
 	@Override public void VisitTryNode(BunTryNode Node) {
@@ -118,7 +148,6 @@ public class RGenerator extends LibBunSourceGenerator {
 		if(Node.HasFinallyBlockNode()) {
 			this.Source.AppendNewLine("finally =");
 			this.GenerateExpression(Node.FinallyBlockNode());
-			this.Source.Append(",");
 			this.Source.CloseIndent(")");
 		}
 	}
@@ -184,7 +213,7 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitNullNode(BunNullNode Node) {
-		this.Source.Append("None");
+		this.Source.Append("NULL");
 	}
 
 	@Override public void VisitBooleanNode(BunBooleanNode Node) {
@@ -240,11 +269,11 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitAndNode(BunAndNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "and");
+		this.GenerateBinaryOperatorExpression(Node, "&&");
 	}
 
 	@Override public void VisitOrNode(BunOrNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "or");
+		this.GenerateBinaryOperatorExpression(Node, "||");
 	}
 
 	@Override public void VisitAddNode(BunAddNode Node) {
@@ -288,7 +317,14 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitEqualsNode(BunEqualsNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "==");
+		if(Node.RightNode() instanceof BunNullNode) {
+			this.Source.Append("is.null(");
+			this.GenerateExpression(Node.LeftNode());
+			this.Source.Append(")");
+		}
+		else {
+			this.GenerateBinaryOperatorExpression(Node, "==");
+		}
 	}
 
 	@Override public void VisitNotEqualsNode(BunNotEqualsNode Node) {
@@ -316,7 +352,7 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitArrayLiteralNode(BunArrayLiteralNode Node) {
-		this.GenerateListNode("[", Node, ",", "]");
+		this.GenerateListNode("c(", Node, ",", ")");
 	}
 
 	protected final void GenerateFuncName(BunFuncNameNode Node) {
@@ -412,10 +448,13 @@ public class RGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitWhileNode(BunWhileNode Node) {
+		this.GenerateExpression("while (", Node.CondNode(),")");
+		this.GenerateExpression(Node.BlockNode());
 	}
 
 	@Override
 	public void VisitBreakNode(BunBreakNode Node) {
+		this.Source.Append("break");
 	}
 
 	@Override
