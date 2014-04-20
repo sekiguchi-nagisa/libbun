@@ -2,11 +2,15 @@ package libbun.lang.bun.extra;
 
 import libbun.ast.BNode;
 import libbun.ast.ContainerNode;
+import libbun.ast.binary.AssignNode;
 import libbun.ast.binary.BinaryOperatorNode;
 import libbun.ast.binary.BunAddNode;
-import libbun.ast.binary.AssignNode;
+import libbun.ast.error.ErrorNode;
+import libbun.ast.expression.MutableNode;
+import libbun.ast.literal.BunIntNode;
 import libbun.ast.statement.BunWhileNode;
 import libbun.ast.sugar.BunContinueNode;
+import libbun.parser.BToken;
 import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
 import libbun.util.BMatchFunction;
@@ -79,8 +83,8 @@ class SelfAddPatternFunction extends BMatchFunction {
 		if(TokenContext.IsToken("=")) {
 			@Var AssignNode AssignNode = new AssignNode(ParentNode);
 			@Var BinaryOperatorNode BinaryNode = new BunAddNode(AssignNode);
-			@Var BNode RightNode = BinaryNode.SetParsedNode(AssignNode, LeftNode, "=", TokenContext);
 			AssignNode.SetLeftNode(LeftNode);
+			@Var BNode RightNode = BinaryNode.SetParsedNode(AssignNode, LeftNode, "=", TokenContext);
 			AssignNode.SetLeftNode(RightNode);
 			return AssignNode;
 		}
@@ -88,14 +92,60 @@ class SelfAddPatternFunction extends BMatchFunction {
 	}
 }
 
+// ++i
+class IncPrefixPatternFunction extends BMatchFunction {
+	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		LeftNode = TokenContext.ParsePattern(ParentNode, "$RightExpression$", BTokenContext._Required);
+		if(LeftNode instanceof MutableNode) {
+			@Var AssignNode AssignNode = new AssignNode(ParentNode);
+			AssignNode.SetLeftNode(LeftNode);
+			@Var BinaryOperatorNode BinaryNode = new BunAddNode(AssignNode);
+			BinaryNode.SetLeftNode(LeftNode);
+			BinaryNode.SetRightNode(new BunIntNode(null, null, 1));
+			AssignNode.SetRightNode(BinaryNode);
+			return AssignNode;
+		}
+		if(LeftNode instanceof ErrorNode) {
+			return LeftNode;
+		}
+		return new ErrorNode(LeftNode, "not incremental");
+	}
+}
+
+// i++
+class IncSuffixPatternFunction extends BMatchFunction {
+	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		if(LeftNode instanceof MutableNode) {
+			@Var BToken SourceToken = TokenContext.GetToken(BTokenContext._MoveNext);
+			@Var AssignNode AssignNode = new AssignNode(ParentNode);
+			AssignNode.SourceToken = SourceToken;
+			AssignNode.SetLeftNode(LeftNode);
+			@Var BinaryOperatorNode BinaryNode = new BunAddNode(AssignNode);
+			BinaryNode.SourceToken = SourceToken;
+			BinaryNode.SetLeftNode(LeftNode);
+			BinaryNode.SetRightNode(new BunIntNode(null, null, 1));
+			AssignNode.SetRightNode(BinaryNode);
+			return AssignNode;
+		}
+		return new ErrorNode(LeftNode, "not incremental");
+	}
+}
+
 public class BunExtraGrammar {
 	public final static BMatchFunction ContinuePattern = new ContinuePatternFunction();
+	public final static BMatchFunction IncPrefixPattern = new IncPrefixPatternFunction();
+	public final static BMatchFunction IncSuffixPattern = new IncSuffixPatternFunction();
+	public final static BMatchFunction SelfAddPattern = new SelfAddPatternFunction();
 
 	public static void LoadGrammar(LibBunGamma Gamma) {
 		//Gamma.SetTypeName(BType.VoidType,  null);
 		//Gamma.AppendTokenFunc(" \t", WhiteSpaceToken);
 		//Gamma.DefineExpression("null", NullPattern);
 		//Gamma.DefineRightExpression("instanceof", InstanceOfPattern);
+		Gamma.DefineExpression("++", IncPrefixPattern);
+		Gamma.DefineRightExpression("++", IncSuffixPattern);
+
+		Gamma.DefineRightExpression("+", SelfAddPattern);
 		Gamma.DefineStatement("continue", ContinuePattern);
 	}
 }
