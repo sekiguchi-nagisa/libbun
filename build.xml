@@ -1,4 +1,4 @@
-<project name="libzen" default="jar">
+<project name="libbun" default="jar">
 	<!-- directory / file definition -->
 	<property name="BinaryName" value="libbun-0.1" />
 	<property name="source_dir" value="java/src" />
@@ -38,7 +38,7 @@
 	<target name="jar" depends="build">
 		<jar jarfile="${BinaryName}.jar">
 			<fileset dir="${build_dir}" includes="**/*.class" />
-			<fileset dir="." includes="lib/**/*.zen" />
+			<fileset dir="." includes="lib/**/*.bun" />
 			<exclude name="**/*Test.class" />
 			<manifest>
 				<attribute name="Main-Class" value="libbun.main.Main" />

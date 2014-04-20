@@ -1,4 +1,0 @@
-#!/bin/bash
-
-TEST_DIR=$(pwd)/test
-$TEST_DIR/bin/testfiles.sh $TEST_DIR/bun bun $TEST_DIR/w jvm

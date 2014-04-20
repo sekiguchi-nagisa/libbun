@@ -632,7 +632,7 @@ public class LibBunSystem {
 
 	//
 	public final static BType GetNativeType(Class<?> NativeClass) {
-		return JavaTypeTable.GetZenType(NativeClass);
+		return JavaTypeTable.GetBunType(NativeClass);
 	}
 
 	// Type

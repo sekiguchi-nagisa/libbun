@@ -1,0 +1,3 @@
+#!/bin/bash
+
+OUTDIR=test/w TARGET=jvm test/bin/buntest test/bun/*.bun

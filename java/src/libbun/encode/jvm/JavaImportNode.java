@@ -34,7 +34,7 @@ public class JavaImportNode extends TopLevelNode {
 		@Var String ResourcePath = this.AST[JavaImportNode._Path].SourceToken.GetTextAsName();
 		try {
 			Class<?> jClass = Class.forName(ResourcePath);
-			BType Type = JavaTypeTable.GetZenType(jClass);
+			BType Type = JavaTypeTable.GetBunType(jClass);
 			String Alias = this.ParseSymbol(ResourcePath);
 
 			Gamma.SetTypeName(Alias, Type, this.SourceToken);

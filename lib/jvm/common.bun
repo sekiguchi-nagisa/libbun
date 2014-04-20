@@ -25,35 +25,35 @@ define endsWith "libbun/encode/jvm/JavaCommonApi.EndsWith($[0],$[1])" : Func<Str
 define size "libbun/encode/jvm/JavaCommonApi.ObjectArraySize($[0])" : Func<α[],int>;
 define clear "libbun/encode/jvm/JavaCommonApi.ObjectArrayClear($[0],$[1])" : Func<α[],int,void>;
 define add "libbun/encode/jvm/JavaCommonApi.ObjectArrayAdd($[0],$[1])" : Func<α[],α,void>;
-define add "libbun/encode/jvm/JavaCommonApi.ObjectArrayInsert($[0],$[1],$[2])" : Func<α[],int,α,void>;
+define insert "libbun/encode/jvm/JavaCommonApi.ObjectArrayInsert($[0],$[1],$[2])" : Func<α[],int,α,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.ObjectArrayToString($[0])" : Func<α[],String>;
 // BooleanArray
 define size "libbun/encode/jvm/JavaCommonApi.BooleanArraySize($[0])" : Func<boolean[],int>;
 define clear "libbun/encode/jvm/JavaCommonApi.BooleanArrayClear($[0],$[1])" : Func<boolean[],int,void>;
 define add "libbun/encode/jvm/JavaCommonApi.BooleanArrayAdd($[0],$[1])" : Func<boolean[],boolean,void>;
-define add "libbun/encode/jvm/JavaCommonApi.BooleanArrayInsert($[0],$[1],$[2])" : Func<boolean[],int,boolean,void>;
+define insert "libbun/encode/jvm/JavaCommonApi.BooleanArrayInsert($[0],$[1],$[2])" : Func<boolean[],int,boolean,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.BooleanArrayToString($[0])" : Func<boolean[],String>;
 // IntArray
 define size "libbun/encode/jvm/JavaCommonApi.IntArraySize($[0])" : Func<int[],int>;
 define clear "libbun/encode/jvm/JavaCommonApi.IntArrayClear($[0],$[1])" : Func<int[],int,void>;
 define add "libbun/encode/jvm/JavaCommonApi.IntArrayAdd($[0],$[1])" : Func<int[],int,void>;
-define add "libbun/encode/jvm/JavaCommonApi.IntArrayInsert($[0],$[1],$[2])" : Func<int[],int,int,void>;
+define insert "libbun/encode/jvm/JavaCommonApi.IntArrayInsert($[0],$[1],$[2])" : Func<int[],int,int,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.IntArrayToString($[0])" : Func<int[],String>;
 // FloatArray
 define size "libbun/encode/jvm/JavaCommonApi.FloatArraySize($[0])" : Func<float[],int>;
 define clear "libbun/encode/jvm/JavaCommonApi.FloatArrayClear($[0],$[1])" : Func<float[],float,void>;
 define add "libbun/encode/jvm/JavaCommonApi.FloatArrayAdd($[0],$[1])" : Func<float[],int,void>;
-define add "libbun/encode/jvm/JavaCommonApi.FloatArrayInsert($[0],$[1],$[2])" : Func<float[],int,float,void>;
+define insert "libbun/encode/jvm/JavaCommonApi.FloatArrayInsert($[0],$[1],$[2])" : Func<float[],int,float,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.FloatArrayToString($[0])" : Func<float[],String>;
 // StringArray
 define size "libbun/encode/jvm/JavaCommonApi.StringArraySize($[0])" : Func<String[],int>;
 define clear "libbun/encode/jvm/JavaCommonApi.StringArrayClear($[0],$[1])" : Func<String[],int,void>;
 define add "libbun/encode/jvm/JavaCommonApi.StringArrayAdd($[0],$[1])" : Func<String[],String,void>;
-define add "libbun/encode/jvm/JavaCommonApi.StringArrayInsert($[0],$[1],$[2])" : Func<String[],int,String,void>;
+define insert "libbun/encode/jvm/JavaCommonApi.StringArrayInsert($[0],$[1],$[2])" : Func<String[],int,String,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.StringArrayToString($[0])" : Func<String[],String>;
 
 // Map
-define containsKey "libbun/encode/jvm/JavaCommonApi.MapContainsKey($[0],$[1])" : Func<Map<α>,String,boolean>;
+define hasKey "libbun/encode/jvm/JavaCommonApi.HasKey($[0],$[1])" : Func<Map<α>,String,boolean>;
 define _ "libbun/encode/jvm/JavaCommonApi.MapToString($[0])" : Func<Map<α>,String>;
 
 // Object

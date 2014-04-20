@@ -12,7 +12,7 @@ public class ZNativeType extends BType {
 	}
 
 	@Override public BType GetSuperType() {
-		return JavaTypeTable.GetZenType(this.JClass.getSuperclass());
+		return JavaTypeTable.GetBunType(this.JClass.getSuperclass());
 	}
 
 }

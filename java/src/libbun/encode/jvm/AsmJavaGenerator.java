@@ -140,7 +140,6 @@ import libbun.util.BMatchFunction;
 import libbun.util.BunObject;
 import libbun.util.BTokenFunction;
 import libbun.util.Var;
-import libbun.util.ZObjectMap;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -263,7 +262,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			try {
 				java.lang.reflect.Field NativeField = NativeClass.getField(FieldName);
 				if(Modifier.isPublic(NativeField.getModifiers())) {
-					return JavaTypeTable.GetZenType(NativeField.getType());
+					return JavaTypeTable.GetBunType(NativeField.getType());
 				}
 			} catch (SecurityException e) {
 			} catch (NoSuchFieldException e) {
@@ -279,7 +278,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			try {
 				java.lang.reflect.Field NativeField = NativeClass.getField(FieldName);
 				if(Modifier.isPublic(NativeField.getModifiers()) && !Modifier.isFinal(NativeField.getModifiers())) {
-					return JavaTypeTable.GetZenType(NativeField.getType());
+					return JavaTypeTable.GetBunType(NativeField.getType());
 				}
 			} catch (SecurityException e) {
 			} catch (NoSuchFieldException e) {
@@ -297,7 +296,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			if(jParams[j] == Object.class) {
 				continue; // accepting all types
 			}
-			@Var BType jParamType = JavaTypeTable.GetZenType(jParams[j]);
+			@Var BType jParamType = JavaTypeTable.GetBunType(jParams[j]);
 			@Var BType ParamType = ParamList.GetListAt(j).Type;
 			if(jParamType == ParamType || jParamType.Accept(ParamList.GetListAt(j).Type)) {
 				continue;
@@ -365,7 +364,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 				if (ParamTypes != null) {
 					@Var int j = 0;
 					while(j < LibBunSystem._Size(ParamTypes)) {
-						TypeList.add(JavaTypeTable.GetZenType(ParamTypes[j]));
+						TypeList.add(JavaTypeTable.GetBunType(ParamTypes[j]));
 						j = j + 1;
 					}
 				}
@@ -425,7 +424,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			this.VisitErrorNode(new ErrorNode(Node, "ambigious map"));
 		}
 		else {
-			String Owner = Type.getInternalName(ZObjectMap.class);
+			String Owner = Type.getInternalName(BunMap.class);
 			this.AsmBuilder.visitTypeInsn(NEW, Owner);
 			this.AsmBuilder.visitInsn(DUP);
 			this.AsmBuilder.PushInt(Node.Type.TypeId);
@@ -462,7 +461,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			return;
 		}
 		// check class existence
-		if(!Node.Type.Equals(JavaTypeTable.GetZenType(this.GetJavaClass(Node.Type)))) {
+		if(!Node.Type.Equals(JavaTypeTable.GetBunType(this.GetJavaClass(Node.Type)))) {
 			this.VisitErrorNode(new ErrorNode(Node, "undefined class: " + Node.Type));
 			return;
 		}
@@ -542,7 +541,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		this.AsmBuilder.CheckReturnCast(Node, this.AsmBuilder.GetLocalType(Node.GetUniqueName(this)));
 	}
 
-	private void GenerateAssignNode(GetNameNode Node, BNode ExprNode) {
+	protected void GenerateAssignNode(GetNameNode Node, BNode ExprNode) {
 		@Var String Name = Node.GetUniqueName(this);
 		this.AsmBuilder.PushNode(this.AsmBuilder.GetLocalType(Name), ExprNode);
 		this.AsmBuilder.StoreLocal(Name);
@@ -597,7 +596,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		}
 	}
 
-	private void GenerateAssignNode(GetFieldNode Node, BNode ExprNode) {
+	protected void GenerateAssignNode(GetFieldNode Node, BNode ExprNode) {
 		if(Node.IsUntyped()) {
 			Method sMethod = JavaMethodTable.GetStaticMethod("SetField");
 			BNode NameNode = new BunStringNode(Node, null, Node.GetName());
@@ -626,9 +625,9 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		this.AsmBuilder.ApplyStaticMethod(Node, sMethod, new BNode[] {Node.RecvNode(), Node.IndexNode()});
 	}
 
-	private void GenerateAssignNode(GetIndexNode Node, BNode ExprNode) {
+	protected void GenerateAssignNode(GetIndexNode Node, BNode ExprNode) {
 		Method sMethod = JavaMethodTable.GetBinaryStaticMethod(Node.RecvNode().Type, "[]=", Node.IndexNode().Type);
-		this.AsmBuilder.ApplyStaticMethod(Node, sMethod, new BNode[] {Node.RecvNode(), Node.IndexNode(), ExprNode});
+		this.AsmBuilder.ApplyStaticMethod(Node.ParentNode, sMethod, new BNode[] {Node.RecvNode(), Node.IndexNode(), ExprNode});
 	}
 
 	private int GetInvokeType(Method jMethod) {
@@ -954,7 +953,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			Label CatchLabel = new Label();
 			AsmTryCatchLabel Label = this.TryCatchLabel.peek();
 			Class<?> ExceptionClass = Exception.class;
-			String ThrowType = this.AsmType(JavaTypeTable.GetZenType(ExceptionClass)).getInternalName();
+			String ThrowType = this.AsmType(JavaTypeTable.GetBunType(ExceptionClass)).getInternalName();
 			this.AsmBuilder.visitTryCatchBlock(Label.BeginTryLabel, Label.EndTryLabel, CatchLabel, ThrowType);
 			this.AsmBuilder.AddLocal(ExceptionClass, Node.ExceptionName());
 			this.AsmBuilder.visitLabel(CatchLabel);

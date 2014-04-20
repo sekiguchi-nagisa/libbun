@@ -32,6 +32,7 @@ import libbun.type.BFuncType;
 import libbun.type.BGenericType;
 import libbun.type.BType;
 import libbun.type.BTypePool;
+import libbun.util.BunMap;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 import libbun.util.BArray;
@@ -41,7 +42,6 @@ import libbun.util.BFunction;
 import libbun.util.BIntArray;
 import libbun.util.ZNativeType;
 import libbun.util.ZObjectArray;
-import libbun.util.ZObjectMap;
 import libbun.util.BStringArray;
 
 
@@ -58,7 +58,7 @@ public class JavaTypeTable {
 		JavaTypeTable.SetTypeTable(BType.StringType, String.class);
 		JavaTypeTable.SetTypeTable(BFuncType._FuncType, BFunction.class);
 		JavaTypeTable.SetTypeTable(BGenericType._ArrayType, ZObjectArray.class);
-		JavaTypeTable.SetTypeTable(BGenericType._MapType, ZObjectMap.class);
+		JavaTypeTable.SetTypeTable(BGenericType._MapType, BunMap.class);
 
 		BType BooleanArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.BooleanType);
 		BType IntArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.IntType);
@@ -102,7 +102,7 @@ public class JavaTypeTable {
 		return jClass;
 	}
 
-	public static BType GetZenType(Class<?> JavaClass) {
+	public static BType GetBunType(Class<?> JavaClass) {
 		BType NativeType = JavaTypeTable.TypeMap.get(JavaClass.getCanonicalName());
 		if (NativeType == null) {
 			NativeType = new ZNativeType(JavaClass);
@@ -115,25 +115,25 @@ public class JavaTypeTable {
 		@Var Class<?>[] ParamTypes = JMethod.getParameterTypes();
 		@Var BArray<BType> TypeList = new BArray<BType>(new BType[LibBunSystem._Size(ParamTypes) + 2]);
 		if (!Modifier.isStatic(JMethod.getModifiers())) {
-			TypeList.add(JavaTypeTable.GetZenType(JMethod.getDeclaringClass()));
+			TypeList.add(JavaTypeTable.GetBunType(JMethod.getDeclaringClass()));
 		}
 		if (ParamTypes != null) {
 			@Var int j = 0;
 			while(j < ParamTypes.length) {
-				TypeList.add(JavaTypeTable.GetZenType(ParamTypes[j]));
+				TypeList.add(JavaTypeTable.GetBunType(ParamTypes[j]));
 				j = j + 1;
 			}
 		}
-		TypeList.add(JavaTypeTable.GetZenType(JMethod.getReturnType()));
+		TypeList.add(JavaTypeTable.GetBunType(JMethod.getReturnType()));
 		return BTypePool._LookupFuncType2(TypeList);
 	}
 
 	public final static BFuncType FuncType(Class<?> ReturnT, Class<?> ... paramsT) {
 		@Var BArray<BType> TypeList = new BArray<BType>(new BType[10]);
 		for(Class<?> C : paramsT) {
-			TypeList.add(JavaTypeTable.GetZenType(C));
+			TypeList.add(JavaTypeTable.GetBunType(C));
 		}
-		TypeList.add(JavaTypeTable.GetZenType(ReturnT));
+		TypeList.add(JavaTypeTable.GetBunType(ReturnT));
 		return BTypePool._LookupFuncType2(TypeList);
 	}
 

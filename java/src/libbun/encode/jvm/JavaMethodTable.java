@@ -115,8 +115,8 @@ public class JavaMethodTable {
 		Import(StringArrayType, "[]", BType.IntType, libbun.util.BStringArray.class, "GetIndex");
 		Import(StringArrayType, "[]=", BType.IntType, libbun.util.BStringArray.class, "SetIndex", String.class);
 
-		Import(BGenericType._MapType, "[]", BType.StringType, libbun.util.ZObjectMap.class, "GetIndex");
-		Import(BGenericType._MapType, "[]=", BType.StringType, libbun.util.ZObjectMap.class, "SetIndex", Object.class);
+		Import(BGenericType._MapType, "[]", BType.StringType, libbun.util.BunMap.class, "GetIndex");
+		Import(BGenericType._MapType, "[]=", BType.StringType, libbun.util.BunMap.class, "SetIndex", Object.class);
 
 
 		Import(boolean.class, JavaCastApi.class, "toObject");

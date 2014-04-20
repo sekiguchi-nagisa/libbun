@@ -84,6 +84,10 @@ public final class BunMap <T> extends BunObject {
 		throw new RuntimeException("unimplemented !!");
 	}
 
+	public final boolean HasKey(String Key) {
+		return this.Map.containsKey(Key);
+	}
+
 	public final static <T> T GetIndex(BunMap<T> aMap, String Key) {
 		return aMap.Map.get(Key);
 	}

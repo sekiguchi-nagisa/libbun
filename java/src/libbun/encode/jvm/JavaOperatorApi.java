@@ -38,7 +38,7 @@ import libbun.util.BunMap;
 public final class JavaOperatorApi {
 
 	private static String t(Object x) {
-		return JavaTypeTable.GetZenType(x.getClass()).toString();
+		return JavaTypeTable.GetBunType(x.getClass()).toString();
 	}
 
 	public static boolean Not(Object x) {

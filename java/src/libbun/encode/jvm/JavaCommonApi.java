@@ -1,11 +1,11 @@
 package libbun.encode.jvm;
 
+import libbun.util.BunMap;
 import libbun.util.SoftwareFaultException;
 import libbun.util.BBooleanArray;
 import libbun.util.BFloatArray;
 import libbun.util.BIntArray;
 import libbun.util.ZObjectArray;
-import libbun.util.ZObjectMap;
 import libbun.util.BStringArray;
 
 public class JavaCommonApi {
@@ -206,11 +206,11 @@ public class JavaCommonApi {
 	}
 
 	// Map
-	public final static boolean MapContainsKey(ZObjectMap x, String y) {
-		return x.ContainsKey(y);
+	public final static <T> boolean HasKey(BunMap<T> x, String y) {
+		return x.HasKey(y);
 	}
 
-	public final static String MapToString(ZObjectMap x) {
+	public final static <T> String MapToString(BunMap<T> x) {
 		return x.toString();
 	}
 
