@@ -1,0 +1,23 @@
+define math::E "System~Math.E": float
+define math::PI "System~Math.PI": float
+define math::abs "System~Math.Abs($[0])": Func<int,int>
+define math::abs "System~Math.Abs($[0])": Func<float,float>
+define math::sin "System~Math.Sin($[0])": Func<float,float>
+define math::cos "System~Math.Cos($[0])": Func<float,float>
+define math::tan "System~Math.Tan($[0])": Func<float,float>
+define math::sqrt "System~Math.Sqrt($[0])": Func<float,float>
+define math::acos "System~Math.Acos($[0])": Func<float,float>
+define math::asin "System~Math.Asin($[0])": Func<float,float>
+define math::atan "System~Math.Atan($[0])": Func<float,float>
+define math::atan2 "System~Math.Atan2($[0], $[1])": Func<float,float>
+define math::ceil "System~Math.Ceil($[0])": Func<float,float>
+define math::round "System~Math.Round($[0])": Func<float,float>
+define math::floor "System~Math.Floor($[0])": Func<float,float>
+define math::exp "System~Math.Exp($[0])": Func<float,float>
+define math::log "System~Math.Log($[0])": Func<float,float>
+define math::max "System~Math.Max($[0], $[1])": Func<float,float,float>
+define math::min "System~Math.Min($[0], $[1])": Func<float,float,float>
+define math::max "System~Math.Max($[0], $[1])": Func<int,int,int>
+define math::min "System~Math.Min($[0], $[1])": Func<int,int,int>
+define math::pow "System~Math.Pow($[0], $[1])": Func<float,float,float>
+define math::random "@Random~Lib.Random($[0])": Func<float,float>

@@ -72,7 +72,6 @@ import libbun.util.ZenMethod;
 
 public class CSharpGenerator extends LibBunSourceGenerator {
 
-	@BField private BunFunctionNode MainFuncNode = null;
 	@BField private final BArray<BunFunctionNode> ExportFunctionList = new BArray<BunFunctionNode>(new BunFunctionNode[4]);
 	@BField private final static String NameSpaceName = "LibBunGenerated";
 	@BField private final static String MainClassName = "LibBunMain";
@@ -84,7 +83,7 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 		this.SetNativeType(BType.FloatType, "double");
 		this.SetNativeType(BType.StringType, "string");
 		this.SetNativeType(BType.VarType, "dynamic");
-
+		this.LoadInlineLibrary("inline.cs", "//");
 		this.SetReservedName("this", "@this");
 		this.Source.Append("namespace ", CSharpGenerator.NameSpaceName);
 		this.Source.OpenIndent(" {");
@@ -95,19 +94,6 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override @ZenMethod protected void Finish(String FileName) {
-		FileName = CSharpGenerator.MainClassName;
-
-		this.GenerateClass("public static", FileName, BClassType._ObjectType);
-		this.Source.OpenIndent(" {");
-
-		this.Source.AppendNewLine("public static void Main(String[] a)");
-
-		this.Source.OpenIndent(" {");
-		if(this.MainFuncNode != null) {
-			this.Source.AppendNewLine("main();");
-		}
-		this.Source.CloseIndent("}");
-		this.Source.CloseIndent("}");
 		this.Source.CloseIndent("}"); // end of namespace
 		this.Source.AppendLineFeed();
 	}
@@ -190,14 +176,17 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitThrowNode(BunThrowNode Node) {
-		this.Source.Append("throw ");
-		this.GenerateExpression("new Exception((", Node.ExprNode(), ").ToString())");
+		this.ImportLibrary("@Throw");
+		this.Source.Append("Lib.Throw(");
+		this.GenerateExpression(Node.ExprNode());
+		this.Source.Append(")");
 	}
 
 	@Override public void VisitTryNode(BunTryNode Node) {
 		this.Source.Append("try ");
 		this.GenerateExpression(Node.TryBlockNode());
 		if(Node.HasCatchBlockNode()) {
+			this.ImportLibrary("@SoftwareFault");
 			@Var String VarName = Node.ExceptionName();
 			this.Source.AppendNewLine("catch (Exception ", VarName, ")");
 			this.GenerateExpression(Node.CatchBlockNode());
@@ -278,6 +267,7 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override protected void GenerateTypeName(BType Type) {
+		this.GetNativeTypeName(Type.GetRealType());
 		if(Type instanceof BFuncType) {
 			this.Source.Append(this.GetFuncTypeClass((BFuncType)Type));
 		}
@@ -304,7 +294,7 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 			this.GenerateFunctionAsClass(Node.FuncName(), Node);
 			if(Node.IsExport) {
 				if(Node.FuncName().equals("main")) {
-					this.MainFuncNode = Node;
+					this.ImportLibrary("@main");
 				}
 				else {
 					this.ExportFunctionList.add(Node);
@@ -415,9 +405,10 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitErrorNode(ErrorNode Node) {
 		LibBunLogger._LogError(Node.SourceToken, Node.ErrorMessage);
-		this.Source.Append("(() => { throw new RuntimeExeption(");
+		this.ImportLibrary("@Error");
+		this.Source.Append("Lib.Error(");
 		this.Source.Append(LibBunSystem._QuoteString(Node.ErrorMessage));
-		this.Source.Append("; }))()");
+		this.Source.Append(")");
 	}
 
 	@Override

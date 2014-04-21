@@ -6,6 +6,7 @@ math-E: float
  js: Math.E
  c:   math.h~M_E
  cl:  (exp 1)
+ cs: System~Math.E
  java.lang.Math~Math.E
  py: math~math.e
 
@@ -14,6 +15,7 @@ math-PI: float
  js: Math.PI
  c:   math.h~M_PI
  cl:  pi
+ cs: System~Math.PI
  java: java.lang.Math~Math.PI
  py: math~math.pi
 
@@ -23,6 +25,7 @@ math-abs: Func<int,int>
  js: Math.abs($[0])
  c:   <stdlib.h>~labs($[0])
  cl:  (abs $[0])
+ cs: System~Math.Abs($[0])
  java: java.lang.Math~Math.abs($[0])
  py: math~math.abs($[0])
 
@@ -32,6 +35,7 @@ math-abs: Func<float,float>
  js: Math.abs($[0])
  c:   math.h~fabs($[0])
  cl:  (abs $[0])
+ cs: System~Math.Abs($[0])
  java: java.lang.Math~Math.abs($[0])
  py: math~math.abs($[0])
 
@@ -41,6 +45,7 @@ math-sin: Func<float,float>
  js: Math.sin($[0])
  c:   math.h~sin($[0])
  cl:  (sin $[0])
+ cs: System~Math.Sin($[0])
  java: java.lang.Math~Math.sin($[0])
  py: math~math.sin($[0])
 
@@ -50,6 +55,7 @@ math-cos: Func<float,float>
  js: Math.cos($[0])
  c:   math.h~cos($[0])
  cl:  (cos $[0])
+ cs: System~Math.Cos($[0])
  java: java.lang.Math~Math.cos($[0])
  py: math~math.cos($[0])
 
@@ -59,6 +65,7 @@ math-tan: Func<float,float>
  js: Math.tan($[0])
  c:   math.h~tan($[0])
  cl:  (tan $[0])
+ cs: System~Math.Tan($[0])
  java: java.lang.Math~Math.tan($[0])
  py: math~math.tan($[0])
 
@@ -68,6 +75,7 @@ math-sqrt: Func<float,float>
  js: Math.sqrt($[0])
  c:   math.h~sqrt($[0])
  cl:  (sqrt $[0])
+ cs: System~Math.Sqrt($[0])
  java: java.lang.Math~Math.sqrt($[0])
  py: math~math.sqrt($[0])
 
@@ -77,6 +85,7 @@ math-acos: Func<float,float>
  js: Math.acos($[0])
  c:   math.h~acos($[0])
  cl:  (acos $[0])
+ cs: System~Math.Acos($[0])
  java: java.lang.Math~Math.acos($[0])
  py: math~math.acos($[0])
 
@@ -86,6 +95,7 @@ math-asin: Func<float,float>
  js: Math.asin($[0])
  c:   math.h~asin($[0])
  cl:  (asin $[0])
+ cs: System~Math.Asin($[0])
  java: java.lang.Math~Math.acos($[0])
  py: math~math.asin($[0])
 
@@ -95,6 +105,7 @@ math-atan: Func<float,float>
  js: Math.atan($[0])
  c:   math.h~atan($[0])
  cl:  (atan $[0])
+ cs: System~Math.Atan($[0])
  java: java.lang.Math~Math.atan($[0])
  py: math~math.atan($[0])
 
@@ -104,6 +115,7 @@ math-atan2: Func<float,float>
  js: Math.atan2($[0])
  c:   math.h~atan2($[0], $[1])
  cl:  (atan $[0] $[1])
+ cs: System~Math.Atan2($[0], $[1])
  java: java.lang.Math~Math.atan($[0], $[1])
  py: math~math.atan2($[0], $[1])
 
@@ -113,6 +125,7 @@ math-ceil: Func<float,float>
  js: Math.ceil($[0])
  c:   math.h~ceil($[0])
  cl:  (ceiling $[0])
+ cs: System~Math.Ceil($[0])
  java: java.lang.Math~Math.ceil($[0])
  py: math~math.ceil($[0])
 
@@ -123,6 +136,7 @@ math-round: Func<float,float>
  js: Math.round($[0])
  c:   math.h~round($[0])
  cl:  (round $[0])
+ cs: System~Math.Round($[0])
  java: java.lang.Math~Math.round($[0])
  py: math~math.round($[0])
 
@@ -132,6 +146,7 @@ math-floor: Func<float,float>
  js: Math.floor($[0])
  c:   math.h~floor($[0])
  cl:  (floor $[0])
+ cs: System~Math.Floor($[0])
  java: java.lang.Math~Math.floor($[0])
  py: math~math.floor($[0])
 
@@ -141,6 +156,7 @@ math-exp: Func<float,float>
  js: Math.exp($[0])
  c:   math.h~exp($[0])
  cl:  (exp $[0])
+ cs: System~Math.Exp($[0])
  java: java.lang.Math~Math.exp($[0])
  py: math~math.exp($[0])
 
@@ -150,6 +166,7 @@ math-log: Func<float,float>
  js: Math.log($[0])
  c:   math.h~log($[0])
  cl:  (log $[0])
+ cs: System~Math.Log($[0])
  java: java.lang.Math~Math.log($[0])
  py: math~math.log($[0])
 
@@ -159,6 +176,7 @@ math-max: Func<float,float,float>
  js: Math.max($[0], $[1])
  c:   libbun.h~libbun_fmax($[0], $[1])
  cl:  (max $[0] $[1])
+ cs: System~Math.Max($[0], $[1])
  java: java.lang.Math~Math.max($[0], $[1])
  py: math~math.max($[0], $[1])
 
@@ -168,6 +186,7 @@ math-min: Func<float,float,float>
  js: Math.min($[0], $[1])
  c:   libbun.h~libbun_fmin($[0], $[1])
  cl:  (min $[0] $[1])
+ cs: System~Math.Min($[0], $[1])
  java: java.lang.Math~Math.min($[0], $[1])
  py: math~math.min($[0], $[1])
 
@@ -177,6 +196,7 @@ math-max: Func<int,int,int>
  js: Math.max($[0], $[1])
  c:   libbun.h~libbun_imax($[0], $[1])
  cl:  (max $[0] $[1])
+ cs: System~Math.Max($[0], $[1])
  java: java.lang.Math~Math.max($[0], $[1])
  py: math~math.max($[0], $[1])
 
@@ -186,6 +206,7 @@ math-min: Func<int,int,int>
  js: Math.min($[0], $[1])
  c:   libbun.h~libbun_imin($[0], $[1])
  cl:  (min $[0] $[1])
+ cs: System~Math.Min($[0], $[1])
  java: java.lang.Math~Math.min($[0], $[1])
  py: math~math.min($[0], $[1])
 
@@ -195,6 +216,7 @@ math-pow: Func<float,float,float>
  js: Math.pow($[0], $[1])
  c:   math.h~pow($[0], $[1])
  cl:  (expt $[0] $[1])
+ cs: System~Math.Pow($[0], $[1])
  java: java.lang.Math~Math.pow($[0], $[1])
  py: math~math.pow($[0], $[1])
 
@@ -204,5 +226,6 @@ math-random: Func<float,float>
  js: Math.random($[0])
  c:   libbun.h~libbun_random($[0])
  cl:  (random 1.0)
+ cs: @Random~Lib.Random($[0])
  java: java.lang.Math~Math.random($[0])
  py: math~math.round($[0])
