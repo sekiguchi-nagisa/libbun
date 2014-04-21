@@ -1016,7 +1016,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		if(Node.IsTopLevelDefineFunction()) {
 			assert(Node.FuncName() != null);
 			assert(Node.IsTopLevel());  // otherwise, transformed to var f = function ()..
-			JavaStaticFieldNode FuncNode = this.GenerateFunctionAsSymbolField(Node.GetUniqueName(this), Node);
+			JavaStaticFieldNode FuncNode = this.GenerateFunctionAsSymbolField(Node.FuncName(), Node);
 			if(Node.IsExport) {
 				if(Node.FuncName().equals("main")) {
 					this.MainFuncNode = FuncNode;
