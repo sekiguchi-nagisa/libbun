@@ -1,6 +1,8 @@
 package libbun.lang.bun.shell;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Stack;
 
 import libbun.ast.BNode;
 import libbun.ast.binary.BunAddNode;
@@ -16,10 +18,6 @@ public class ShellUtils {
 	// prefix option symbol
 	public final static String _timeout = "timeout";
 	public final static String _trace = "trace";
-
-	public static String _ToCommandSymbol(String Symbol) {
-		return "__$" + Symbol;
-	}
 
 	public static boolean _MatchStopToken(BTokenContext TokenContext) { // ;,)]}&&||
 		BToken Token = TokenContext.GetToken();
@@ -72,5 +70,83 @@ public class ShellUtils {
 			}
 		}
 		return null;
+	}
+
+	public static class CommandScope {
+		private final CommandScope ParentScope;
+		private final HashMap<String, String> CommandMap;
+
+		public CommandScope(CommandScope ParentScope) {
+			this.ParentScope = ParentScope;
+			this.CommandMap = new HashMap<String, String>();
+		}
+
+		public CommandScope() {
+			this(null);
+		}
+
+		private CommandScope GetParentScope() {
+			return this.ParentScope;
+		}
+
+		public boolean SetCommand(String CommandSymbol, String Command) {
+			if(this.CommandMap.containsKey(CommandSymbol)) {
+				return false;
+			}
+			this.CommandMap.put(CommandSymbol, Command);
+			return true;
+		}
+
+		public boolean IsCommand(String CommandSymbol) {
+			if(this.CommandMap.containsKey(CommandSymbol)) {
+				return true;
+			}
+			if(this.GetParentScope() == null) {
+				return false;
+			}
+			else {
+				return this.GetParentScope().IsCommand(CommandSymbol);
+			}
+		}
+
+		public String GetCommand(String CommandSymbol) {
+			String Command = this.CommandMap.get(CommandSymbol);
+			if(Command != null) {
+				return Command;
+			}
+			if(this.GetParentScope() == null) {
+				return null;
+			}
+			else {
+				return this.GetParentScope().GetCommand(CommandSymbol);
+			}
+		}
+	}
+
+	public static final Stack<CommandScope> ScopeStack = new Stack<ShellUtils.CommandScope>();
+	static {
+		ScopeStack.push(new CommandScope());
+	}
+
+	public static boolean IsCommand(String CommandSymbol) {
+		return ScopeStack.peek().IsCommand(CommandSymbol);
+	}
+
+	public static boolean SetCommand(String CommandSymbol, String Command) {
+		return ScopeStack.peek().SetCommand(CommandSymbol, Command);
+	}
+
+	public static String GetCommand(String CommandSymbol) {
+		return ScopeStack.peek().GetCommand(CommandSymbol);
+	}
+
+	public static void CreateNewCommandScope() {
+		ScopeStack.push(new CommandScope(ScopeStack.peek()));
+	}
+
+	public static void RemoveCommandScope() {
+		if(ScopeStack.size() > 1) {
+			ScopeStack.pop();
+		}
 	}
 }
