@@ -11,7 +11,7 @@ assert: Func<boolean,String,void>
 
 println: Func<String,void>
  bun:  println($[0])
- c:    libbun.h~printf(S_TOSTRING S_LF, $[0])
+ c:    stdio.h~printf("%s\n", $[0])
  cl:   ~(format t "~a~%" $[0])
  cs:   Console.WriteLine($[0])
  java: System.out.println($[0])
@@ -32,7 +32,7 @@ print: Func<String,void>
 ## boolean
 _: Func<boolean,String>
  bun:  ((String)$[0])
- c:    libbun.h~(($[0])?S(S_TRUE):S(S_FALSE))
+ c:    ~(($[0])?"true":"false")
  cl:   ~(format nil "~a" $[0])
  cs:   ($[0]).ToString()
  java: String.valueOf($[0])
@@ -53,7 +53,7 @@ _: Func<int,float>
 
 _: Func<int,String>
  bun: ((String)$[0])
- c:   libbun.h~libbun_i2s($[0])
+ c:   @i2s~libbun_i2s($[0])
  cl:  ~(format nil "~a" $[0])
  cs:  ($[0]).ToString()
  java: String.valueOf($[0])
@@ -78,7 +78,7 @@ _: Func<float,int>
 
 _: Func<float,String>
  bun:   ((String)$[0])
- c:    libbun.h~libbun_f2s($[0])
+ c:    @f2s~libbun_f2s($[0])
  cl:   ~(format nil "~a" $[0])
  java: String.valueOf($[0])
  py:   (u'%.5f' % ($[0]))
@@ -90,25 +90,25 @@ _: Func<float,String>
 
 _: Func<String,int>
  bun: ((int)$[0])
- c:   libbun.h~libbun_s2i($[0])
+ c:   @s2i~libbun_s2i($[0])
  cl:  (parse-integer $[0])
  lua: tonumber($[0])
 
 _: Func<String,float>
  bun: ((float)$[0])
- c:   libbun.h~libbun_s2f($[0])
+ c:   @s2f~libbun_s2f($[0])
  cl:  (read-from-string $[0])
  lua: tonumber($[0])
 
 +: Func<String,String,String>
- c: libbun.h~libbun_concat($[0], $[1])
+ c:  @concat~libbun_concat($[0], $[1])
  cl: ~(format nil "~a~a" $[0] $[1])
  lua: $[0] .. $[1]
 
 size: Func<String,int>
  #: s.size() returns the length of a string $s
  bun:  $[0].size()
- c:   string.h~strlen($[0])
+ c:    string.h~strlen($[0])
  cl:   (length $[0])
  cs:   $[0].Length
  java: $[0].length()
@@ -118,133 +118,138 @@ size: Func<String,int>
 
 equals: Func<String,String,boolean>
  bun,py,js,cs:  $[0] == $[1]
- c:   libbun.h~libbun_strcmp($[0], $[1])
+ c:  (strcmp($[0], $[1]) == 0)
  cl: (string= $[0] $[1])
  java: $[0].equals($[1])
 
 startsWith: Func<String,String,boolean>
  bun,java:  $[0].startsWith($[1])
+ c:    @startsWith~libbun_startsWith($[0], $[1], 0)
  cl:   (and (>= (length $[0]) (length $[1])) (string= (subseq $[0] 0 (length $[1])) $[1]))
  cs:   $[0].StartsWith($[1])
  js:   ($[0].lastIndexOf($[1], 0) === 0)
  py:   $[0].startswith($[1])
- c:    libbun.h~libbun_startsWith($[0], $[1])
 
 endsWith: Func<String,String,boolean>
  bun,java:  $[0].endsWith($[1])
+ c:    @endsWith~libbun_endsWith($[0], $[1])
  cl:   (let ((spos (- (length $[0]) (length $[1])))) (and (>= spos 0) (string= (subseq $[0] spos (length $[0])) $[1])))
  cs:   $[0].EndsWith($[1])
  js:   ($[0].slice(- $[1].length) === $[1])
  py:   $[0].endswith($[1])
- c:    libbun.h~libbun_endsWith($[0], $[1])
 
 substring: Func<String,int,String>
  #: s.substring(x) extracts the substring from a string $s, between $x and the end of $s
  bun,java,js: $[0].substring($[1])
+ c:  @substring~libbun_substring($[0], $[1], strlen($[0]))
  cl: (subseq $[0] $[1])
  cs: $[0].Substring($[1])
  py:  $[0][$[1]:] 
- c:    libbun.h~libbun_substring1($[0], $[1])
 
 substring: Func<String,int,int,String>
  #: s.substring(x,y) extracts the substring from a string $s, between $x and $y
  bun,java,js: $[0].substring($[1],$[2])
+ c:  @substring~libbun_substring($[0], $[1], $[2])
  cl: (subseq $[0] $[1] $[2])
  cs: $[0].Substring($[1], $[2])
  py:  $[0][$[1]:$[2]]
- c:    libbun.h~libbun_substring2($[0], $[1], $[2])
 
 indexOf: Func<String,String,int>
  #: s.indexOf(x) returns the position of the first found occurrence of $x
  bun,java,js: $[0].indexOf($[1])
+ c:   @TODO~TODO(0)
  cl:  (or (search $[1] $[0]) -1)
  cs:  $[0].IndexOf($[1])
  py:  $[0].find($[1])
- c:    libbun.h~libbun_indexOf($[0], $[1])
 
 lastIndexOf: Func<String,String,int>
  #: s.lastIndexOf(x) returns the position of the last found occurrence of $x
  bun,java,js: $[0].lastIndexOf($[1]) 
+ c:   @TODO~TODO(0)
  py:  $[0].rfind($[1])
  cs:  $[0].LastIndexOf($[1])
- c:   libbun.h~libbun_lastIndexOf($[0], $[1])
 
 toLowerCase: Func<String,String>
  #: s.toLowerCase() converts a string $s to lowercase letters
  bun,java,js: $[0].toLowerCase($[1]) 
+ c:   @TODO~TODO(NULL)
  cl:  (string-uppercase $[0])
  cs:  $[0].ToLowerCase($[1]) 
  py:  $[0].lower()
- c:   libbun.h~libbun_toLowerCase($[0])
 
 toUpperCase: Func<String,String>
  #: s.toUpperCase() converts a string $s to uppercase letters
  bun,java,js: $[0].toUpperCase($[1]) 
+ c:   @TODO~TODO(NULL)
  cl:  (string-downcase $[0])
  cs:  $[0].ToUpperCase($[1]) 
  py:  $[0].upper()
- c:   libbun.h~libbun_toUpperCase($[0])
 
 #codeAt
 
 replace: Func<String,String,String,String>
  bun: $[0].replace($[1], $[2])
+ c:   @TODO~TODO(NULL)
  cl:  cl-ppcre~(cl-ppcre:regex-replace-all $[1] $[0] $[2])
  java: $[0].replaceAll($[1], $[2])
- c:   libbun.h~libbun_replace($[0], $[1], $[2])
  
 #split
 
 trim: Func<String,String>
  bun: $[0].trim()
+ c:   @TODO~TODO(NULL)
  cl: (string-trim '(#\Space) $[0])
  java: $[0].trim()
- c:   libbun.h~libbun_trim($[0])
+ c:   @trim~libbun_trim($[0])
 
 ## Array
 _: Func<α[],String>
  #: Converts an array to a string
  bun: ((String)$[0])
+ c:   @TODO~TODO(NULL)
  cl:  ~(format nil "~a" $[0])
  cs:  string.Join(string.Empty, $[0])
  py:  unicode($[0])
  js:  $[0].join('')
- c:   libbun.h~libbun_ArrayToString($[0])
   
 size: Func<α[],int>
  #: a.$$() returns the number of elements in this array
  bun: $[0].size()
+ c:   @TODO~TODO(0)
  cl:  (length $[0])
  cs:  $[0].Count
  js:  $[0].length
  py:  len($[0])
- c:   libbun.h~libbun_ArrayLength($[0])
+ c:   @arraysize~libbun_ArrayLength($[0])
 
 size: Func<α[],int,void>
  #: a.$$(n) sets the number of elements in this array
  bun: $[0].size($[1])
- cl: (FIXME)
- js: $[0].size
- py: @arraysize~libbun_arraysize($[0], $[1], None)
- c:   libbun.h~libbun_ArraySetLength($[0], $[1])
+ c:   @TODO~TODO(0)
+ cl:  (FIXME)
+ js:  $[0].size
+ py:  @arraysize~libbun_arraysize($[0], $[1], None)
+ c:   @arraysize~libbun_ArraySetLength($[0], $[1])
  
 get: Func<α[],int,α>
  #: a.$$() tests the existence of the specified key in this array
  bun,py,js,cs,c: $[0][$[1]]
+ c:   @TODO~TODO(NULL)
  java: $[0].get($[1])
  
 set: Func<α[],int,α,void>
  bun,py,js,cs,c: $[0][$[1]] = $[2]
+ c:   @TODO~TODO(void)
  java: $[0].set($[1], $[2])
 
 add: Func<α[],α,void>
  #: a.$$(x) adds a new element to the end of this array
  bun: $[0].add($[1])
+ c:   @TODO~TODO(void)
  cl: (vector-push $[1])
  cs: $[0].Add($[1])
  js: $[0].push($[1])
  py: $[0].append($[1])
- c:   libbun.h~libbun_ArrayAdd($[0], $[1])
 
 insert: Func<α[],int,α,void>
  #: a.$$(n,x) inserts a new element at the specified position in this array
@@ -252,7 +257,6 @@ insert: Func<α[],int,α,void>
  cs:  $[0].Insert($[1], $[2])
  js:  $[0].splice($[1], 0, $[2])
  py:  $[0].insert($[1], $[2])
- c:   libbun.h~libbun_ArraySet($[0], $[1], $[2])
 
 remove: Func<α[],int,α>
  #: a.$$(n) removes the element at the specified position in this array
@@ -260,14 +264,12 @@ remove: Func<α[],int,α>
  py:  $[0].remove($[1])
  js:  $[0].splice($[1], 0)
  cs:  $[0].RemoveAt($[1])
- c:   libbun.h~libbun_ArrayRemove($[0], $[1])
 
 pop: Func<α[],α>
  #: a.$$(n) removes the last element in this array
  bun,py,js: $[0].pop($[1])
  cl:  (vector-pop $[0])
  cs:  ((list) => { var ret = list[list.Count - 1]; list.RemoveAt(list.Count - 1); return ret; })($[0])
- c:   libbun.h~libbun_ArrayPop($[0])
 
 # boolean[]
 size: Func<boolean[],int,void>

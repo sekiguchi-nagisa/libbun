@@ -101,7 +101,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.SetNativeType(BType.IntType, "long");
 		this.SetNativeType(BType.FloatType, "double");
 		this.SetNativeType(BType.StringType, "const char *");
-		this.LoadInlineLibrary("common.c", "//");
+		this.LoadInlineLibrary("playground.c", "//");
 		//		this.Header.AppendNewLine("/* end of header */", this.LineFeed);
 	}
 
@@ -110,9 +110,9 @@ public class CGenerator extends LibBunSourceGenerator {
 				!Node.IsErrorNode() &&
 				!(Node instanceof BunFuncNameNode) &&
 				!(Node instanceof BunLetVarNode && ((BunLetVarNode)(Node)).IsParamNode())) {
-			this.Source.Append("/*untyped*/NULL");
-			LibBunLogger._LogError(Node.SourceToken, "untyped error: " + Node);
-			return;
+			this.Source.Append("/*untyped*/");
+			//			LibBunLogger._LogError(Node.SourceToken, "untyped error: " + Node);
+			//			return;
 		}
 		Node.Accept(this);
 	}
@@ -258,53 +258,54 @@ public class CGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitArrayLiteralNode(BunArrayLiteralNode Node) {
-		this.ImportLibrary("libbun.h");
-		@Var BType ParamType = Node.Type.GetParamType(0);
-		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
-			this.Source.Append("LibZen_NewIntArray(");
-		}
-		else if(ParamType.IsFloatType()) {
-			this.Source.Append("LibZen_NewFloatArray(");
-		}
-		else if(ParamType.IsStringType()) {
-			this.Source.Append("LibZen_NewStringArray(");
-		}
-		else {
-			this.Source.Append("LibZen_NewArray(");
-		}
-		this.Source.Append(String.valueOf(Node.GetListSize()));
-		if(Node.GetListSize() > 0) {
-			this.Source.Append(", ");
-		}
-		this.GenerateListNode("", Node, ",", ")");
+		////		this.ImportLibrary("libbun.h");
+		//		@Var BType ParamType = Node.Type.GetParamType(0);
+		//		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
+		//			this.Source.Append("LibZen_NewIntArray(");
+		//		}
+		//		else if(ParamType.IsFloatType()) {
+		//			this.Source.Append("LibZen_NewFloatArray(");
+		//		}
+		//		else if(ParamType.IsStringType()) {
+		//			this.Source.Append("LibZen_NewStringArray(");
+		//		}
+		//		else {
+		//			this.Source.Append("LibZen_NewArray(");
+		//		}
+		//		this.Source.Append(String.valueOf(Node.GetListSize()));
+		//		if(Node.GetListSize() > 0) {
+		//			this.Source.Append(", ");
+		//		}
+		this.GenerateListNode("{", Node, ",", "}");
 	}
 
 	@Override public void VisitMapLiteralNode(BunMapLiteralNode Node) {
-		this.ImportLibrary("libbun.h");
-		@Var BType ParamType = Node.Type.GetParamType(0);
-		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
-			this.Source.Append("LibZen_NewIntMap(");
-		}
-		else if(ParamType.IsFloatType()) {
-			this.Source.Append("LibZen_NewFloatMap(");
-		}
-		else if(ParamType.IsStringType()) {
-			this.Source.Append("LibZen_NewStringMap(");
-		}
-		else {
-			this.Source.Append("LibZen_NewMap(");
-		}
-		this.Source.Append(String.valueOf(Node.GetListSize()));
-		if(Node.GetListSize() > 0) {
-			this.Source.Append(", ");
-		}
+		//		this.ImportLibrary("libbun.h");
+		//		@Var BType ParamType = Node.Type.GetParamType(0);
+		//		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
+		//			this.Source.Append("LibZen_NewIntMap(");
+		//		}
+		//		else if(ParamType.IsFloatType()) {
+		//			this.Source.Append("LibZen_NewFloatMap(");
+		//		}
+		//		else if(ParamType.IsStringType()) {
+		//			this.Source.Append("LibZen_NewStringMap(");
+		//		}
+		//		else {
+		//			this.Source.Append("LibZen_NewMap(");
+		//		}
+		//		this.Source.Append(String.valueOf(Node.GetListSize()));
+		//		if(Node.GetListSize() > 0) {
+		//			this.Source.Append(", ");
+		//		}
+		this.Source.Append("{");
 		@Var int i = 0;
 		while(i < Node.GetListSize()) {
 			@Var BunMapEntryNode Entry = Node.GetMapEntryNode(i);
-			this.GenerateExpression("", Entry.KeyNode(), ", ", Entry.ValueNode(), ", ");
+			this.GenerateExpression("{", Entry.KeyNode(), ", ", Entry.ValueNode(), "}, ");
 			i = i + 1;
 		}
-		this.Source.Append(")");
+		this.Source.Append("}");
 	}
 
 	@Override public void VisitNewObjectNode(NewObjectNode Node) {
@@ -334,77 +335,83 @@ public class CGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitGetNameNode(GetNameNode Node) {
 		@Var BNode ResolvedNode = Node.ResolvedNode;
-		if(ResolvedNode == null && !this.LangInfo.AllowUndefinedSymbol) {
-			LibBunLogger._LogError(Node.SourceToken, "undefined symbol: " + Node.GivenName);
-		}
+		//		if(ResolvedNode == null && !this.LangInfo.AllowUndefinedSymbol) {
+		//			LibBunLogger._LogError(Node.SourceToken, "undefined symbol: " + Node.GivenName);
+		//		}
 		this.Source.Append(Node.GetUniqueName(this));
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
-		if(Node.LeftNode() instanceof GetIndexNode) {
-			GetIndexNode Left = (GetIndexNode) Node.LeftNode();
-			BType ThisType = Left.GetAstType(GetIndexNode._Recv);
-			if(ThisType.IsArrayType()) {
-				this.Source.Append("ARRAY_set(");
-			} else if(ThisType.IsMapType()) {
-				this.Source.Append("MAP_set(");
-			} else {
-				assert(false); // unreachable
-			}
-			this.Source.Append(this.ParamTypeName(ThisType.GetParamType(0)) + ", ");
-			this.GenerateExpression(Left.RecvNode());
-			this.Source.Append(", ");
-			this.GenerateExpression(Left.IndexNode());
-			this.Source.Append(", ");
-			this.GenerateExpression(Node.RightNode());
-			this.Source.Append(")");
-		}
-		else {
-			this.GenerateExpression(Node.LeftNode());
-			this.Source.Append(" = ");
-			this.GenerateExpression(Node.RightNode());
-		}
+		//		if(Node.LeftNode() instanceof GetIndexNode) {
+		//			GetIndexNode Left = (GetIndexNode) Node.LeftNode();
+		//			BType ThisType = Left.GetAstType(GetIndexNode._Recv);
+		//			if(ThisType.IsArrayType()) {
+		//				this.Source.Append("ARRAY_set(");
+		//			} else if(ThisType.IsMapType()) {
+		//				this.Source.Append("MAP_set(");
+		//			} else {
+		//				assert(false); // unreachable
+		//			}
+		//			this.Source.Append(this.ParamTypeName(ThisType.GetParamType(0)) + ", ");
+		//			this.GenerateExpression(Left.RecvNode());
+		//			this.Source.Append(", ");
+		//			this.GenerateExpression(Left.IndexNode());
+		//			this.Source.Append(", ");
+		//			this.GenerateExpression(Node.RightNode());
+		//			this.Source.Append(")");
+		//		}
+		//		else {
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" = ");
+		this.GenerateExpression(Node.RightNode());
+		//		}
 	}
 
 	@Override public void VisitGetIndexNode(GetIndexNode Node) {
 		BType ThisType = Node.GetAstType(GetIndexNode._Recv);
-		if(ThisType.IsArrayType() || ThisType.IsMapType()) {
-			if(ThisType.IsArrayType()) {
-				this.Source.Append("ARRAY_get(");
-			} else if(ThisType.IsMapType()) {
-				this.Source.Append("MAP_get(");
-			}
-			this.Source.Append(this.ParamTypeName(ThisType.GetParamType(0)) + ", ");
-			this.GenerateExpression(Node.RecvNode());
-			this.Source.Append(", ");
-			this.GenerateExpression(Node.IndexNode());
-			this.Source.Append(")");
-		} else {
+		if(ThisType.IsMapType()) {
+
+		}
+		else {
 			this.GenerateExpression(Node.RecvNode());
 			this.Source.Append("[");
 			this.GenerateExpression(Node.IndexNode());
 			this.Source.Append("]");
 		}
+		//		BType ThisType = Node.GetAstType(GetIndexNode._Recv);
+		//		if(ThisType.IsArrayType() || ThisType.IsMapType()) {
+		//			if(ThisType.IsArrayType()) {
+		//				this.Source.Append("ARRAY_get(");
+		//			} else if(ThisType.IsMapType()) {
+		//				this.Source.Append("MAP_get(");
+		//			}
+		//			this.Source.Append(this.ParamTypeName(ThisType.GetParamType(0)) + ", ");
+		//			this.GenerateExpression(Node.RecvNode());
+		//			this.Source.Append(", ");
+		//			this.GenerateExpression(Node.IndexNode());
+		//			this.Source.Append(")");
+		//		} else {
+		//			this.GenerateExpression(Node.RecvNode());
+		//			this.Source.Append("[");
+		//			this.GenerateExpression(Node.IndexNode());
+		//			this.Source.Append("]");
+		//		}
 	}
 
-	@Override
-	public void VisitGetFieldNode(GetFieldNode Node) {
+	@Override public void VisitGetFieldNode(GetFieldNode Node) {
 		this.GenerateExpression(Node.RecvNode());
 		this.Source.Append("->", Node.GetName());
 	}
 
-	@Override
-	public void VisitMethodCallNode(MethodCallNode Node) {
+	@Override public void VisitMethodCallNode(MethodCallNode Node) {
 		/* do nothing */
 	}
 
-	@Override
-	public void VisitUnaryNode(UnaryOperatorNode Node) {
+	@Override public void VisitUnaryNode(UnaryOperatorNode Node) {
 		this.GenerateUnaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitCastNode(BunCastNode Node) {
+	@Override public void VisitCastNode(BunCastNode Node) {
 		if(Node.Type.IsVoidType()) {
 			this.GenerateExpression(Node.ExprNode());
 		}
@@ -416,8 +423,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitInstanceOfNode(BunInstanceOfNode Node) {
+	@Override public void VisitInstanceOfNode(BunInstanceOfNode Node) {
 		this.Source.Append("LibZen_Is(");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(",");
@@ -425,13 +431,17 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.Source.Append(")");
 	}
 
-	@Override
-	public void VisitBinaryNode(BinaryOperatorNode Node) {
+	@Override public void VisitBinaryNode(BinaryOperatorNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	protected void GenerateStatementEnd(BNode Node) {
+	@Override protected void GenerateStatementEnd(BNode Node) {
+		if(Node instanceof BunIfNode || Node instanceof BunWhileNode || Node instanceof BunTryNode || Node instanceof BunFunctionNode || Node instanceof BunClassNode) {
+			return;
+		}
+		if(!this.Source.EndsWith(';')) {
+			this.Source.Append(";");
+		}
 	}
 
 	protected void GenerateStmtListNode(BunBlockNode Node) {
@@ -439,22 +449,19 @@ public class CGenerator extends LibBunSourceGenerator {
 		while (i < Node.GetListSize()) {
 			@Var BNode SubNode = Node.GetListAt(i);
 			this.GenerateStatement(SubNode);
-			this.Source.Append(";");
 			i = i + 1;
 		}
 		this.GenerateStatementEnd(Node);
 	}
 
-	@Override
-	public void VisitBlockNode(BunBlockNode Node) {
+	@Override public void VisitBlockNode(BunBlockNode Node) {
 		this.Source.AppendWhiteSpace();
 		this.Source.OpenIndent("{");
 		this.GenerateStmtListNode(Node);
 		this.Source.CloseIndent("}");
 	}
 
-	@Override
-	public void VisitVarBlockNode(BunVarBlockNode Node) {
+	@Override public void VisitVarBlockNode(BunVarBlockNode Node) {
 		@Var BunLetVarNode VarNode = Node.VarDeclNode();
 		this.GenerateTypeName(VarNode.GivenType);
 		this.Source.Append(" ");
@@ -463,8 +470,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.GenerateStmtListNode(Node);
 	}
 
-	@Override
-	public void VisitIfNode(BunIfNode Node) {
+	@Override public void VisitIfNode(BunIfNode Node) {
 		this.GenerateExpression("if (", Node.CondNode(), ")");
 		this.GenerateExpression(Node.ThenNode());
 		if (Node.HasElseNode()) {
@@ -474,8 +480,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitReturnNode(BunReturnNode Node) {
+	@Override public void VisitReturnNode(BunReturnNode Node) {
 		this.Source.Append("return");
 		if (Node.HasReturnExpr()) {
 			this.Source.Append(" ");
@@ -483,25 +488,21 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitWhileNode(BunWhileNode Node) {
+	@Override public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while (", Node.CondNode(), ")");
 		this.GenerateExpression(Node.BlockNode());
 	}
 
-	@Override
-	public void VisitBreakNode(BunBreakNode Node) {
+	@Override public void VisitBreakNode(BunBreakNode Node) {
 		this.Source.Append("break");
 	}
 
-	@Override
-	public void VisitThrowNode(BunThrowNode Node) {
+	@Override public void VisitThrowNode(BunThrowNode Node) {
 		this.GenerateExpression(Node.ExprNode());
 		this.Source.Append("longjump(1)"); // FIXME
 	}
 
-	@Override
-	public void VisitTryNode(BunTryNode Node) {
+	@Override public void VisitTryNode(BunTryNode Node) {
 		//		this.CurrentBuilder.Append("try");
 		//		this.GenerateCode(Node.TryNode());
 		//		if(Node.CatchNode() != null) {
@@ -547,16 +548,16 @@ public class CGenerator extends LibBunSourceGenerator {
 
 	private String GetCTypeName(BType Type) {
 		@Var String TypeName = null;
-		if(Type.IsArrayType() || Type.IsMapType()) {
-			TypeName = this.ParamTypeName(Type) + " *";
+		if(Type.IsArrayType()) {
+			return this.GetCTypeName(Type.GetParamType(0)) + "*";
+		}
+		if(Type.IsMapType()) {
+			return this.ParamTypeName(Type) + " *";
 		}
 		if(Type instanceof BClassType) {
-			TypeName = "struct " + this.NameClass(Type) + " *";
+			return "struct " + this.NameClass(Type) + " *";
 		}
-		if(TypeName == null) {
-			TypeName = this.GetNativeTypeName(Type);
-		}
-		return TypeName;
+		return this.GetNativeTypeName(Type);
 	}
 
 	protected void GenerateFuncTypeName(BType Type, String FuncName) {
@@ -716,7 +717,7 @@ public class CGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitClassNode(BunClassNode Node) {
-		this.ImportLibrary("libbun.h");
+		//this.ImportLibrary("libbun.h");
 
 		String ClassName = this.NameClass(Node.ClassType);
 		String StructName = "struct " + ClassName;
@@ -788,10 +789,9 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.Source.CloseIndent("}");
 	}
 
-	@Override
-	public void VisitErrorNode(ErrorNode Node) {
+	@Override public void VisitErrorNode(ErrorNode Node) {
 		@Var String Message = LibBunLogger._LogError(Node.SourceToken, Node.ErrorMessage);
-		this.Source.Append("perror(");
+		this.Source.Append("libbun_perror(");
 		this.Source.Append(LibBunSystem._QuoteString(Message));
 		this.Source.Append(")");
 	}
