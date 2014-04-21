@@ -210,7 +210,7 @@ public abstract class LibBunSourceGenerator extends LibBunGenerator {
 	}
 
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
-		@Var DesugarNode DeNode = Node.DeSugar(this, this.TypeChecker);
+		@Var DesugarNode DeNode = Node.DeSugar(this.TypeChecker);
 		this.GenerateExpression(DeNode.AST[0]);
 		if(DeNode.GetAstSize() > 1) {
 			@Var int i = 1;

@@ -6,7 +6,6 @@ import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
 import libbun.ast.expression.FuncCallNode;
 import libbun.ast.literal.BunStringNode;
-import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunTypeChecker;
 import libbun.type.BFormFunc;
 import libbun.type.BFuncType;
@@ -24,8 +23,8 @@ public class BunAssertNode extends SyntaxSugarNode {
 		return this.DupField(TypedClone, new BunAssertNode(ParentNode));
 	}
 
-	@Override public DesugarNode DeSugar(LibBunGenerator Generator, LibBunTypeChecker TypeChecker) {
-		@Var BFormFunc Func = Generator.GetFormFunc("assert", BType.BooleanType, 2);
+	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChecker) {
+		@Var BFormFunc Func = TypeChecker.Generator.GetFormFunc("assert", BType.BooleanType, 2);
 		if(Func != null) {
 			@Var AbstractListNode FuncNode = TypeChecker.CreateDefinedFuncCallNode(this.ParentNode, this.SourceToken, Func);
 			FuncNode.Append(this.AST[BunAssertNode._Expr]);

@@ -3,7 +3,6 @@ package libbun.lang.lisp;
 import libbun.ast.BNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
-import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunTypeChecker;
 
 public class SExpressionNode extends SyntaxSugarNode {
@@ -25,7 +24,7 @@ public class SExpressionNode extends SyntaxSugarNode {
 	//		}
 	//	}
 
-	@Override public DesugarNode DeSugar(LibBunGenerator Generator, LibBunTypeChecker TypeChekcer) {
+	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
 		//		@Var DesugarNode Node = new DesugarNode(this, null);
 		// TODO Auto-generated method stub
 		return null;

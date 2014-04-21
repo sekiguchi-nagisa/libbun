@@ -1,6 +1,5 @@
 package libbun.ast;
 
-import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunTypeChecker;
 import libbun.util.BField;
 import libbun.util.Var;
@@ -43,7 +42,7 @@ public class DesugarNode extends SyntaxSugarNode {
 		}
 	}
 
-	@Override public DesugarNode DeSugar(LibBunGenerator Generator, LibBunTypeChecker TypeChekcer) {
+	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
 		return this;
 	}
 

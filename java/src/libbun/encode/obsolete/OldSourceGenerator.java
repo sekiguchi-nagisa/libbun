@@ -572,7 +572,7 @@ public class OldSourceGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
-		@Var DesugarNode DesugarNode = Node.DeSugar(this, this.TypeChecker);
+		@Var DesugarNode DesugarNode = Node.DeSugar(this.TypeChecker);
 		this.GenerateExpression(DesugarNode.AST[0]);
 		@Var int i = 1;
 		while(i < DesugarNode.GetAstSize()) {

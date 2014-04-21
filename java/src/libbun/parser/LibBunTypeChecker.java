@@ -279,7 +279,7 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
 		@Var BType ContextType = this.GetContextType();
-		@Var DesugarNode DesugarNode = Node.DeSugar(this.Generator, this.Generator.TypeChecker);
+		@Var DesugarNode DesugarNode = Node.DeSugar(this.Generator.TypeChecker);
 		@Var int i = 0;
 		while(i < DesugarNode.GetAstSize()) {
 			this.CheckTypeAt(DesugarNode, i, ContextType);

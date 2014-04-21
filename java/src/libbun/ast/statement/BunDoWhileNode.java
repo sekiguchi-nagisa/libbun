@@ -4,7 +4,6 @@ import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
-import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunTypeChecker;
 import libbun.type.BType;
 import libbun.util.Var;
@@ -50,7 +49,7 @@ public final class BunDoWhileNode extends SyntaxSugarNode {
 		return this.AST[BunDoWhileNode._Next];
 	}
 
-	@Override public DesugarNode DeSugar(LibBunGenerator Generator, LibBunTypeChecker TypeChekcer) {
+	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
 		return null;
 	}
 

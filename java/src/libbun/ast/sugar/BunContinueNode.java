@@ -10,7 +10,6 @@ import libbun.ast.error.ErrorNode;
 import libbun.ast.literal.BunBooleanNode;
 import libbun.ast.statement.BunBreakNode;
 import libbun.ast.statement.BunWhileNode;
-import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunTypeChecker;
 import libbun.type.BType;
 import libbun.util.LibBunSystem;
@@ -76,14 +75,14 @@ public class BunContinueNode extends SyntaxSugarNode {
 		return FirstDesugarNode;
 	}
 
-	@Override public DesugarNode DeSugar(LibBunGenerator Generator, LibBunTypeChecker Typer) {
+	@Override public DesugarNode DeSugar(LibBunTypeChecker Typer) {
 		@Var BunWhileNode WhileNode = this.LookupWhileNode();
 		if(WhileNode == null) {
 			return new DesugarNode(this, new ErrorNode(this.ParentNode, this.SourceToken, "continue must be inside the while statement"));
 		}
 		@Var BunBlockNode ParentBlockNode = WhileNode.GetScopeBlockNode();
-		@Var String VarName = Generator.NameUniqueSymbol("continue");
-		@Var BunVarBlockNode VarNode = Generator.TypeChecker.CreateVarNode(null, VarName, BType.BooleanType, new BunBooleanNode(true));
+		@Var String VarName = Typer.Generator.NameUniqueSymbol("continue");
+		@Var BunVarBlockNode VarNode = Typer.CreateVarNode(null, VarName, BType.BooleanType, new BunBooleanNode(true));
 		@Var BunWhileNode ContinueWhile = VarNode.SetNewWhileNode(BNode._AppendIndex, Typer);
 		ContinueWhile.SetNewGetNameNode(BunWhileNode._Cond, Typer, VarName, BType.BooleanType);
 		@Var BunBlockNode WhileBlockNode = ContinueWhile.SetNewBlockNode(BunWhileNode._Block, Typer);

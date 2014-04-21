@@ -96,13 +96,11 @@ public class CGenerator extends LibBunSourceGenerator {
 
 	public CGenerator() {
 		super(new LibBunLangInfo("C99", "c"));
-		//this.TopType = "ZObject *";
 		this.SetNativeType(BType.BooleanType, "int");
 		this.SetNativeType(BType.IntType, "long");
 		this.SetNativeType(BType.FloatType, "double");
 		this.SetNativeType(BType.StringType, "const char *");
 		this.LoadInlineLibrary("playground.c", "//");
-		//		this.Header.AppendNewLine("/* end of header */", this.LineFeed);
 	}
 
 	@Override protected void GenerateExpression(BNode Node) {
