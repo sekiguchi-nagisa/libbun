@@ -11,11 +11,13 @@ public final class LibBunParser {
 	@BField LibBunParser StackedParser;
 	@BField LibBunTokenFuncChain[]         TokenMatrix = null;
 	@BField BunMap<LibBunSyntax>           SyntaxTable = null;
+	@BField BunMap<LibBunSyntax>           BinaryTable = null;
 
 	public LibBunParser(LibBunParser StackedParser) {
 		this.StackedParser = StackedParser;
 		this.TokenMatrix = LibBunSystem._NewTokenMatrix();
 		this.SyntaxTable = new BunMap<LibBunSyntax>(null);
+		this.BinaryTable = new BunMap<LibBunSyntax>(null);
 	}
 
 	public LibBunParser Pop() {
@@ -43,70 +45,43 @@ public final class LibBunParser {
 		}
 	}
 
-	public final void SetSyntaxPattern(String PatternName, LibBunSyntax Syntax) {
-		if(this.SyntaxTable == null) {
-			this.SyntaxTable = new BunMap<LibBunSyntax>(null);
-		}
-		this.SyntaxTable.put(PatternName, Syntax);
-	}
-
 	public final LibBunSyntax GetSyntaxPattern(String PatternName) {
-		return this.SyntaxTable.GetValue(PatternName, null);
-	}
-
-	public final static String _RightPatternSymbol(String PatternName) {
-		return "\t" + PatternName;
+		return this.SyntaxTable.GetOrNull(PatternName);
 	}
 
 	public final LibBunSyntax GetRightSyntaxPattern(String PatternName) {
-		return this.GetSyntaxPattern(LibBunParser._RightPatternSymbol(PatternName));
+		return this.BinaryTable.GetOrNull(PatternName);
 	}
 
-	private void AppendSyntaxPattern(String PatternName, LibBunSyntax NewPattern) {
-		LibBunSystem._Assert(NewPattern.ParentPattern == null);
-		@Var LibBunSyntax ParentPattern = this.GetSyntaxPattern(PatternName);
-		NewPattern.ParentPattern = ParentPattern;
-		this.SetSyntaxPattern(PatternName, NewPattern);
+	private void AppendSyntaxPattern(BunMap<LibBunSyntax> Table, String PatternName, BMatchFunction MatchFunc, int Flag) {
+		@Var int Alias = PatternName.indexOf(" ");
+		@Var String Name = PatternName;
+		if(Alias != -1) {
+			Name = PatternName.substring(0, Alias);
+		}
+		@Var LibBunSyntax NewPattern = new LibBunSyntax(Name, MatchFunc, Flag);
+		NewPattern.ParentPattern = Table.GetOrNull(Name);
+		Table.put(PatternName, NewPattern);
+		if(Alias != -1) {
+			this.AppendSyntaxPattern(Table, PatternName.substring(Alias+1), MatchFunc, Flag);
+		}
 	}
 
 	public final void DefineStatement(String PatternName, BMatchFunction MatchFunc) {
-		@Var int Alias = PatternName.indexOf(" ");
-		@Var String Name = PatternName;
-		if(Alias != -1) {
-			Name = PatternName.substring(0, Alias);
-		}
-		@Var LibBunSyntax Pattern = new LibBunSyntax(Name, MatchFunc);
-		Pattern.IsStatement = true;
-		this.AppendSyntaxPattern(Name, Pattern);
-		if(Alias != -1) {
-			this.DefineStatement(PatternName.substring(Alias+1), MatchFunc);
-		}
+		this.AppendSyntaxPattern(this.SyntaxTable, PatternName, MatchFunc, LibBunSyntax._Statement);
 	}
 
 	public final void DefineExpression(String PatternName, BMatchFunction MatchFunc) {
-		@Var int Alias = PatternName.indexOf(" ");
-		@Var String Name = PatternName;
-		if(Alias != -1) {
-			Name = PatternName.substring(0, Alias);
-		}
-		@Var LibBunSyntax Pattern = new LibBunSyntax(Name, MatchFunc);
-		this.AppendSyntaxPattern(Name, Pattern);
-		if(Alias != -1) {
-			this.DefineExpression(PatternName.substring(Alias+1), MatchFunc);
-		}
+		this.AppendSyntaxPattern(this.SyntaxTable, PatternName, MatchFunc, 0);
 	}
 
-	public final void DefineRightExpression(String PatternName, BMatchFunction MatchFunc) {
-		@Var int Alias = PatternName.indexOf(" ");
-		@Var String Name = PatternName;
-		if(Alias != -1) {
-			Name = PatternName.substring(0, Alias);
-		}
-		@Var LibBunSyntax Pattern = new LibBunSyntax(Name, MatchFunc);
-		this.AppendSyntaxPattern(LibBunParser._RightPatternSymbol(Name), Pattern);
-		if(Alias != -1) {
-			this.DefineRightExpression(PatternName.substring(Alias+1), MatchFunc);
-		}
+	public final void DefineBinaryOperator(String PatternName, BMatchFunction MatchFunc) {
+		this.AppendSyntaxPattern(this.BinaryTable, PatternName, MatchFunc, LibBunSyntax._BinaryOperator);
 	}
+
+	public final void DefineExpressionSuffix(String PatternName, BMatchFunction MatchFunc) {
+		this.AppendSyntaxPattern(this.BinaryTable, PatternName, MatchFunc, LibBunSyntax._SuffixExpression);
+	}
+
 
 }

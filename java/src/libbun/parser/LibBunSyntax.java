@@ -28,44 +28,57 @@ package libbun.parser;
 import libbun.util.BField;
 import libbun.util.BMatchFunction;
 import libbun.util.LibBunSystem;
-import libbun.util.Var;
 
 public final class LibBunSyntax {
-	public final static int _BinaryOperator					= 1;
-	public final static int _LeftJoin						= 1 << 1;
+	public final static int _Statement					= 1;
+	public final static int _BinaryOperator             = 1 << 1;
+	public final static int _SuffixExpression	     	= 1 << 2;
 
 	@BField public String		              PatternName;
 	@BField public BMatchFunction             MatchFunc;
-	@BField public int				          SyntaxFlag = 0;
 	@BField public LibBunSyntax               ParentPattern = null;
-	@BField public boolean IsStatement        = false;
+	@BField public int				          SyntaxFlag = 0;
 
-	public LibBunSyntax(String PatternName, BMatchFunction MatchFunc) {
+	public LibBunSyntax(String PatternName, BMatchFunction MatchFunc, int Flag) {
 		this.PatternName = PatternName;
 		this.MatchFunc = MatchFunc;
+		this.SyntaxFlag = Flag;
 	}
 
 	@Override public String toString() {
 		return this.PatternName  /* + "{" + this.MatchFunc + "}"*/;
 	}
 
+	public final boolean IsStatement() {
+		return LibBunSystem._IsFlag(this.SyntaxFlag, LibBunSyntax._Statement);
+	}
+
 	public final boolean IsBinaryOperator() {
 		return LibBunSystem._IsFlag(this.SyntaxFlag, LibBunSyntax._BinaryOperator);
 	}
 
-	public final boolean IsRightJoin(LibBunSyntax Right) {
-		@Var int left = this.SyntaxFlag;
-		@Var int right = Right.SyntaxFlag;
-		return (left < right || (left == right && !LibBunSystem._IsFlag(left, LibBunSyntax._LeftJoin) && !LibBunSystem._IsFlag(right, LibBunSyntax._LeftJoin)));
+	public final boolean IsSuffixExpression() {
+		return LibBunSystem._IsFlag(this.SyntaxFlag, LibBunSyntax._SuffixExpression);
 	}
 
-	public final static LibBunSyntax MergeSyntaxPattern(LibBunSyntax Pattern, LibBunSyntax Parent) {
-		if(Parent == null) {
-			return Pattern;
-		}
-		@Var LibBunSyntax MergedPattern = new LibBunSyntax(Pattern.PatternName, Pattern.MatchFunc);
-		MergedPattern.ParentPattern = Parent;
-		return MergedPattern;
-	}
+
+	//	public final boolean IsBinaryOperator() {
+	//		return LibBunSystem._IsFlag(this.SyntaxFlag, LibBunSyntax._BinaryOperator);
+	//	}
+	//
+	//	public final boolean IsRightJoin(LibBunSyntax Right) {
+	//		@Var int left = this.SyntaxFlag;
+	//		@Var int right = Right.SyntaxFlag;
+	//		return (left < right || (left == right && !LibBunSystem._IsFlag(left, LibBunSyntax._LeftJoin) && !LibBunSystem._IsFlag(right, LibBunSyntax._LeftJoin)));
+	//	}
+	//
+	//	public final static LibBunSyntax MergeSyntaxPattern(LibBunSyntax Pattern, LibBunSyntax Parent) {
+	//		if(Parent == null) {
+	//			return Pattern;
+	//		}
+	//		@Var LibBunSyntax MergedPattern = new LibBunSyntax(Pattern.PatternName, Pattern.MatchFunc, Pattern.SyntaxFlag);
+	//		MergedPattern.ParentPattern = Parent;
+	//		return MergedPattern;
+	//	}
 
 }

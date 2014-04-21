@@ -10,7 +10,7 @@ public class PythonStatementPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
 		@Var boolean Remembered = TokenContext.SetParseFlag(BTokenContext._AllowSkipIndent);
 		TokenContext.SetParseFlag(BTokenContext._NotAllowSkipIndent);
-		@Var BNode StmtNode = BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true, true);
+		@Var BNode StmtNode = BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true);
 		TokenContext.SetParseFlag(Remembered);
 		return StmtNode;
 	}

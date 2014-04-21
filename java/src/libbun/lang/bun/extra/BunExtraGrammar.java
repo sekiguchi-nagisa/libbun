@@ -143,9 +143,9 @@ public class BunExtraGrammar {
 		//Gamma.DefineExpression("null", NullPattern);
 		//Gamma.DefineRightExpression("instanceof", InstanceOfPattern);
 		Gamma.DefineExpression("++", IncPrefixPattern);
-		Gamma.DefineRightExpression("++", IncSuffixPattern);
+		Gamma.DefineExpressionSuffix("++", IncSuffixPattern);
 
-		Gamma.DefineRightExpression("+", SelfAddPattern);
+		Gamma.DefineBinaryOperator("+", SelfAddPattern);
 		Gamma.DefineStatement("continue", ContinuePattern);
 	}
 }

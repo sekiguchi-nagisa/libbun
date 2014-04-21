@@ -170,17 +170,22 @@ public final class LibBunGamma {
 		this.Generator.RootParser.AppendTokenFunc(Symbol, Func);
 	}
 
+	public final void DefineStatement(String Symbol, BMatchFunction Func) {
+		this.Generator.RootParser.DefineExpression(Symbol, Func);
+	}
+
 	public final void DefineExpression(String Symbol, BMatchFunction Func) {
 		this.Generator.RootParser.DefineExpression(Symbol, Func);
 	}
 
-	public final void DefineRightExpression(String Symbol, BMatchFunction Func) {
-		this.Generator.RootParser.DefineRightExpression(Symbol, Func);
+	public final void DefineBinaryOperator(String Symbol, BMatchFunction Func) {
+		this.Generator.RootParser.DefineBinaryOperator(Symbol, Func);
 	}
 
-	public final void DefineStatement(String Symbol, BMatchFunction Func) {
-		this.Generator.RootParser.DefineExpression(Symbol, Func);
+	public final void DefineExpressionSuffix(String Symbol, BMatchFunction Func) {
+		this.Generator.RootParser.DefineExpressionSuffix(Symbol, Func);
 	}
+
 
 
 

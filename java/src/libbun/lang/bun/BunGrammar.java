@@ -778,7 +778,7 @@ class StatementPatternFunction extends BMatchFunction {
 		@Var boolean Remembered = TokenContext.SetParseFlag(BTokenContext._AllowSkipIndent);
 		//		@Var ZAnnotationNode AnnotationNode = (ZAnnotationNode)TokenContext.ParsePattern(ParentNode, "$Annotation$", ZTokenContext.Optional2);
 		TokenContext.SetParseFlag(BTokenContext._NotAllowSkipIndent);
-		@Var BNode StmtNode = BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true, true);
+		@Var BNode StmtNode = BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true);
 		StmtNode = TokenContext.MatchPattern(StmtNode, BNode._Nop, ";", BTokenContext._Required);
 		//		if(AnnotationNode != null) {
 		//			AnnotationNode.Append(StmtNode);
@@ -790,22 +790,21 @@ class StatementPatternFunction extends BMatchFunction {
 }
 
 class ExpressionPatternFunction extends BMatchFunction {
-
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		return BunGrammar._DispatchPattern(ParentNode, TokenContext, LeftNode, false, true);
+		return BunGrammar._DispatchPattern(ParentNode, TokenContext, LeftNode, true);
 	}
 }
 
 class RightExpressionPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		return BunGrammar._DispatchPattern(ParentNode, TokenContext, LeftNode, false, false);
+		return BunGrammar._DispatchPattern(ParentNode, TokenContext, LeftNode, false);
 	}
 }
 
 class InStatementPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
 		TokenContext.SetParseFlag(BTokenContext._AllowSkipIndent);
-		return BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true, true);
+		return BunGrammar._DispatchPattern(ParentNode, TokenContext, null, true);
 	}
 }
 
@@ -1214,29 +1213,29 @@ public class BunGrammar {
 		Gamma.DefineExpression("!", NotPattern);
 		//		Gamma.AppendSyntax("++ --", new Incl"));
 
-		Gamma.DefineRightExpression("=", AssignPattern);
-		Gamma.DefineRightExpression("==", EqualsPattern);
-		Gamma.DefineRightExpression("!=", NotEqualsPattern);
-		Gamma.DefineRightExpression("<", LessThanPattern);
-		Gamma.DefineRightExpression("<=", LessThanEqualsPattern);
-		Gamma.DefineRightExpression(">", GreaterThanPattern);
-		Gamma.DefineRightExpression(">=", GreaterThanEqualsPattern);
+		Gamma.DefineBinaryOperator("=", AssignPattern);
+		Gamma.DefineBinaryOperator("==", EqualsPattern);
+		Gamma.DefineBinaryOperator("!=", NotEqualsPattern);
+		Gamma.DefineBinaryOperator("<", LessThanPattern);
+		Gamma.DefineBinaryOperator("<=", LessThanEqualsPattern);
+		Gamma.DefineBinaryOperator(">", GreaterThanPattern);
+		Gamma.DefineBinaryOperator(">=", GreaterThanEqualsPattern);
 
-		Gamma.DefineRightExpression("+", AddPattern);
-		Gamma.DefineRightExpression("-", SubPattern);
-		Gamma.DefineRightExpression("*", MulPattern);
-		Gamma.DefineRightExpression("/", DivPattern);
-		Gamma.DefineRightExpression("%", ModPattern);
+		Gamma.DefineBinaryOperator("+", AddPattern);
+		Gamma.DefineBinaryOperator("-", SubPattern);
+		Gamma.DefineBinaryOperator("*", MulPattern);
+		Gamma.DefineBinaryOperator("/", DivPattern);
+		Gamma.DefineBinaryOperator("%", ModPattern);
 
-		Gamma.DefineRightExpression("<<", LeftShiftPattern);
-		Gamma.DefineRightExpression(">>", RightShiftPattern);
+		Gamma.DefineBinaryOperator("<<", LeftShiftPattern);
+		Gamma.DefineBinaryOperator(">>", RightShiftPattern);
 
-		Gamma.DefineRightExpression("&", BitwiseAndPattern);
-		Gamma.DefineRightExpression("|", BitwiseOrPattern);
-		Gamma.DefineRightExpression("^", BitwiseXorPattern);
+		Gamma.DefineBinaryOperator("&", BitwiseAndPattern);
+		Gamma.DefineBinaryOperator("|", BitwiseOrPattern);
+		Gamma.DefineBinaryOperator("^", BitwiseXorPattern);
 
-		Gamma.DefineRightExpression("&&", AndPattern);
-		Gamma.DefineRightExpression("||", OrPattern);
+		Gamma.DefineBinaryOperator("&&", AndPattern);
+		Gamma.DefineBinaryOperator("||", OrPattern);
 
 		Gamma.DefineExpression("$StringLiteral$", StringLiteralPattern);
 		Gamma.DefineExpression("$IntegerLiteral$", IntLiteralPattern);
@@ -1247,16 +1246,16 @@ public class BunGrammar {
 		Gamma.DefineExpression("$TypeRight$", TypeSuffixPattern);
 		Gamma.DefineExpression("$TypeAnnotation$", TypeAnnotationPattern);
 
-		Gamma.DefineRightExpression(".", GetFieldPattern);
-		//		Gamma.DefineRightExpression(".", SetFieldPattern);
-		Gamma.DefineRightExpression(".", MethodCallPattern);
+		Gamma.DefineExpressionSuffix(".", GetFieldPattern);
+		//		Gamma.DefineExpressionSuffix(".", SetFieldPattern);
+		Gamma.DefineExpressionSuffix(".", MethodCallPattern);
 
 		Gamma.DefineExpression("(", GroupPattern);
 		Gamma.DefineExpression("(", CastPattern);
-		Gamma.DefineRightExpression("(", FuncCallPattern);
+		Gamma.DefineExpressionSuffix("(", FuncCallPattern);
 
-		Gamma.DefineRightExpression("[", GetIndexPattern);
-		//		Gamma.DefineRightExpression("[", SetIndexPattern);
+		Gamma.DefineExpressionSuffix("[", GetIndexPattern);
+		//		Gamma.DefineExpressionSuffix("[", SetIndexPattern);
 		Gamma.DefineExpression("[", ArrayLiteralPattern);
 		Gamma.DefineExpression("$MapEntry$", MapEntryPattern);
 		Gamma.DefineExpression("{", MapLiteralPattern);
@@ -1290,14 +1289,14 @@ public class BunGrammar {
 		Gamma.SetTypeName(BClassType._ObjectType, null);
 		Gamma.DefineStatement("class", ClassPattern);
 		Gamma.DefineExpression("$FieldDecl$", ClassFieldPattern);
-		//		Gamma.DefineRightExpression("instanceof", BunPrecedence._Instanceof, InstanceOfPattern);
-		Gamma.DefineRightExpression("instanceof", InstanceOfPattern);
+		//		Gamma.DefineExpressionSuffix("instanceof", BunPrecedence._Instanceof, InstanceOfPattern);
+		Gamma.DefineBinaryOperator("instanceof", InstanceOfPattern);
 
 		Gamma.DefineStatement("assert", AssertPattern);
 		Gamma.DefineStatement("require", RequirePattern);
 
 		Gamma.DefineStatement("asm", AsmPattern);
-		Gamma.DefineStatement("$LongName$", DefineNamePattern);
+		Gamma.DefineExpression("$LongName$", DefineNamePattern);
 		Gamma.DefineStatement("define", DefinePattern);
 		Gamma.Generator.LangInfo.AppendGrammarInfo("zen-0.1");
 
@@ -1315,7 +1314,58 @@ public class BunGrammar {
 		return null;
 	}
 
-	public final static BNode _DispatchPattern(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode, boolean AllowStatement, boolean AllowBinary) {
+	//	public final static BNode _DispatchPattern2(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode, boolean AllowStatement, boolean AllowBinary) {
+	//		@Var BToken Token = TokenContext.GetToken();
+	//		@Var LibBunSyntax Pattern = null;
+	//		@Var LibBunGamma Gamma = ParentNode.GetGamma();
+	//		if(Token instanceof BPatternToken) {
+	//			Pattern = ((BPatternToken)Token).PresetPattern;
+	//		}
+	//		else {
+	//			Pattern = Gamma.GetSyntaxPattern(Token.GetText());
+	//		}
+	//		//System.out.println("Pattern=" + Pattern + " by '" + Token.GetText() + "'");
+	//		if(Pattern != null) {
+	//			if(Pattern.IsStatement && !AllowStatement) {
+	//				return new ErrorNode(ParentNode, Token, Token.GetText() + " statement is not here");
+	//			}
+	//			LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, Pattern, BTokenContext._Required);
+	//		}
+	//		else {
+	//			if(Token.IsNameSymbol()) {
+	//				if(AllowStatement) {
+	//					Pattern = Gamma.GetSyntaxPattern("$SymbolStatement$");
+	//				}
+	//				else {
+	//					Pattern = Gamma.GetSyntaxPattern("$SymbolExpression$");
+	//				}
+	//				LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, Pattern, BTokenContext._Required);
+	//			}
+	//			else {
+	//				if(AllowStatement) {
+	//					return TokenContext.CreateExpectedErrorNode(Token, "statement");
+	//				}
+	//				else {
+	//					return TokenContext.CreateExpectedErrorNode(Token, "expression");
+	//				}
+	//			}
+	//		}
+	//		if(!Pattern.IsStatement) {
+	//			while(LeftNode != null && !LeftNode.IsErrorNode()) {
+	//				@Var LibBunSyntax RightPattern = _GetRightPattern(Gamma, TokenContext);
+	//				if(RightPattern == null) {
+	//					break;
+	//				}
+	//				if(!AllowBinary && RightPattern.IsBinaryOperator()) {
+	//					break;
+	//				}
+	//				LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, RightPattern, BTokenContext._Required);
+	//			}
+	//		}
+	//		return LeftNode;
+	//	}
+
+	public final static BNode _DispatchPattern(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode, boolean AllowBinary) {
 		@Var BToken Token = TokenContext.GetToken();
 		@Var LibBunSyntax Pattern = null;
 		@Var LibBunGamma Gamma = ParentNode.GetGamma();
@@ -1327,42 +1377,29 @@ public class BunGrammar {
 		}
 		//System.out.println("Pattern=" + Pattern + " by '" + Token.GetText() + "'");
 		if(Pattern != null) {
-			if(Pattern.IsStatement && !AllowStatement) {
-				return new ErrorNode(ParentNode, Token, Token.GetText() + " statement is not here");
-			}
 			LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, Pattern, BTokenContext._Required);
 		}
 		else {
 			if(Token.IsNameSymbol()) {
-				if(AllowStatement) {
-					Pattern = Gamma.GetSyntaxPattern("$SymbolStatement$");
-				}
-				else {
-					Pattern = Gamma.GetSyntaxPattern("$SymbolExpression$");
-				}
+				Pattern = Gamma.GetSyntaxPattern("$SymbolExpression$");
 				LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, Pattern, BTokenContext._Required);
 			}
 			else {
-				if(AllowStatement) {
-					return TokenContext.CreateExpectedErrorNode(Token, "statement");
-				}
-				else {
-					return TokenContext.CreateExpectedErrorNode(Token, "expression");
-				}
+				return TokenContext.CreateExpectedErrorNode(Token, "expression");
 			}
 		}
-		if(!Pattern.IsStatement) {
-			while(LeftNode != null && !LeftNode.IsErrorNode()) {
-				@Var LibBunSyntax RightPattern = _GetRightPattern(Gamma, TokenContext);
-				if(RightPattern == null) {
-					break;
-				}
-				if(!AllowBinary && RightPattern.IsBinaryOperator()) {
-					break;
-				}
-				LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, RightPattern, BTokenContext._Required);
+		//		if(!Pattern.IsStatement) {
+		while(LeftNode != null && !LeftNode.IsErrorNode()) {
+			@Var LibBunSyntax RightPattern = _GetRightPattern(Gamma, TokenContext);
+			if(RightPattern == null) {
+				break;
 			}
+			if(!AllowBinary && RightPattern.IsBinaryOperator()) {
+				break;
+			}
+			LeftNode = TokenContext.ApplyMatchPattern(ParentNode, LeftNode, RightPattern, BTokenContext._Required);
 		}
+		//		}
 		return LeftNode;
 	}
 

@@ -18,8 +18,8 @@ public class PythonGrammar {
 		Gamma.DefineExpression("$Statement$", new PythonStatementPatternFunction());
 		Gamma.DefineExpression("$Param$", new PythonParamPatternFunction());
 
-		Gamma.DefineRightExpression("and", BunGrammar.AndPattern);
-		Gamma.DefineRightExpression("or", BunGrammar.OrPattern);
+		Gamma.DefineBinaryOperator("and", BunGrammar.AndPattern);
+		Gamma.DefineBinaryOperator("or", BunGrammar.OrPattern);
 		//TODO is, is not
 
 		Gamma.DefineToken("#", new PythonCommentFunction());
