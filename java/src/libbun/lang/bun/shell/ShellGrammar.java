@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import libbun.ast.BNode;
 import libbun.ast.EmptyNode;
-import libbun.ast.decl.BunLetVarNode;
 import libbun.ast.error.ErrorNode;
 import libbun.ast.literal.BunStringNode;
 import libbun.parser.BPatternToken;
@@ -13,7 +12,6 @@ import libbun.parser.BToken;
 import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
 import libbun.parser.LibBunSyntax;
-import libbun.type.BType;
 import libbun.util.BArray;
 import libbun.util.BMatchFunction;
 import libbun.util.BTokenFunction;
@@ -36,21 +34,20 @@ class ShellStyleCommentTokenFunction extends BTokenFunction {
 
 class CommandSymbolTokenFunction extends BTokenFunction {
 	@Override public boolean Invoke(BSourceContext SourceContext) {
-		@Var int startIndex = SourceContext.GetPosition();
-		@Var StringBuilder symbolBuilder = new StringBuilder();
+		@Var int StartIndex = SourceContext.GetPosition();
+		@Var StringBuilder SymbolBuilder = new StringBuilder();
 		while(SourceContext.HasChar()) {
 			@Var char ch = SourceContext.GetCurrentChar();
 			if(!LibBunSystem._IsDigitOrLetter(ch) && ch != '-' && ch != '+' && ch != '_') {
 				break;
 			}
-			symbolBuilder.append(ch);
+			SymbolBuilder.append(ch);
 			SourceContext.MoveNext();
 		}
-		// FIXME: SourceContext does not have Gamma
-		//		if(SourceContext.TokenContext.Gamma.GetSymbol(ShellUtils._ToCommandSymbol(symbolBuilder.toString())) != null) {
-		//			SourceContext.Tokenize(CommandSymbolPatternFunction._PatternName, startIndex, SourceContext.GetPosition());
-		//			return true;
-		//		}
+		if(ShellUtils.IsCommand(SymbolBuilder.toString())) {
+			SourceContext.Tokenize(CommandSymbolPatternFunction._PatternName, StartIndex, SourceContext.GetPosition());
+			return true;
+		}
 		return false;
 	}
 }
@@ -98,21 +95,18 @@ class ImportCommandPatternFunction extends BMatchFunction {
 		return CommandToken;
 	}
 
-	private boolean FoundDuplicatedSymbol(LibBunGamma Gamma, String Command) {
+	private void CheckDuplicationAndSetCommand(LibBunGamma Gamma, String Command, String CommandPath) {
 		@Var LibBunSyntax Syntax = Gamma.GetSyntaxPattern(Command);
 		if(Syntax != null) {
 			if(LibBunSystem.DebugMode) {
 				System.err.println("found duplicated syntax pattern: " + Syntax);
 			}
-			return true;
 		}
-		if(Gamma.GetSymbol(ShellUtils._ToCommandSymbol(Command)) != null) {
+		else if(!ShellUtils.SetCommand(Command, CommandPath)) {
 			if(LibBunSystem.DebugMode) {
 				System.err.println("found duplicated symbol: " + Command);
 			}
-			return true;
 		}
-		return false;
 	}
 
 	private void SetCommandSymbol(BNode ParentNode, BTokenContext TokenContext, ArrayList<BToken> TokenList) {	//TODO: command scope
@@ -139,12 +133,7 @@ class ImportCommandPatternFunction extends BMatchFunction {
 			}
 			CommandPath = FullPath;
 		}
-		if(this.FoundDuplicatedSymbol(Gamma, Command)) {
-			return;
-		}
-		BunLetVarNode Node = new BunLetVarNode(ParentNode, BunLetVarNode._IsReadOnly, BType.StringType, Command);
-		Node.SetNode(BunLetVarNode._InitValue, new BunStringNode(ParentNode, null, CommandPath));
-		Gamma.SetSymbol(ShellUtils._ToCommandSymbol(Command), Node);
+		this.CheckDuplicationAndSetCommand(Gamma, Command, CommandPath);
 	}
 
 	@Override
@@ -174,11 +163,10 @@ class CommandSymbolPatternFunction extends BMatchFunction {
 
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
 		@Var BToken CommandToken = TokenContext.GetToken(BTokenContext._MoveNext);
-		@Var BunLetVarNode SymbolNode = ParentNode.GetGamma().GetSymbol(ShellUtils._ToCommandSymbol(CommandToken.GetText()));
-		if(SymbolNode == null || !(SymbolNode.InitValueNode() instanceof BunStringNode)) {
+		@Var String Command = ShellUtils.GetCommand(CommandToken.GetText());
+		if(Command == null) {
 			return new ErrorNode(ParentNode, CommandToken, "undefined command symbol");
 		}
-		@Var String Command = ((BunStringNode)SymbolNode.InitValueNode()).StringValue;
 		@Var CommandNode CommandNode = new CommandNode(ParentNode, CommandToken, Command);
 		while(TokenContext.HasNext()) {
 			if(TokenContext.MatchToken("|")) {
