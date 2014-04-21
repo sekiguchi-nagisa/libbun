@@ -126,8 +126,9 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitComplementNode(BunComplementNode Node) {
-		this.Source.Append("~");
+		this.Source.Append("bit32.bnot(");
 		this.GenerateExpression(Node.RecvNode());
+		this.Source.Append(")");
 	}
 
 	private void GenerateBinaryOperatorExpression(BinaryOperatorNode Node, String Operator) {
@@ -195,7 +196,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitNotEqualsNode(BunNotEqualsNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "!="); //FIXME
+		this.GenerateBinaryOperatorExpression(Node, "~=");
 	}
 
 	@Override public void VisitLessThanNode(BunLessThanNode Node) {
@@ -305,7 +306,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	@Override public void VisitBlockNode(BunBlockNode Node) {
 		this.Source.OpenIndent(""); //FIXME
 		this.VisitStmtList(Node);
-		this.Source.CloseIndent("end");
+		this.Source.CloseIndent("");
 	}
 
 	@Override
@@ -334,6 +335,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 			this.Source.AppendNewLine("else ");
 			this.GenerateExpression(Node.ElseNode());
 		}
+		this.Source.AppendNewLine("end");
 	}
 
 	@Override public void VisitReturnNode(BunReturnNode Node) {
@@ -347,6 +349,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	@Override public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while ", Node.CondNode(), " do");
 		this.GenerateExpression(Node.BlockNode());
+		this.Source.AppendNewLine("end");
 	}
 
 	@Override public void VisitBreakNode(BunBreakNode Node) {
@@ -370,9 +373,12 @@ public class LuaGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitLetNode(BunLetVarNode Node) {
-		// TODO Auto-generated method stub
 		if(Node.IsParamNode()) {
 			this.Source.Append(Node.GetUniqueName(this));
+		}
+		else {
+			this.Source.Append(Node.GetUniqueName(this), " = ");
+			this.GenerateExpression(Node.InitValueNode());
 		}
 	}
 
@@ -384,6 +390,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 			this.Source.AppendNewLine("function ", FuncName);
 			this.GenerateListNode("(", Node, ",", ")");
 			this.GenerateExpression(Node.BlockNode());
+			this.Source.AppendNewLine("end");
 			this.Source = this.Source.Pop();
 			this.Source.Append(FuncName);
 		}
@@ -392,6 +399,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 			this.Source.AppendNewLine("function ", Node.GetSignature());
 			this.GenerateListNode("(", Node, ",", ")");
 			this.GenerateExpression(Node.BlockNode());
+			this.Source.AppendNewLine("end");
 			if(Node.IsExport) {
 				this.Source.AppendNewLine(Node.FuncName(), " = ", FuncType.StringfySignature(Node.FuncName()));
 				if(Node.FuncName().equals("main")) {

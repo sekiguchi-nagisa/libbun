@@ -4,7 +4,8 @@ define print "print($[0])": Func<String,void>
 define _ "tostring($[0])": Func<boolean,String>
 define _ "$[0]": Func<int,float>
 define _ "tostring($[0])": Func<int,String>
-define _ "$[0]": Func<float,int>
+define / "math.floor($[0]/$[1])": Func<int,int,int>
+define _ "math.floor($[0])": Func<float,int>
 define _ "tostring($[0])": Func<float,String>
 define _ "tonumber($[0])": Func<String,int>
 define _ "tonumber($[0])": Func<String,float>
