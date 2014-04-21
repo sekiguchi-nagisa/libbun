@@ -463,6 +463,22 @@ class StringLiteralPatternFunction extends BMatchFunction {
 	}
 }
 
+class StringInterpolationPatternFunction extends BMatchFunction {
+	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		@Var BToken Token = TokenContext.GetToken(BTokenContext._MoveNext);
+		@Var int i = Token.StartIndex;
+		while(i < Token.EndIndex) {
+			@Var char ch = Token.Source.GetCharAt(i);
+			if(ch == '$' && Token.Source.GetCharAt(i+1) == '{') {
+
+			}
+			i = i + 1;
+		}
+		return new BunStringNode(ParentNode, Token, LibBunSystem._UnquoteString(Token.GetText()));
+	}
+}
+
+
 class IntLiteralPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
 		@Var BToken Token = TokenContext.GetToken(BTokenContext._MoveNext);

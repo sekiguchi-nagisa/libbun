@@ -272,7 +272,7 @@ class SimpleArgumentPatternFunction extends BMatchFunction {	// subset of Comman
 				EndIndex = BArray.GetIndex(TokenList, i).EndIndex;
 			}
 		}
-		@Var BToken Token = new BToken(TokenContext.SourceContext, StartIndex, EndIndex);
+		@Var BToken Token = new BToken(TokenContext.SourceContext.Source, StartIndex, EndIndex);
 		NodeList.add(new BunStringNode(null, Token, LibBunSystem._UnquoteString(this.ResolveHome(Token.GetText()))));
 		TokenList.clear(0);
 	}

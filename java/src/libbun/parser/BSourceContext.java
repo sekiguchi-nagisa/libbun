@@ -5,23 +5,27 @@ import libbun.util.BField;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
-public final class BSourceContext extends LibBunSource {
+public final class BSourceContext /*extends LibBunSource*/ {
+	@BField public final LibBunSource Source;
 	@BField final LibBunParser Parser;
 	@BField final BArray<BToken>  ParsedTokenList;
 	@BField int SourcePosition = 0;
+	@BField final int EndPosition;
 
-	public BSourceContext(String FileName, int LineNumber, String Source, BTokenContext TokenContext) {
-		super(FileName, LineNumber, Source, TokenContext);
+	public BSourceContext(LibBunSource Source, int StartIndex, int EndIndex, BTokenContext TokenContext) {
+		this.Source = Source;
+		this.SourcePosition = StartIndex;
+		this.EndPosition = EndIndex;
 		this.Parser = TokenContext.Parser;
 		this.ParsedTokenList = TokenContext.TokenList;
 	}
 
 	public final boolean HasChar() {
-		return this.SourceText.length() - this.SourcePosition > 0;
+		return this.SourcePosition < this.EndPosition;
 	}
 
 	public final int GetCharCode() {
-		return LibBunSystem._GetTokenMatrixIndex(LibBunSystem._GetChar(this.SourceText, this.SourcePosition));
+		return LibBunSystem._GetTokenMatrixIndex(this.GetCurrentChar());
 	}
 
 	public final int GetPosition() {
@@ -29,12 +33,12 @@ public final class BSourceContext extends LibBunSource {
 	}
 
 	public final char GetCurrentChar() {
-		return LibBunSystem._GetChar(this.SourceText, this.SourcePosition);
+		return LibBunSystem._GetChar(this.Source.SourceText, this.SourcePosition);
 	}
 
 	public final char GetCharAtFromCurrentPosition(int n) {
-		if(this.SourcePosition+n < this.SourceText.length()) {
-			return LibBunSystem._GetChar(this.SourceText, this.SourcePosition+n);
+		if(this.SourcePosition+n < this.EndPosition) {
+			return this.Source.GetCharAt(this.SourcePosition+n);
 		}
 		return '\0';
 	}
@@ -54,38 +58,38 @@ public final class BSourceContext extends LibBunSource {
 	}
 
 	public final void FoundIndent(int StartIndex, int EndIndex) {
-		@Var BToken Token = new BIndentToken(this, StartIndex, EndIndex);
+		@Var BToken Token = new BIndentToken(this.Source, StartIndex, EndIndex);
 		this.SourcePosition = EndIndex;
 		this.ParsedTokenList.add(Token);
 	}
 
 	public final void Tokenize(int StartIndex, int EndIndex) {
 		this.SourcePosition = EndIndex;
-		if(StartIndex < EndIndex && EndIndex <= this.SourceText.length()) {
-			@Var BToken Token = new BToken(this, StartIndex, EndIndex);
+		if(StartIndex < EndIndex && EndIndex <= this.EndPosition) {
+			@Var BToken Token = new BToken(this.Source, StartIndex, EndIndex);
 			this.ParsedTokenList.add(Token);
 		}
 	}
 
 	public final void Tokenize(String PatternName, int StartIndex, int EndIndex) {
 		this.SourcePosition = EndIndex;
-		if(StartIndex <= EndIndex && EndIndex <= this.SourceText.length()) {
+		if(StartIndex <= EndIndex && EndIndex <= this.EndPosition) {
 			@Var LibBunSyntax Pattern = this.Parser.GetSyntaxPattern(PatternName);
 			if(Pattern == null) {
-				@Var BToken Token = new BToken(this, StartIndex, EndIndex);
+				@Var BToken Token = new BToken(this.Source, StartIndex, EndIndex);
 				LibBunLogger._LogInfo(Token, "unregistered token pattern: " + PatternName);
 				this.ParsedTokenList.add(Token);
 			}
 			else {
-				@Var BToken Token = new BPatternToken(this, StartIndex, EndIndex, Pattern);
+				@Var BToken Token = new BPatternToken(this.Source, StartIndex, EndIndex, Pattern);
 				this.ParsedTokenList.add(Token);
 			}
 		}
 	}
 
 	public final boolean IsDefinedSyntax(int StartIndex, int EndIndex) {
-		if(EndIndex < this.SourceText.length()) {
-			@Var String Token = this.SourceText.substring(StartIndex, EndIndex);
+		if(EndIndex < this.EndPosition) {
+			@Var String Token = this.Source.SourceText.substring(StartIndex, EndIndex);
 			@Var LibBunSyntax Pattern = this.Parser.GetRightSyntaxPattern(Token);
 			if(Pattern != null) {
 				return true;
@@ -138,7 +142,7 @@ public final class BSourceContext extends LibBunSource {
 	}
 
 	public final void LogWarning(int Position, String Message) {
-		this.Logger.Report(this.FormatErrorMarker("warning", Position, Message));
+		this.Source.Logger.Report(this.Source.FormatErrorMarker("warning", Position, Message));
 	}
 
 }

@@ -54,7 +54,7 @@ public final class BTokenContext {
 	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, String FileName, int LineNumber, String SourceText) {
 		this.Generator = Generator;
 		this.Parser = Parser;
-		this.SourceContext = new BSourceContext(FileName, LineNumber, SourceText, this);
+		this.SourceContext = new BSourceContext(new LibBunSource(FileName, LineNumber, SourceText, Generator.Logger), 0, SourceText.length(), this);
 	}
 
 	public boolean SetParseFlag(boolean AllowSkipIndent) {
