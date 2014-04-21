@@ -13,7 +13,7 @@ define math::ceil "java.lang.Math~Math.ceil($[0])": Func<float,float>
 define math::round "java.lang.Math~Math.round($[0])": Func<float,float>
 define math::floor "java.lang.Math~Math.floor($[0])": Func<float,float>
 define math::exp "java.lang.Math~Math.exp($[0])": Func<float,float>
-define math::log "java.lang.Math~Math.log($[0]) ": Func<float,float>
+define math::log "java.lang.Math~Math.log($[0])": Func<float,float>
 define math::max "java.lang.Math~Math.max($[0], $[1])": Func<float,float,float>
 define math::min "java.lang.Math~Math.min($[0], $[1])": Func<float,float,float>
 define math::max "java.lang.Math~Math.max($[0], $[1])": Func<int,int,int>

@@ -8,7 +8,7 @@ function minus(n : int) : int {
 	return -n;
 }
     
-function main() {
+export function main() {
   var plus2 : int = 2;
   var minus2 : int = -2;
   assert((2 - 2 / 2) == 1);

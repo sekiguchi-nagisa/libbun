@@ -1,23 +1,23 @@
-define math::E "<math.h>~MATH_E": float
-define math::PI "<math.h>~MATH_PI": float
+define math::E "math.h~M_E": float
+define math::PI "math.h~M_PI": float
 define math::abs "<stdlib.h>~labs($[0])": Func<int,int>
-define math::abs "<math.h>~fabs($[0])": Func<float,float>
-define math::sin "<math.h>~sin($[0])": Func<float,float>
-define math::cos "<math.h>~cos($[0])": Func<float,float>
-define math::tan "<math.h>~tan($[0])": Func<float,float>
-define math::sqrt "<math.h>~sqrt($[0])": Func<float,float>
-define math::acos "<math.h>~acos($[0])": Func<float,float>
-define math::asin "<math.h>~asin($[0])": Func<float,float>
-define math::atan "<math.h>~atan($[0])": Func<float,float>
-define math::atan2 "<math.h>~atan2($[0], $[1])": Func<float,float>
-define math::ceil "<math.h>~ceil($[0])": Func<float,float>
-define math::round "<math.h>~round($[0])": Func<float,float>
-define math::floor "<math.h>~floor($[0])": Func<float,float>
-define math::exp "<math.h>~exp($[0])": Func<float,float>
-define math::log "<math.h>~log($[0])": Func<float,float>
-define math::max "@fmax2~libbun_fmax($[0], $[1])": Func<float,float,float>
-define math::min "@fmin2~libbun_fmin($[0], $[1])": Func<float,float,float>
-define math::max "@imax2~libbun_imax($[0], $[1])": Func<int,int,int>
-define math::min "@imin2~libbun_imin($[0], $[1])": Func<int,int,int>
-define math::pow "<math.h>~pow($[0], $[1]) ": Func<float,float,float>
-define math::random "@random~libbun_round($[0])": Func<float,float>
+define math::abs "math.h~fabs($[0])": Func<float,float>
+define math::sin "math.h~sin($[0])": Func<float,float>
+define math::cos "math.h~cos($[0])": Func<float,float>
+define math::tan "math.h~tan($[0])": Func<float,float>
+define math::sqrt "math.h~sqrt($[0])": Func<float,float>
+define math::acos "math.h~acos($[0])": Func<float,float>
+define math::asin "math.h~asin($[0])": Func<float,float>
+define math::atan "math.h~atan($[0])": Func<float,float>
+define math::atan2 "math.h~atan2($[0], $[1])": Func<float,float>
+define math::ceil "math.h~ceil($[0])": Func<float,float>
+define math::round "math.h~round($[0])": Func<float,float>
+define math::floor "math.h~floor($[0])": Func<float,float>
+define math::exp "math.h~exp($[0])": Func<float,float>
+define math::log "math.h~log($[0])": Func<float,float>
+define math::max "libbun.h~libbun_fmax($[0], $[1])": Func<float,float,float>
+define math::min "libbun.h~libbun_fmin($[0], $[1])": Func<float,float,float>
+define math::max "libbun.h~libbun_imax($[0], $[1])": Func<int,int,int>
+define math::min "libbun.h~libbun_imin($[0], $[1])": Func<int,int,int>
+define math::pow "math.h~pow($[0], $[1])": Func<float,float,float>
+define math::random "libbun.h~libbun_random($[0])": Func<float,float>

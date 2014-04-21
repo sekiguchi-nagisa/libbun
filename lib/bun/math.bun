@@ -19,5 +19,5 @@ define math::max "math~math::max($[0], $[1])": Func<float,float,float>
 define math::min "math~math::min($[0], $[1])": Func<float,float,float>
 define math::max "math~math::max($[0], $[1])": Func<int,int,int>
 define math::min "math~math::min($[0], $[1])": Func<int,int,int>
-define math::pow "math~math::pow($[0], $[1]) ": Func<float,float,float>
+define math::pow "math~math::pow($[0], $[1])": Func<float,float,float>
 define math::random "math~math::round($[0])": Func<float,float>

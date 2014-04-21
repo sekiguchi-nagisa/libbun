@@ -1,10 +1,32 @@
 define assert "assert.h~assert($[0])": Func<boolean,String,void>
-define println "stdio.h~printf(\"%s\\n\", $[0])": Func<String,void>
+define println "libbun.h~printf(S_TOSTRING S_LF, $[0])": Func<String,void>
 define print "stdio.h~puts($[0])": Func<String,void>
-define _ "@S~(($[0])?S(\"true\"):S(\"false\"))": Func<boolean,String>
+define _ "libbun.h~(($[0])?S(S_TRUE):S(S_FALSE))": Func<boolean,String>
 define _ "((double)$[0])": Func<int,float>
-define _ "@i2s~libbun_i2s($[0])": Func<int,String>
-define _ "((double)$[0])": Func<float,int>
-define _ "@f2s~libbun_f2s($[0])": Func<float,String>
-define _ "@s2i~libbun_s2i($[0])": Func<String,int>
-define _ "@s2f~libbun_s2f($[0])": Func<String,float>
+define _ "libbun.h~libbun_i2s($[0])": Func<int,String>
+define _ "((long)$[0])": Func<float,int>
+define _ "libbun.h~libbun_f2s($[0])": Func<float,String>
+define _ "libbun.h~libbun_s2i($[0])": Func<String,int>
+define _ "libbun.h~libbun_s2f($[0])": Func<String,float>
+define + "libbun.h~libbun_concat($[0], $[1])": Func<String,String,String>
+define size "string.h~strlen($[0])": Func<String,int>
+define equals "libbun.h~libbun_strcmp($[0], $[1])": Func<String,String,boolean>
+define startsWith "libbun.h~libbun_startsWith($[0], $[1])": Func<String,String,boolean>
+define endsWith "libbun.h~libbun_endsWith($[0], $[1])": Func<String,String,boolean>
+define substring "libbun.h~libbun_substring1($[0], $[1])": Func<String,int,String>
+define substring "libbun.h~libbun_substring2($[0], $[1], $[2])": Func<String,int,int,String>
+define indexOf "libbun.h~libbun_indexOf($[0], $[1])": Func<String,String,int>
+define lastIndexOf "libbun.h~libbun_lastIndexOf($[0], $[1])": Func<String,String,int>
+define toLowerCase "libbun.h~libbun_toLowerCase($[0])": Func<String,String>
+define toUpperCase "libbun.h~libbun_toUpperCase($[0])": Func<String,String>
+define replace "libbun.h~libbun_replace($[0], $[1], $[2])": Func<String,String,String,String>
+define trim "libbun.h~libbun_trim($[0])": Func<String,String>
+define _ "libbun.h~libbun_ArrayToString($[0])": Func<α[],String>
+define size "libbun.h~libbun_ArrayLength($[0])": Func<α[],int>
+define size "libbun.h~libbun_ArraySetLength($[0], $[1])": Func<α[],int,void>
+define get "$[0][$[1]]": Func<α[],int,α>
+define set "$[0][$[1]] = $[2]": Func<α[],int,α,void>
+define add "libbun.h~libbun_ArrayAdd($[0], $[1])": Func<α[],α,void>
+define insert "libbun.h~libbun_ArraySet($[0], $[1], $[2])": Func<α[],int,α,void>
+define remove "libbun.h~libbun_ArrayRemove($[0], $[1])": Func<α[],int,α>
+define pop "libbun.h~libbun_ArrayPop($[0])": Func<α[],α>
