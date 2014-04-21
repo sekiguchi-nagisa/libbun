@@ -101,8 +101,8 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.SetNativeType(BType.IntType, "long");
 		this.SetNativeType(BType.FloatType, "double");
 		this.SetNativeType(BType.StringType, "const char *");
-
-		this.Header.AppendNewLine("/* end of header */", this.LineFeed);
+		this.LoadInlineLibrary("common.c", "//");
+		//		this.Header.AppendNewLine("/* end of header */", this.LineFeed);
 	}
 
 	@Override protected void GenerateExpression(BNode Node) {
@@ -121,13 +121,11 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.Header.AppendNewLine("#include <", LibName, ">");
 	}
 
-	@Override
-	public void VisitNullNode(BunNullNode Node) {
+	@Override public void VisitNullNode(BunNullNode Node) {
 		this.Source.Append("NULL");
 	}
 
-	@Override
-	public void VisitBooleanNode(BunBooleanNode Node) {
+	@Override public void VisitBooleanNode(BunBooleanNode Node) {
 		if (Node.BooleanValue) {
 			this.Source.Append("1/*true*/");
 		} else {
@@ -135,18 +133,15 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitIntNode(BunIntNode Node) {
+	@Override public void VisitIntNode(BunIntNode Node) {
 		this.Source.Append(String.valueOf(Node.IntValue));
 	}
 
-	@Override
-	public void VisitFloatNode(BunFloatNode Node) {
+	@Override public void VisitFloatNode(BunFloatNode Node) {
 		this.Source.Append(String.valueOf(Node.FloatValue));
 	}
 
-	@Override
-	public void VisitStringNode(BunStringNode Node) {
+	@Override public void VisitStringNode(BunStringNode Node) {
 		this.Source.Append(LibBunSystem._QuoteString(Node.StringValue));
 	}
 
@@ -168,125 +163,101 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitNotNode(BunNotNode Node) {
+	@Override public void VisitNotNode(BunNotNode Node) {
 		this.GenerateUnaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitPlusNode(BunPlusNode Node) {
+	@Override public void VisitPlusNode(BunPlusNode Node) {
 		this.GenerateUnaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitMinusNode(BunMinusNode Node) {
+	@Override public void VisitMinusNode(BunMinusNode Node) {
 		this.GenerateUnaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitComplementNode(BunComplementNode Node) {
+	@Override public void VisitComplementNode(BunComplementNode Node) {
 		this.GenerateUnaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitAndNode(BunAndNode Node) {
+	@Override public void VisitAndNode(BunAndNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitOrNode(BunOrNode Node) {
+	@Override public void VisitOrNode(BunOrNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitAddNode(BunAddNode Node) {
+	@Override public void VisitAddNode(BunAddNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitSubNode(BunSubNode Node) {
+	@Override public void VisitSubNode(BunSubNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitMulNode(BunMulNode Node) {
+	@Override public void VisitMulNode(BunMulNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitDivNode(BunDivNode Node) {
+	@Override public void VisitDivNode(BunDivNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitModNode(BunModNode Node) {
+	@Override public void VisitModNode(BunModNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitLeftShiftNode(BunLeftShiftNode Node) {
+	@Override public void VisitLeftShiftNode(BunLeftShiftNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitRightShiftNode(BunRightShiftNode Node) {
+	@Override public void VisitRightShiftNode(BunRightShiftNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitBitwiseAndNode(BunBitwiseAndNode Node) {
+	@Override public void VisitBitwiseAndNode(BunBitwiseAndNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitBitwiseOrNode(BunBitwiseOrNode Node) {
+	@Override public void VisitBitwiseOrNode(BunBitwiseOrNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitBitwiseXorNode(BunBitwiseXorNode Node) {
+	@Override public void VisitBitwiseXorNode(BunBitwiseXorNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitEqualsNode(BunEqualsNode Node) {
+	@Override public void VisitEqualsNode(BunEqualsNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitNotEqualsNode(BunNotEqualsNode Node) {
+	@Override public void VisitNotEqualsNode(BunNotEqualsNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitLessThanNode(BunLessThanNode Node) {
+	@Override public void VisitLessThanNode(BunLessThanNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitLessThanEqualsNode(BunLessThanEqualsNode Node) {
+	@Override public void VisitLessThanEqualsNode(BunLessThanEqualsNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitGreaterThanNode(BunGreaterThanNode Node) {
+	@Override public void VisitGreaterThanNode(BunGreaterThanNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitGreaterThanEqualsNode(BunGreaterThanEqualsNode Node) {
+	@Override public void VisitGreaterThanEqualsNode(BunGreaterThanEqualsNode Node) {
 		this.GenerateBinaryNode(Node, Node.GetOperator());
 	}
 
-	@Override
-	public void VisitGroupNode(GroupNode Node) {
+	@Override public void VisitGroupNode(GroupNode Node) {
 		this.Source.Append("(");
 		Node.ExprNode().Accept(this);
 		this.Source.Append(")");
 	}
 
-	@Override
-	public void VisitArrayLiteralNode(BunArrayLiteralNode Node) {
+	@Override public void VisitArrayLiteralNode(BunArrayLiteralNode Node) {
 		this.ImportLibrary("libbun.h");
 		@Var BType ParamType = Node.Type.GetParamType(0);
 		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
@@ -308,8 +279,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.GenerateListNode("", Node, ",", ")");
 	}
 
-	@Override
-	public void VisitMapLiteralNode(BunMapLiteralNode Node) {
+	@Override public void VisitMapLiteralNode(BunMapLiteralNode Node) {
 		this.ImportLibrary("libbun.h");
 		@Var BType ParamType = Node.Type.GetParamType(0);
 		if(ParamType.IsIntType() || ParamType.IsBooleanType()) {
@@ -328,7 +298,6 @@ public class CGenerator extends LibBunSourceGenerator {
 		if(Node.GetListSize() > 0) {
 			this.Source.Append(", ");
 		}
-
 		@Var int i = 0;
 		while(i < Node.GetListSize()) {
 			@Var BunMapEntryNode Entry = Node.GetMapEntryNode(i);
@@ -338,8 +307,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.Source.Append(")");
 	}
 
-	@Override
-	public void VisitNewObjectNode(NewObjectNode Node) {
+	@Override public void VisitNewObjectNode(NewObjectNode Node) {
 		this.Source.Append("_New"+this.NameClass(Node.Type));
 		this.GenerateListNode("(", Node, ",", ")");
 	}
@@ -353,8 +321,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	public void VisitFuncCallNode(FuncCallNode Node) {
+	@Override public void VisitFuncCallNode(FuncCallNode Node) {
 		@Var BunFuncNameNode FuncNameNode = Node.FuncNameNode();
 		if(FuncNameNode != null) {
 			this.GenerateFuncName(FuncNameNode);
@@ -365,8 +332,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.GenerateListNode("(", Node, ",", ")");
 	}
 
-	@Override
-	public void VisitGetNameNode(GetNameNode Node) {
+	@Override public void VisitGetNameNode(GetNameNode Node) {
 		@Var BNode ResolvedNode = Node.ResolvedNode;
 		if(ResolvedNode == null && !this.LangInfo.AllowUndefinedSymbol) {
 			LibBunLogger._LogError(Node.SourceToken, "undefined symbol: " + Node.GivenName);
@@ -374,8 +340,7 @@ public class CGenerator extends LibBunSourceGenerator {
 		this.Source.Append(Node.GetUniqueName(this));
 	}
 
-	@Override
-	public void VisitAssignNode(AssignNode Node) {
+	@Override public void VisitAssignNode(AssignNode Node) {
 		if(Node.LeftNode() instanceof GetIndexNode) {
 			GetIndexNode Left = (GetIndexNode) Node.LeftNode();
 			BType ThisType = Left.GetAstType(GetIndexNode._Recv);
