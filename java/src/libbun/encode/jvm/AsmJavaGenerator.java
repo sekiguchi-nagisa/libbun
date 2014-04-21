@@ -134,11 +134,11 @@ import libbun.type.BType;
 import libbun.type.BTypePool;
 import libbun.util.BArray;
 import libbun.util.BFunction;
-import libbun.util.LibBunSystem;
-import libbun.util.BunMap;
 import libbun.util.BMatchFunction;
-import libbun.util.BunObject;
 import libbun.util.BTokenFunction;
+import libbun.util.BunMap;
+import libbun.util.BunObject;
+import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
 import org.objectweb.asm.Label;
@@ -205,8 +205,6 @@ public class AsmJavaGenerator extends LibBunGenerator {
 			Node.Accept(this);
 		}
 	}
-
-
 
 	public final Class<?> GetJavaClass(BType zType, Class<?> C) {
 		if(zType instanceof BFuncType) {
@@ -1018,7 +1016,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		if(Node.IsTopLevelDefineFunction()) {
 			assert(Node.FuncName() != null);
 			assert(Node.IsTopLevel());  // otherwise, transformed to var f = function ()..
-			JavaStaticFieldNode FuncNode = this.GenerateFunctionAsSymbolField(Node.FuncName(), Node);
+			JavaStaticFieldNode FuncNode = this.GenerateFunctionAsSymbolField(Node.GetUniqueName(this), Node);
 			if(Node.IsExport) {
 				if(Node.FuncName().equals("main")) {
 					this.MainFuncNode = FuncNode;

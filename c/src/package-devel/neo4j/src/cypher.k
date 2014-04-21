@@ -1,4 +1,0 @@
-/*
- * written by motoki yoan
- */
-

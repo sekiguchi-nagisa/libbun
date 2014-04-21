@@ -1,2 +1,0 @@
-set(PACKAGE_SOURCE_CODE CStyleBitwiseOperator_glue.c)
-add_konoha_package(Syntax.CStyleBitwiseOperator)
