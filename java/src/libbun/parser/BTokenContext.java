@@ -103,6 +103,7 @@ public final class BTokenContext {
 		@Var int ThisIndex = this.TokenList.size();
 		this.SourceContext.ApplyFunc(TokenFunc);
 		if(this.TokenList.size() > ThisIndex) {
+			this.CurrentPosition = ThisIndex + 1;
 			return this.TokenList.ArrayValues[ThisIndex];
 		}
 		return null;

@@ -24,6 +24,10 @@ public class BToken {
 		this.EndIndex = EndIndex;
 	}
 
+	public final int size() {
+		return this.EndIndex - this.StartIndex;
+	}
+
 	public final String GetFileName() {
 		return this.Source.FileName;
 	}
@@ -139,7 +143,5 @@ public class BToken {
 		}
 		return 0;
 	}
-
-
 
 }
