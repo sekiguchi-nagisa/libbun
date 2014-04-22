@@ -122,6 +122,7 @@ import libbun.ast.unary.BunNotNode;
 import libbun.ast.unary.BunPlusNode;
 import libbun.ast.unary.UnaryOperatorNode;
 import libbun.encode.LibBunGenerator;
+import libbun.lang.bun.BunTypeSafer;
 import libbun.parser.BSourceContext;
 import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
@@ -129,6 +130,7 @@ import libbun.parser.LibBunLangInfo;
 import libbun.parser.LibBunLogger;
 import libbun.type.BClassField;
 import libbun.type.BClassType;
+import libbun.type.BFunc;
 import libbun.type.BFuncType;
 import libbun.type.BType;
 import libbun.type.BTypePool;
@@ -679,9 +681,16 @@ public class AsmJavaGenerator extends LibBunGenerator {
 	}
 
 	@Override public void VisitFuncCallNode(FuncCallNode Node) {
-		BType FuncType = Node.FunctorNode().Type;
+		@Var BType FuncType = Node.FunctorNode().Type;
+		@Var BunFuncNameNode FuncNameNode = Node.FuncNameNode();
+		if(!(FuncType instanceof BFuncType)) { // lookup func type
+			@Var BFunc Func = ((BunTypeSafer)this.TypeChecker).LookupFunc(Node.GetGamma(), FuncNameNode.FuncName, FuncNameNode.RecvType, FuncNameNode.FuncParamSize);
+			if(Func != null) {
+				FuncType = Func.GetFuncType();
+				Node.Type = ((BFuncType)FuncType).GetReturnType();
+			}
+		}
 		if(FuncType instanceof BFuncType) {
-			@Var BunFuncNameNode FuncNameNode = Node.FuncNameNode();
 			if(FuncNameNode != null) {
 				this.AsmBuilder.ApplyFuncName(FuncNameNode, FuncNameNode.FuncName, (BFuncType)FuncType, Node);
 			}

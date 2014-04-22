@@ -982,7 +982,7 @@ public class BunTypeSafer extends LibBunTypeChecker {
 
 	// utils
 
-	private BFunc LookupFunc(LibBunGamma Gamma, String FuncName, BType RecvType, int FuncParamSize) {
+	public BFunc LookupFunc(LibBunGamma Gamma, String FuncName, BType RecvType, int FuncParamSize) {
 		@Var String Signature = BFunc._StringfySignature(FuncName, FuncParamSize, RecvType);
 		@Var BFunc Func = this.Generator.GetDefinedFunc(Signature);
 		//System.out.println("LookupFunc: " + Func + " by " + Signature);
