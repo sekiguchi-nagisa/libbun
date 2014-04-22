@@ -577,7 +577,8 @@ public class LibBunSystem {
 		ClassMap.put("lua",  libbun.encode.devel.LuaGenerator.class);
 
 		ClassMap.put("pl",  libbun.encode.obsolete.PerlGenerator.class);
-		ClassMap.put("py", libbun.encode.playground.PythonGenerator.class);
+		ClassMap.put("py", libbun.encode.release.PythonGenerator.class);
+		ClassMap.put("python-playground", libbun.encode.playground.PythonGenerator.class);
 		ClassMap.put("r", libbun.encode.playground.RGenerator.class);
 		ClassMap.put("rb", libbun.encode.devel.RubyGenerator.class);
 

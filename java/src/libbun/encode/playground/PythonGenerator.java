@@ -30,7 +30,6 @@ import libbun.ast.decl.BunLetVarNode;
 import libbun.ast.decl.BunVarBlockNode;
 import libbun.ast.error.ErrorNode;
 import libbun.ast.error.TypeErrorNode;
-import libbun.ast.expression.BunFormNode;
 import libbun.ast.expression.BunFuncNameNode;
 import libbun.ast.expression.FuncCallNode;
 import libbun.ast.expression.GetFieldNode;
@@ -139,16 +138,6 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		this.GenerateExpression(Node.RightNode());
 		if (Node.ParentNode instanceof BinaryOperatorNode) {
 			this.Source.Append(")");
-		}
-	}
-
-	private void GenerateConcatNullString(BNode Node) {
-		if(Node instanceof BunStringNode || Node instanceof BunFormNode) {
-			this.GenerateExpression(Node);
-		}
-		else {
-			this.GenerateExpression("libbun_null(", Node, ")");
-			this.ImportLibrary("@null");
 		}
 	}
 
@@ -564,16 +553,19 @@ public class PythonGenerator extends LibBunSourceGenerator {
 			}
 			i = i + 1;
 		}
-		this.Source.Append("u", LibBunSystem._QuoteString("'", Format, "'"), " % (");
-		i = 1;
-		while(i < Node.GetAstSize()) {
-			if(i > 2) {
-				this.Source.Append(", ");
+		this.Source.Append(LibBunSystem._QuoteString("u'", Format, "'"));
+		if(Node.GetAstSize() > 1) {
+			this.Source.Append(" % (");
+			i = 1;
+			while(i < Node.GetAstSize()) {
+				if(i > 2) {
+					this.Source.Append(", ");
+				}
+				this.GenerateExpression(Node.AST[i]);
+				i = i + 2;
 			}
-			this.GenerateExpression(Node.AST[i]);
-			i = i + 2;
+			this.Source.Append(")");
 		}
-		this.Source.Append(")");
 		return true;
 	}
 }
