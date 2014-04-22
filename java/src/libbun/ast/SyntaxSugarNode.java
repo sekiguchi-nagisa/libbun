@@ -11,7 +11,7 @@ public abstract class SyntaxSugarNode extends BNode {
 		super(ParentNode, Size);
 	}
 
-	@Override public final void Accept(LibBunVisitor Visitor) {
+	@Override public void Accept(LibBunVisitor Visitor) {
 		Visitor.VisitSyntaxSugarNode(this);
 	}
 

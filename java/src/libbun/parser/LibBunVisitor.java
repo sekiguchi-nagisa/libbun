@@ -25,11 +25,12 @@
 package libbun.parser;
 
 import libbun.ast.BunBlockNode;
+import libbun.ast.DesugarNode;
 import libbun.ast.GroupNode;
 import libbun.ast.LocalDefinedNode;
 import libbun.ast.SyntaxSugarNode;
-import libbun.ast.binary.BinaryOperatorNode;
 import libbun.ast.binary.AssignNode;
+import libbun.ast.binary.BinaryOperatorNode;
 import libbun.ast.binary.BunInstanceOfNode;
 import libbun.ast.decl.BunClassNode;
 import libbun.ast.decl.BunFunctionNode;
@@ -103,6 +104,7 @@ public abstract class LibBunVisitor {
 
 	public abstract void VisitTopLevelNode(TopLevelNode Node);
 	public abstract void VisitSyntaxSugarNode(SyntaxSugarNode Node);
+	public abstract void VisitDesugarNode(DesugarNode Node);
 	public abstract void VisitLocalDefinedNode(LocalDefinedNode Node);
 
 	private boolean StoppedVisitor;

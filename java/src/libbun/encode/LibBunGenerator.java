@@ -312,13 +312,28 @@ public abstract class LibBunGenerator extends BunVisitor {
 		this.VisitNullNode(new BunNullNode(Node.ParentNode, null));
 	}
 
-	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
-		@Var DesugarNode DeNode = Node.PerformDesugar(this.TypeChecker);
-		@Var int i = 0;
-		while(i < DeNode.GetAstSize()) {
-			DeNode.AST[i].Accept(this);  // FIXME
-			i = i + 1;
+	protected boolean LocallyGenerated(BNode Node) {
+		return false;
+	}
+
+	@Override public final void VisitDesugarNode(DesugarNode Node) {
+		if(!this.LocallyGenerated(Node.OriginalNode)) {
+			if(Node.IsExpression()) {
+				this.GenerateExpression(Node.AST[0]);
+			}
+			else {
+				@Var int i = 0;
+				while(i < Node.GetAstSize() - 1) {
+					this.GenerateStatement(Node.AST[i]);
+					i = i + 1;
+				}
+				this.GenerateExpression(Node.AST[Node.GetAstSize() - 1]);
+			}
 		}
+	}
+
+	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
+		this.VisitDesugarNode(Node.PerformDesugar(this.TypeChecker));
 	}
 
 	@ZenMethod protected void GenerateExpression(BNode Node) {

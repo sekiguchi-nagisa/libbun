@@ -1353,6 +1353,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 
 	}
 
+
 }
 
 

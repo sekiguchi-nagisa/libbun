@@ -284,14 +284,19 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
 		@Var BType ContextType = this.GetContextType();
 		Node.PerformTyping(this, ContextType);
-		@Var DesugarNode DesugarNode = Node.PerformDesugar(this);
+		this.VisitDesugarNode(Node.PerformDesugar(this));
+	}
+
+	@Override public void VisitDesugarNode(DesugarNode Node) {
 		@Var int i = 0;
-		while(i < DesugarNode.GetAstSize()) {
-			this.CheckTypeAt(DesugarNode, i, ContextType);
+		while(i < Node.GetAstSize() - 1 ) {
+			this.CheckTypeAt(Node, i, BType.VoidType);
 			i = i + 1;
 		}
-		this.ReturnTypeNode(DesugarNode, DesugarNode.GetAstType(DesugarNode.GetAstSize()-1));
+		this.CheckTypeAt(Node, i, BType.VarType);  // i == Node.GetAstSize() - 1
+		this.ReturnTypeNode(Node, Node.GetAstType(i));
 	}
+
 
 	// ----------------------------------------------------------------------
 	/* Note : the CreateNode serise are designed to treat typed node */

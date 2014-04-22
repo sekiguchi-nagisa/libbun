@@ -3,6 +3,7 @@ package libbun.parser.ssa;
 import libbun.ast.AbstractListNode;
 import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
+import libbun.ast.DesugarNode;
 import libbun.ast.GroupNode;
 import libbun.ast.LocalDefinedNode;
 import libbun.ast.SyntaxSugarNode;
@@ -253,6 +254,11 @@ public class ZASTTransformer extends LibBunVisitor {
 	public void VisitLocalDefinedNode(LocalDefinedNode Node) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void VisitDesugarNode(DesugarNode Node) {
+		// TODO Auto-generated method stub
 	}
 
 

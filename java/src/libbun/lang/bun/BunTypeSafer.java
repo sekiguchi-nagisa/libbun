@@ -1008,6 +1008,7 @@ public class BunTypeSafer extends LibBunTypeChecker {
 	}
 
 
+
 	//	private ZFunc LookupFunc2(ZGamma Gamma, String FuncName, ZType RecvType, int FuncParamSize) {
 	//		@Var ZFunc Func = this.Generator.LookupFunc(FuncName, RecvType, FuncParamSize);
 	//		if(Func == null && RecvType.IsIntType()) {

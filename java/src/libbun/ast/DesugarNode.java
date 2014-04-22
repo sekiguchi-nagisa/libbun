@@ -1,13 +1,14 @@
 package libbun.ast;
 
 import libbun.parser.LibBunTypeChecker;
+import libbun.parser.LibBunVisitor;
 import libbun.type.BType;
 import libbun.util.BField;
 import libbun.util.Var;
 
 public class DesugarNode extends SyntaxSugarNode {
 	//	public final static int _NewNode = 0;
-	@BField BNode OriginalNode;
+	@BField public BNode OriginalNode;
 
 	public DesugarNode(BNode OriginalNode, BNode DesugardNode) {
 		super(OriginalNode.ParentNode, 1);
@@ -40,6 +41,14 @@ public class DesugarNode extends SyntaxSugarNode {
 		else {
 			return this.OriginalNode.Dup(TypedClone, ParentNode);
 		}
+	}
+
+	@Override public final void Accept(LibBunVisitor Visitor) {
+		Visitor.VisitDesugarNode(this);
+	}
+
+	public final boolean IsExpression() {
+		return this.GetAstSize() == 1;
 	}
 
 	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {

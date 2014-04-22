@@ -52,6 +52,7 @@ import libbun.ast.statement.BunReturnNode;
 import libbun.ast.statement.BunThrowNode;
 import libbun.ast.statement.BunTryNode;
 import libbun.ast.statement.BunWhileNode;
+import libbun.ast.sugar.StringInterpolationNode;
 import libbun.ast.unary.BunCastNode;
 import libbun.ast.unary.BunComplementNode;
 import libbun.ast.unary.BunMinusNode;
@@ -65,6 +66,7 @@ import libbun.type.BClassField;
 import libbun.type.BClassType;
 import libbun.type.BFuncType;
 import libbun.type.BType;
+import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
 public class PythonGenerator extends LibBunSourceGenerator {
@@ -74,9 +76,9 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		this.LoadInlineLibrary("inline.py", "##");
 		this.Header.Append("#! /usr/bin/env python");
 		this.Header.AppendNewLine("# -*- coding: utf-8 -*-");
-		this.Source.AppendNewLine("import sys, codecs");
-		this.Source.AppendNewLine("sys.stdout = codecs.getwriter('utf-8')(sys.stdout)");
-		this.Source.AppendNewLine("## end of header", this.LineFeed);
+		//		this.Source.AppendNewLine("import sys, codecs");
+		//		this.Source.AppendNewLine("sys.stdout = codecs.getwriter('utf-8')(sys.stdout)");
+		//		this.Source.AppendNewLine("## end of header", this.LineFeed);
 	}
 
 	@Override protected void GenerateImportLibrary(String LibName) {
@@ -105,8 +107,7 @@ public class PythonGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitStringNode(BunStringNode Node) {
-		this.Source.Append("u");
-		this.Source.AppendQuotedText(Node.StringValue);
+		this.Source.Append(LibBunSystem._QuoteString("u'", Node.StringValue, "'"));
 	}
 
 	@Override public void VisitNotNode(BunNotNode Node) {
@@ -535,4 +536,50 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		}
 	}
 
+	@Override
+	protected boolean LocallyGenerated(BNode Node) {
+		if(Node instanceof StringInterpolationNode) {
+			return this.VisitStringInterpolationNode((StringInterpolationNode)Node);
+		}
+		return false;
+	}
+
+	private String NormalizePythonFormat(String s) {
+		return s.replaceAll("%", "%%");
+	}
+
+	protected boolean VisitStringInterpolationNode(StringInterpolationNode Node) {
+		@Var String Format = "";
+		@Var int i = 0;
+		while(i < Node.GetAstSize()) {
+			if(i % 2 == 0) {
+				if(Node.AST[i] instanceof BunStringNode) {
+					Format = Format + this.NormalizePythonFormat(((BunStringNode)Node.AST[i]).StringValue);
+				}
+			}
+			else {
+				@Var BType Type = Node.GetAstType(i);
+				@Var String Formatter = "%s";
+				if(Type.IsIntType()) {
+					Formatter = "%d";
+				}
+				else if(Type.IsFloatType()) {
+					Formatter = "%f";
+				}
+				Format = Format + Formatter;
+			}
+			i = i + 1;
+		}
+		this.Source.Append("u", LibBunSystem._QuoteString("'", Format, "'"), " % (");
+		i = 1;
+		while(i < Node.GetAstSize()) {
+			if(i > 2) {
+				this.Source.Append(", ");
+			}
+			this.GenerateExpression(Node.AST[i]);
+			i = i + 2;
+		}
+		this.Source.Append(")");
+		return true;
+	}
 }

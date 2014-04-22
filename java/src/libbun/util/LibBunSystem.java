@@ -299,9 +299,9 @@ public class LibBunSystem {
 		return sb.toString();
 	}
 
-	public static final String _QuoteString(String Text) {
+	public static final String _QuoteString(String OpenQuote, String Text, String CloseQuote) {
 		StringBuilder sb = new StringBuilder();
-		sb.append('"');
+		sb.append(OpenQuote);
 		@Var int i = 0;
 		for(; i < Text.length(); i = i + 1) {
 			@Var char ch = _GetChar(Text, i);
@@ -321,8 +321,11 @@ public class LibBunSystem {
 				sb.append(ch);
 			}
 		}
-		sb.append('"');
+		sb.append(CloseQuote);
 		return sb.toString();
+	}
+	public static final String _QuoteString(String Text) {
+		return LibBunSystem._QuoteString("\"", Text, "\"");
 	}
 
 	public final static long _ParseInt(String Text) {

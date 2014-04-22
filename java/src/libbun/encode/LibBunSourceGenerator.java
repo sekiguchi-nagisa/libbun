@@ -232,7 +232,7 @@ public abstract class LibBunSourceGenerator extends LibBunGenerator {
 	}
 
 
-	// Generator
+	// Generator Utils
 
 	protected void GenerateListNode(String OpenToken, AbstractListNode VargNode, String CommaToken, String CloseToken) {
 		this.Source.Append(OpenToken);
