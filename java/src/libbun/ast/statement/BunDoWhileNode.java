@@ -49,7 +49,11 @@ public final class BunDoWhileNode extends SyntaxSugarNode {
 		return this.AST[BunDoWhileNode._Next];
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {
 		return null;
 	}
 

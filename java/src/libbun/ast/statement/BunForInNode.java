@@ -5,6 +5,7 @@ import libbun.ast.BunBlockNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
 import libbun.parser.LibBunTypeChecker;
+import libbun.type.BType;
 import libbun.util.Var;
 
 public final class BunForInNode extends SyntaxSugarNode {
@@ -37,7 +38,11 @@ public final class BunForInNode extends SyntaxSugarNode {
 		return null;
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {
 		// TODO Auto-generated method stub
 		return null;
 	}

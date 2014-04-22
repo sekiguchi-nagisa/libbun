@@ -30,6 +30,7 @@ import libbun.ast.error.ErrorNode;
 import libbun.encode.LibBunGenerator;
 import libbun.util.BArray;
 import libbun.util.BField;
+import libbun.util.BTokenFunction;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
@@ -51,10 +52,21 @@ public final class BTokenContext {
 	@BField public BToken LatestToken = null;
 	@BField private LibBunSyntax ApplyingPattern = null;
 
+	@Deprecated
 	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, String FileName, int LineNumber, String SourceText) {
 		this.Generator = Generator;
 		this.Parser = Parser;
 		this.SourceContext = new BSourceContext(new LibBunSource(FileName, LineNumber, SourceText, Generator.Logger), 0, SourceText.length(), this);
+	}
+
+	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, LibBunSource Source, int StartIndex, int EndIndex) {
+		this.Generator = Generator;
+		this.Parser = Parser;
+		this.SourceContext = new BSourceContext(Source, StartIndex, EndIndex, this);
+	}
+
+	public BTokenContext SubContext(int StartIndex, int EndIndex) {
+		return new BTokenContext(this.Parser, this.Generator, this.SourceContext.Source, StartIndex, EndIndex);
 	}
 
 	public boolean SetParseFlag(boolean AllowSkipIndent) {
@@ -87,9 +99,14 @@ public final class BTokenContext {
 	public void Vacume() {
 	}
 
-	//	public final void MoveNext() {
-	//		this.CurrentPosition = this.CurrentPosition + 1;
-	//	}
+	public BToken ParseTokenBy(BTokenFunction TokenFunc) {
+		@Var int ThisIndex = this.TokenList.size();
+		this.SourceContext.ApplyFunc(TokenFunc);
+		if(this.TokenList.size() > ThisIndex) {
+			return this.TokenList.ArrayValues[ThisIndex];
+		}
+		return null;
+	}
 
 	public final void MoveNext() {
 		this.CurrentPosition = this.CurrentPosition + 1;
@@ -132,27 +149,6 @@ public final class BTokenContext {
 			Token = this.GetToken();
 		}
 	}
-
-	//	public void SkipError(BToken ErrorToken) {
-	//		@Var int StartIndex = ErrorToken.StartIndex;
-	//		@Var int EndIndex = ErrorToken.EndIndex;
-	//		@Var int length = ErrorToken.GetIndentSize();
-	//		while(this.HasNext()) {
-	//			@Var BToken Token = this.GetToken();
-	//			EndIndex = Token.EndIndex;
-	//			this.CurrentPosition = this.CurrentPosition + 1;
-	//			if(Token instanceof BIndentToken) {
-	//				@Var int ilength = Token.GetIndentSize();
-	//				if(ilength <= length) {
-	//					break;
-	//				}
-	//			}
-	//		}
-	//		if(StartIndex < EndIndex) {
-	//			BLib._PrintDebug("StartIdx="+StartIndex+", EndIndex="+EndIndex);
-	//			BLib._PrintDebug("skipped: \t" + ErrorToken.Source.SourceText.substring(StartIndex, EndIndex));
-	//		}
-	//	}
 
 	public final void SkipToken() {
 		this.GetToken(BTokenContext._MoveNext);
@@ -276,10 +272,6 @@ public final class BTokenContext {
 			this.CurrentPosition = RollbackPosition;
 			return null;
 		}
-		//		if(this.CurrentPosition == RollbackPosition) {
-		//			LibZen._PrintLine("DEBUG infinite looping" + RollbackPosition + " Token=" + TopToken + " ParsedNode=" + ParsedNode);
-		//			assert(this.CurrentPosition != RollbackPosition);
-		//		}
 		if(ParsedNode == null) {
 			ParsedNode = this.CreateExpectedErrorNode(TopToken, Pattern.PatternName);
 		}
@@ -402,5 +394,8 @@ public final class BTokenContext {
 			Position = Position + 1;
 		}
 	}
+
+
+
 
 }

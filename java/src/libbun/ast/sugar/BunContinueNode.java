@@ -42,6 +42,40 @@ public class BunContinueNode extends SyntaxSugarNode {
 	}
 	 **/
 
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		TypeChecker.TypeNode(this, BType.VoidType);
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker Typer) {
+		@Var BunWhileNode WhileNode = this.LookupWhileNode();
+		if(WhileNode == null) {
+			return new DesugarNode(this, new ErrorNode(this.ParentNode, this.SourceToken, "continue must be inside the while statement"));
+		}
+		@Var BunBlockNode ParentBlockNode = WhileNode.GetScopeBlockNode();
+		@Var String VarName = Typer.Generator.NameUniqueSymbol("continue");
+		@Var BunVarBlockNode VarNode = Typer.CreateVarNode(null, VarName, BType.BooleanType, new BunBooleanNode(true));
+		@Var BunWhileNode ContinueWhile = VarNode.SetNewWhileNode(BNode._AppendIndex, Typer);
+		ContinueWhile.SetNewGetNameNode(BunWhileNode._Cond, Typer, VarName, BType.BooleanType);
+		@Var BunBlockNode WhileBlockNode = ContinueWhile.SetNewBlockNode(BunWhileNode._Block, Typer);
+		WhileBlockNode.Append(new AssignNode(VarName, new BunBooleanNode(false)));
+		WhileBlockNode.Append(WhileNode);
+
+		@Var BNode[] Nodes = null;
+		if(WhileNode.HasNextNode()) {
+			Nodes = LibBunSystem._NewNodeArray(3);
+			Nodes[0] = new AssignNode(VarName, new BunBooleanNode(true));
+			Nodes[1] = WhileNode.NextNode();
+			Nodes[2] = new BunBreakNode(null);
+		}
+		else {
+			Nodes = LibBunSystem._NewNodeArray(2);
+			Nodes[0] = new AssignNode(VarName, new BunBooleanNode(true));
+			Nodes[1] = new BunBreakNode(null);
+		}
+		ParentBlockNode.ReplaceWith(WhileNode, VarNode);
+		return this.ReplaceContinue(WhileNode, this, Nodes, null);
+	}
+
 	private BunWhileNode LookupWhileNode() {
 		@Var BNode Node = this;
 		while(Node != null) {
@@ -75,34 +109,5 @@ public class BunContinueNode extends SyntaxSugarNode {
 		return FirstDesugarNode;
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker Typer) {
-		@Var BunWhileNode WhileNode = this.LookupWhileNode();
-		if(WhileNode == null) {
-			return new DesugarNode(this, new ErrorNode(this.ParentNode, this.SourceToken, "continue must be inside the while statement"));
-		}
-		@Var BunBlockNode ParentBlockNode = WhileNode.GetScopeBlockNode();
-		@Var String VarName = Typer.Generator.NameUniqueSymbol("continue");
-		@Var BunVarBlockNode VarNode = Typer.CreateVarNode(null, VarName, BType.BooleanType, new BunBooleanNode(true));
-		@Var BunWhileNode ContinueWhile = VarNode.SetNewWhileNode(BNode._AppendIndex, Typer);
-		ContinueWhile.SetNewGetNameNode(BunWhileNode._Cond, Typer, VarName, BType.BooleanType);
-		@Var BunBlockNode WhileBlockNode = ContinueWhile.SetNewBlockNode(BunWhileNode._Block, Typer);
-		WhileBlockNode.Append(new AssignNode(VarName, new BunBooleanNode(false)));
-		WhileBlockNode.Append(WhileNode);
-
-		@Var BNode[] Nodes = null;
-		if(WhileNode.HasNextNode()) {
-			Nodes = LibBunSystem._NewNodeArray(3);
-			Nodes[0] = new AssignNode(VarName, new BunBooleanNode(true));
-			Nodes[1] = WhileNode.NextNode();
-			Nodes[2] = new BunBreakNode(null);
-		}
-		else {
-			Nodes = LibBunSystem._NewNodeArray(2);
-			Nodes[0] = new AssignNode(VarName, new BunBooleanNode(true));
-			Nodes[1] = new BunBreakNode(null);
-		}
-		ParentBlockNode.ReplaceWith(WhileNode, VarNode);
-		return this.ReplaceContinue(WhileNode, this, Nodes, null);
-	}
 
 }

@@ -60,7 +60,12 @@ public class CommandNode extends SyntaxSugarNode {
 		return this.RetType;
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChecker) {
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		// FIXME
+		// TODO nagisa
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChecker) {
 		@Var BType ContextType = TypeChecker.GetContextType();
 		@Var String FuncName = "ExecCommandInt";
 		if(this.RetType().IsVarType()) {

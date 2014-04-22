@@ -7,6 +7,7 @@ import libbun.ast.expression.FuncCallNode;
 import libbun.ast.expression.GetNameNode;
 import libbun.ast.literal.BunStringNode;
 import libbun.parser.LibBunTypeChecker;
+import libbun.type.BType;
 import libbun.util.BField;
 import libbun.util.Var;
 
@@ -29,7 +30,12 @@ public class ArgumentNode extends SyntaxSugarNode {
 		this.SetNode(_Expr, new BunStringNode(this, null, Value));
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		// FIXME
+		// TODO nagisa
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {
 		@Var BNode Node = new FuncCallNode(this, new GetNameNode(this, null, _funcNames[this.ArgType]));
 		Node.SetNode(BNode._AppendIndex, this.AST[_Expr]);
 		return new DesugarNode(this, Node);

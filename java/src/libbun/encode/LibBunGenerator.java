@@ -313,7 +313,7 @@ public abstract class LibBunGenerator extends BunVisitor {
 	}
 
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
-		@Var DesugarNode DeNode = Node.DeSugar(this.TypeChecker);
+		@Var DesugarNode DeNode = Node.PerformDesugar(this.TypeChecker);
 		@Var int i = 0;
 		while(i < DeNode.GetAstSize()) {
 			DeNode.AST[i].Accept(this);  // FIXME

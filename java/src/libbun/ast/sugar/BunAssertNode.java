@@ -23,7 +23,12 @@ public class BunAssertNode extends SyntaxSugarNode {
 		return this.DupField(TypedClone, new BunAssertNode(ParentNode));
 	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChecker) {
+	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		TypeChecker.CheckTypeAt(this, BunAssertNode._Expr, BType.BooleanType);
+		TypeChecker.TypeNode(this, BType.VoidType);
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChecker) {
 		@Var BFormFunc Func = TypeChecker.Generator.GetFormFunc("assert", BType.BooleanType, 2);
 		if(Func != null) {
 			@Var AbstractListNode FuncNode = TypeChecker.CreateDefinedFuncCallNode(this.ParentNode, this.SourceToken, Func);
@@ -37,5 +42,6 @@ public class BunAssertNode extends SyntaxSugarNode {
 			return new DesugarNode(this, MacroNode);
 		}
 	}
+
 
 }

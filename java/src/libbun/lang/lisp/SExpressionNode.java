@@ -4,6 +4,7 @@ import libbun.ast.BNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
 import libbun.parser.LibBunTypeChecker;
+import libbun.type.BType;
 
 public class SExpressionNode extends SyntaxSugarNode {
 
@@ -24,10 +25,17 @@ public class SExpressionNode extends SyntaxSugarNode {
 	//		}
 	//	}
 
-	@Override public DesugarNode DeSugar(LibBunTypeChecker TypeChekcer) {
+	@Override
+	public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {
 		//		@Var DesugarNode Node = new DesugarNode(this, null);
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

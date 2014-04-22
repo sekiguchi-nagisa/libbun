@@ -11,33 +11,6 @@ public abstract class AbstractListNode extends BNode {
 		this.ListStartIndex = Size;
 	}
 
-	public final void Append(BNode Node, boolean EnforcedParent) {
-		if(this.AST == null) {
-			this.AST = LibBunSystem._NewNodeArray(1);
-			this.SetNode(0, Node, EnforcedParent);
-		}
-		else {
-			@Var BNode[] newAST = LibBunSystem._NewNodeArray(this.AST.length+1);
-			LibBunSystem._ArrayCopy(this.AST, 0, newAST, 0, this.AST.length);
-			this.AST = newAST;
-			this.SetNode(this.AST.length - 1, Node, EnforcedParent);
-		}
-	}
-
-	public final void Append(BNode Node) {
-		if(Node instanceof ContainerNode) {
-			@Var ContainerNode Container = (ContainerNode)Node;
-			@Var int i = 0;
-			while(i < Container.AST.length) {
-				this.Append(Container.AST[i], BNode._EnforcedParent);
-				i = i + 1;
-			}
-		}
-		else {
-			this.Append(Node, BNode._EnforcedParent);
-		}
-	}
-
 	public final int GetListSize() {
 		return this.GetAstSize() - this.ListStartIndex;
 	}

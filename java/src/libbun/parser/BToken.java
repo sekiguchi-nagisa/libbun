@@ -1,9 +1,9 @@
 package libbun.parser;
 
 import libbun.util.BField;
+import libbun.util.BIgnored;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
-import libbun.util.BIgnored;
 
 public class BToken {
 	public final static BToken _NullToken = new BToken();
@@ -96,6 +96,21 @@ public class BToken {
 		}
 		return false;
 	}
+
+	public final boolean EndsWith(String Text) {
+		@Var int i = this.EndIndex - 1;
+		@Var int j = Text.length() - 1;
+		@Var String s = this.Source.SourceText;
+		while(i >= this.StartIndex && j >= 0) {
+			if(LibBunSystem._GetChar(s, i) != LibBunSystem._GetChar(Text, j)) {
+				return false;
+			}
+			i = i - 1;
+			j = j - 1;
+		}
+		return true;
+	}
+
 
 	public final boolean IsNull() {
 		return (this == BToken._NullToken);

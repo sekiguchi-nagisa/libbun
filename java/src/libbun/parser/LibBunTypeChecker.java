@@ -86,6 +86,10 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 		this.ReturnedNode = Node;
 	}
 
+	public final void TypeNode(BNode Node, BType Type) {
+		this.VarScope.TypeNode(Node, Type);
+	}
+
 	public final void ReturnTypeNode(BNode Node, BType Type) {
 		this.VarScope.TypeNode(Node, Type);
 		this.ReturnNode(Node);
@@ -124,11 +128,11 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 		return ErrorNode;
 	}
 
-	protected final BNode CreateStupidCastNode(BType Requested, BNode Node) {
+	public final BNode CreateStupidCastNode(BType Requested, BNode Node) {
 		return this.CreateStupidCastNode(Requested, Node, Node.SourceToken, "type error");
 	}
 
-	protected final BNode EnforceNodeType(BNode Node, BType EnforcedType) {
+	public final BNode EnforceNodeType(BNode Node, BType EnforcedType) {
 		@Var BFunc Func = this.Generator.LookupConverterFunc(Node.Type, EnforcedType);
 		if(Func == null && EnforcedType.IsStringType()) {
 			Func = this.Generator.LookupFunc("toString", Node.Type, 1);
@@ -279,7 +283,8 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 
 	@Override public void VisitSyntaxSugarNode(SyntaxSugarNode Node) {
 		@Var BType ContextType = this.GetContextType();
-		@Var DesugarNode DesugarNode = Node.DeSugar(this.Generator.TypeChecker);
+		Node.PerformTyping(this, ContextType);
+		@Var DesugarNode DesugarNode = Node.PerformDesugar(this);
 		@Var int i = 0;
 		while(i < DesugarNode.GetAstSize()) {
 			this.CheckTypeAt(DesugarNode, i, ContextType);

@@ -78,6 +78,7 @@ import libbun.ast.statement.BunThrowNode;
 import libbun.ast.statement.BunTryNode;
 import libbun.ast.statement.BunWhileNode;
 import libbun.ast.sugar.BunAssertNode;
+import libbun.ast.sugar.StringInterpolationNode;
 import libbun.ast.unary.BunCastNode;
 import libbun.ast.unary.BunComplementNode;
 import libbun.ast.unary.BunMinusNode;
@@ -463,16 +464,45 @@ class StringLiteralPatternFunction extends BMatchFunction {
 	}
 }
 
-class StringInterpolationPatternFunction extends BMatchFunction {
-	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		@Var BToken Token = TokenContext.GetToken(BTokenContext._MoveNext);
-		@Var int i = Token.StartIndex;
-		while(i < Token.EndIndex) {
-			@Var char ch = Token.Source.GetCharAt(i);
-			if(ch == '$' && Token.Source.GetCharAt(i+1) == '{') {
-
+class StringInterpolationTokenFunction extends BTokenFunction {
+	@Override public boolean Invoke(BSourceContext SourceContext) {
+		int StartIndex = SourceContext.GetPosition();
+		while(SourceContext.HasChar()) {
+			@Var char ch = SourceContext.GetCurrentChar();
+			if(ch == '$' && SourceContext.GetCharAtFromCurrentPosition(+1) == '{') {
+				SourceContext.Tokenize(StartIndex, SourceContext.GetPosition() + 2);
+				return true;
 			}
-			i = i + 1;
+			SourceContext.MoveNext();
+		}
+		SourceContext.Tokenize(StartIndex, SourceContext.GetPosition());
+		return true;
+	}
+}
+
+class StringInterpolationPatternFunction extends BMatchFunction {
+	public final static BTokenFunction StringInterpolationToken = new StringInterpolationTokenFunction();
+	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		@Var StringInterpolationNode FormatNode = new StringInterpolationNode(ParentNode);
+		@Var BToken Token = TokenContext.GetToken(BTokenContext._MoveNext);
+		TokenContext = TokenContext.SubContext(Token.StartIndex + 1, Token.EndIndex - 1);
+		while(true) {
+			@Var BToken SubToken = TokenContext.ParseTokenBy(StringInterpolationToken);
+			if(SubToken.EndsWith("${")) {
+				SubToken.EndIndex = SubToken.EndIndex - 2;
+				FormatNode.Append(new BunStringNode(FormatNode, SubToken, LibBunSystem._UnquoteString(SubToken.GetText())));
+				@Var BNode SubNode = TokenContext.ParsePattern(FormatNode, "$Expression$", BTokenContext._Required);
+				if(SubNode.IsErrorNode() || !TokenContext.MatchToken('}')) {
+					SubToken.StartIndex = SubToken.EndIndex + 2;
+					SubToken.EndIndex = Token.EndIndex;
+					return new ErrorNode(ParentNode, SubToken, "syntax error in string interpolation");
+				}
+				FormatNode.Append(SubNode);
+			}
+			else {
+				FormatNode.Append(new BunStringNode(FormatNode, SubToken, LibBunSystem._UnquoteString(SubToken.GetText())));
+				break;
+			}
 		}
 		return new BunStringNode(ParentNode, Token, LibBunSystem._UnquoteString(Token.GetText()));
 	}

@@ -2,6 +2,7 @@ package libbun.parser;
 
 import libbun.util.BArray;
 import libbun.util.BField;
+import libbun.util.BTokenFunction;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
@@ -107,6 +108,13 @@ public final class BSourceContext /*extends LibBunSource*/ {
 		this.Tokenize(StartIndex, EndIndex-1);
 	}
 
+	public boolean ApplyFunc(BTokenFunction Func) {
+		if(LibBunSystem._ApplyTokenFunc(Func, this)) {
+			return true;
+		}
+		return false;
+	}
+
 	private final void ApplyTokenFunc(LibBunTokenFuncChain TokenFunc) {
 		@Var int RollbackPosition = this.SourcePosition;
 		while(TokenFunc != null) {
@@ -140,6 +148,12 @@ public final class BSourceContext /*extends LibBunSource*/ {
 		}
 		return false;
 	}
+
+	public Object Tokenize(BTokenFunction Func) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	public final void LogWarning(int Position, String Message) {
 		this.Source.Logger.Report(this.Source.FormatErrorMarker("warning", Position, Message));
