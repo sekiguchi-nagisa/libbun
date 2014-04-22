@@ -116,7 +116,6 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitPlusNode(BunPlusNode Node) {
-		this.Source.Append("+");
 		this.GenerateExpression(Node.RecvNode());
 	}
 
@@ -129,6 +128,40 @@ public class LuaGenerator extends LibBunSourceGenerator {
 		this.Source.Append("bit32.bnot(");
 		this.GenerateExpression(Node.RecvNode());
 		this.Source.Append(")");
+	}
+
+	private void GenerateAddOperatorExpression(BinaryOperatorNode Node) {
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append("(");
+		}
+		BType LeftType = Node.LeftNode().Type;
+		BType RightType = Node.RightNode().Type;
+		if(LeftType == BType.StringType || RightType == BType.StringType) {
+			if(LeftType != BType.StringType) {
+				this.Source.Append("tostring(");
+				this.GenerateExpression(Node.LeftNode());
+				this.Source.Append(")");
+			}
+			else {
+				this.GenerateExpression(Node.LeftNode());
+			}
+			this.Source.Append(" .. ");
+			if(RightType != BType.StringType) {
+				this.Source.Append("tostring(");
+				this.GenerateExpression(Node.RightNode());
+				this.Source.Append(")");
+			}
+			else {
+				this.GenerateExpression(Node.RightNode());
+			}
+		} else {
+			this.GenerateExpression(Node.LeftNode());
+			this.Source.AppendWhiteSpace("+", " ");
+			this.GenerateExpression(Node.RightNode());
+		}
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append(")");
+		}
 	}
 
 	private void GenerateBinaryOperatorExpression(BinaryOperatorNode Node, String Operator) {
@@ -152,7 +185,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitAddNode(BunAddNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "+");
+		this.GenerateAddOperatorExpression(Node);
 	}
 
 	@Override public void VisitSubNode(BunSubNode Node) {
@@ -420,8 +453,8 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	@Override public void VisitGetIndexNode(GetIndexNode Node) {
 		@Var BType RecvType = Node.GetAstType(GetIndexNode._Recv);
 		if(RecvType.IsMapType()) {
-			this.ImportLibrary("@mapget");
-			this.GenerateExpression("libbun_mapget(", Node.RecvNode(), ", ", Node.IndexNode(), ")");
+			//this.ImportLibrary("@mapget");
+			this.GenerateExpression("", Node.RecvNode(), "[", Node.IndexNode(), "]");
 		}
 		else if(RecvType.IsArrayType()) {
 			this.ImportLibrary("@arrayget");
