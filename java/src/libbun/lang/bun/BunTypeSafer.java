@@ -593,8 +593,13 @@ public class BunTypeSafer extends LibBunTypeChecker {
 	@Override public void VisitAddNode(BunAddNode Node) {
 		this.CheckTypeAt(Node, BinaryOperatorNode._Left, BType.VarType);
 		this.CheckTypeAt(Node, BinaryOperatorNode._Right, BType.VarType);
+		if(Node.RightNode().Type.IsStringType() || Node.LeftNode().Type.IsStringType()) {
+			this.ReturnTypeNode(Node, BType.StringType);
+			//			this.VisitSyntaxSugarNode(StringInterpolationNode._ToStringInterpolationNode(Node));
+			return;
+		}
 		if(Node.IsDifferentlyTyped()) {
-			this.UnifyBinaryEnforcedType(Node, BType.StringType);
+			this.UnifyBinaryEnforcedType(Node, BType.StringType); // FIXME
 			this.TryUnifyBinaryType(Node, BType.FloatType);
 			this.CheckTypeAt(Node, BinaryOperatorNode._Left, Node.GetAstType(BinaryOperatorNode._Right));
 		}

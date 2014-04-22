@@ -152,13 +152,6 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	private void GenerateConcatString(BinaryOperatorNode Node) {
-		this.GenerateConcatNullString(Node.LeftNode());  // convert None => "null";
-		this.Source.AppendWhiteSpace("+ ");
-		this.GenerateConcatNullString(Node.RightNode());
-	}
-
-
 	@Override public void VisitBinaryNode(BinaryOperatorNode Node) {
 		this.GenerateBinaryOperatorExpression(Node, Node.GetOperator());
 	}
@@ -173,7 +166,7 @@ public class PythonGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitAddNode(BunAddNode Node) {
 		if(Node.Type.IsStringType()) {
-			this.GenerateConcatString(Node);
+			this.VisitStringInterpolationNode(StringInterpolationNode._ToStringInterpolationNode(Node));
 		}
 		else {
 			this.GenerateBinaryOperatorExpression(Node, "+");
@@ -536,8 +529,9 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		}
 	}
 
-	@Override
-	protected boolean LocallyGenerated(BNode Node) {
+	// Generation of specialized syntax sugar nodes ==========================
+
+	@Override protected boolean LocallyGenerated(BNode Node) {
 		if(Node instanceof StringInterpolationNode) {
 			return this.VisitStringInterpolationNode((StringInterpolationNode)Node);
 		}
@@ -554,7 +548,7 @@ public class PythonGenerator extends LibBunSourceGenerator {
 		while(i < Node.GetAstSize()) {
 			if(i % 2 == 0) {
 				if(Node.AST[i] instanceof BunStringNode) {
-					Format = Format + this.NormalizePythonFormat(((BunStringNode)Node.AST[i]).StringValue);
+					Format = Format + this.NormalizePythonFormat(Node.GetStringLiteralAt(i));
 				}
 			}
 			else {

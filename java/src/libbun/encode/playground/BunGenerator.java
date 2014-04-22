@@ -50,6 +50,7 @@ import libbun.ast.statement.BunReturnNode;
 import libbun.ast.statement.BunThrowNode;
 import libbun.ast.statement.BunTryNode;
 import libbun.ast.statement.BunWhileNode;
+import libbun.ast.sugar.StringInterpolationNode;
 import libbun.ast.unary.BunCastNode;
 import libbun.ast.unary.BunComplementNode;
 import libbun.ast.unary.BunMinusNode;
@@ -60,6 +61,7 @@ import libbun.encode.LibBunSourceGenerator;
 import libbun.parser.LibBunLangInfo;
 import libbun.parser.LibBunLogger;
 import libbun.type.BType;
+import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
 
@@ -215,7 +217,12 @@ public class BunGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitAddNode(BunAddNode Node) {
-		this.VisitBinaryNode(Node);
+		if(Node.Type.IsStringType()) {
+			this.VisitStringInterpolationNode(StringInterpolationNode._ToStringInterpolationNode(Node));
+		}
+		else {
+			this.VisitBinaryNode(Node);
+		}
 	}
 
 	@Override public void VisitSubNode(BunSubNode Node) {
@@ -427,5 +434,31 @@ public class BunGenerator extends LibBunSourceGenerator {
 		@Var String Message = LibBunLogger._LogError(Node.SourceToken, Node.ErrorMessage);
 		this.Source.Append("/*", Message, "*/");
 	}
+
+	// Generation of specialized syntax sugar nodes ==========================
+
+	@Override protected boolean LocallyGenerated(BNode Node) {
+		if(Node instanceof StringInterpolationNode) {
+			return this.VisitStringInterpolationNode((StringInterpolationNode)Node);
+		}
+		return false;
+	}
+
+	protected boolean VisitStringInterpolationNode(StringInterpolationNode Node) {
+		@Var int i = 0;
+		this.Source.Append("\"");
+		while(i < Node.GetAstSize()) {
+			if(i % 2 == 0) {
+				this.Source.Append(LibBunSystem._QuoteString("", Node.GetStringLiteralAt(i), ""));
+			}
+			else {
+				this.GenerateExpression("${", Node.AST[i], "}");
+			}
+			i = i + 1;
+		}
+		this.Source.Append("\"");
+		return true;
+	}
+
 
 }
