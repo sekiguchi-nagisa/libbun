@@ -15,6 +15,10 @@ public final class LibBunParser {
 
 	public LibBunParser(LibBunParser StackedParser) {
 		this.StackedParser = StackedParser;
+		this.Init();
+	}
+
+	public void Init() {
 		this.TokenMatrix = LibBunSystem._NewTokenMatrix();
 		this.SyntaxTable = new BunMap<LibBunSyntax>(null);
 		this.BinaryTable = new BunMap<LibBunSyntax>(null);
@@ -82,6 +86,7 @@ public final class LibBunParser {
 	public final void DefineExpressionSuffix(String PatternName, BMatchFunction MatchFunc) {
 		this.AppendSyntaxPattern(this.BinaryTable, PatternName, MatchFunc, LibBunSyntax._SuffixExpression);
 	}
+
 
 
 }

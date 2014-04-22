@@ -5,6 +5,7 @@ import libbun.parser.LibBunGamma;
 
 public class PythonGrammar {
 	public static void LoadGrammar(LibBunGamma Gamma) {
+		Gamma.Generator.RootParser.Init();
 		BunGrammar.LoadGrammar(Gamma);
 
 		Gamma.DefineExpression("None", BunGrammar.NullPattern);
