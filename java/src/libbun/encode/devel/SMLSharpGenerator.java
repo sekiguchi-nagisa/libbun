@@ -56,12 +56,12 @@ import libbun.ast.unary.BunPlusNode;
 import libbun.ast.unary.UnaryOperatorNode;
 import libbun.encode.LibBunSourceGenerator;
 import libbun.parser.LibBunLangInfo;
+import libbun.util.Var;
 
 public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	public SMLSharpGenerator() {
 		super(new LibBunLangInfo("SML#-2.0", "sml"));
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -82,26 +82,26 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitBooleanNode(BunBooleanNode Node) {
-		// TODO Auto-generated method stub
-
+		if (Node.BooleanValue) {
+			this.Source.Append("true");
+		} else {
+			this.Source.Append("false");
+		}
 	}
 
 	@Override
 	public void VisitIntNode(BunIntNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append(String.valueOf(Node.IntValue));
 	}
 
 	@Override
 	public void VisitFloatNode(BunFloatNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append(String.valueOf(Node.FloatValue));
 	}
 
 	@Override
 	public void VisitStringNode(BunStringNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.AppendQuotedText(Node.StringValue);
 	}
 
 	@Override
@@ -321,10 +321,24 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	}
 
+	private void GenerateStmtListNode(BunBlockNode Node) {
+		@Var int i = 0;
+		while (i < Node.GetListSize()) {
+			if(i > 0) {
+				this.Source.Append(";");
+			}
+			@Var BNode SubNode = Node.GetListAt(i);
+			this.GenerateStatement(SubNode);
+			i = i + 1;
+		}
+	}
+
 	@Override
 	public void VisitBlockNode(BunBlockNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.AppendWhiteSpace();
+		this.Source.OpenIndent("(");
+		this.GenerateStmtListNode(Node);
+		this.Source.CloseIndent(")");
 	}
 
 	@Override
@@ -341,8 +355,12 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitReturnNode(BunReturnNode Node) {
-		// TODO Auto-generated method stub
-
+		if (Node.HasReturnExpr() && !Node.ExprNode().Type.IsVoidType()) {
+			this.GenerateExpression(Node.ExprNode());
+		}
+		else {
+			this.Source.Append("()");
+		}
 	}
 
 	@Override
@@ -377,8 +395,28 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitFunctionNode(BunFunctionNode Node) {
-		// TODO Auto-generated method stub
-
+		//if(Node.IsExport) {
+		//}
+		this.Source.Append("fun ");
+		if(Node.FuncName() != null) {
+			this.Source.Append(Node.FuncName());
+		}
+		if(Node.GetListSize() == 0) {
+			this.Source.Append(" ()");
+		}
+		else {
+			this.GenerateListNode(" ", Node, " ", "");
+		}
+		if(Node.FuncName() != null) {
+			this.Source.Append(" = ");
+		}
+		else {
+			this.Source.Append(" => ");
+		}
+		this.GenerateExpression(Node.BlockNode());
+		if(Node.IsTopLevelDefineFunction()) {
+			this.Source.Append(";");
+		}
 	}
 
 	@Override

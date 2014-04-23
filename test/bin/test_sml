@@ -1,0 +1,4 @@
+#!/bin/bash
+
+OUTDIR=test/w TARGET=sml test/bin/buntest test/bun/*.bun
+#OUTDIR=test/w TARGET=sml CHECK=smlsharp test/bin/buntest test/bun/*.bun
