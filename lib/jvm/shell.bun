@@ -1,0 +1,3 @@
+define ExecCommandInt "libbun/lang/bun/shell/ShellUtils.ExecCommandInt($[0])" : Func<String[][],int>;
+define ExecCommandBoolean "libbun/lang/bun/shell/ShellUtils.ExecCommandBoolean($[0])" : Func<String[][],boolean>;
+define ExecCommandString "libbun/lang/bun/shell/ShellUtils.ExecCommandString($[0])" : Func<String[][],String>;

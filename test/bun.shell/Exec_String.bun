@@ -1,0 +1,8 @@
+require syntax::bun.shell
+
+export function main() {
+	import command echo
+	var a = echo "hello world"
+	assert(a == "hello world")
+	println(a)
+}
