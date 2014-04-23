@@ -1,0 +1,8 @@
+require syntax::bun.shell;
+
+export function main() {
+	import command echo
+	echo "##hello shell"
+	var a : int = echo "##hello shell2"
+	assert(a == 0)
+}

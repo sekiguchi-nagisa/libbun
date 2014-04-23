@@ -1,0 +1,7 @@
+require syntax::bun.shell
+
+export function main() {
+	import command echo;
+	var a : boolean = echo jello
+	assert(a)
+}

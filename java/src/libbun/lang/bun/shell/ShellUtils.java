@@ -1,6 +1,11 @@
 package libbun.lang.bun.shell;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -10,6 +15,8 @@ import libbun.ast.literal.BunStringNode;
 import libbun.parser.BToken;
 import libbun.parser.BTokenContext;
 import libbun.util.BArray;
+import libbun.util.BStringArray;
+import libbun.util.ZObjectArray;
 
 // you must implement this class if you use shell grammar
 public class ShellUtils {
@@ -104,9 +111,7 @@ public class ShellUtils {
 			if(this.GetParentScope() == null) {
 				return false;
 			}
-			else {
-				return this.GetParentScope().IsCommand(CommandSymbol);
-			}
+			return this.GetParentScope().IsCommand(CommandSymbol);
 		}
 
 		public String GetCommand(String CommandSymbol) {
@@ -117,9 +122,7 @@ public class ShellUtils {
 			if(this.GetParentScope() == null) {
 				return null;
 			}
-			else {
-				return this.GetParentScope().GetCommand(CommandSymbol);
-			}
+			return this.GetParentScope().GetCommand(CommandSymbol);
 		}
 	}
 
@@ -148,5 +151,101 @@ public class ShellUtils {
 		if(ScopeStack.size() > 1) {
 			ScopeStack.pop();
 		}
+	}
+
+	public static long ExecCommandInt(ZObjectArray ArgsList) {
+		return ExecCommand(ArgsList, null);
+	}
+
+	public static boolean ExecCommandBoolean(ZObjectArray ArgsList) {
+		return ExecCommandInt(ArgsList) == 0;
+	}
+
+	public static String ExecCommandString(ZObjectArray ArgsList) {
+		ByteArrayOutputStream StreamBuffer = new ByteArrayOutputStream();
+		ExecCommand(ArgsList, StreamBuffer);
+		return ShellUtils.RemoveNewLine(StreamBuffer.toString());
+	}
+
+	private static int ExecCommand(ZObjectArray ArgsList, final OutputStream TargetStream) {
+		StringBuilder ArgBuilder = new StringBuilder();
+		int ListSize = (int) ArgsList.Size();
+		for(int i = 0; i < ListSize; i++) {
+			BStringArray Args = (BStringArray) ZObjectArray.GetIndex(ArgsList, i);
+			int Size = (int) Args.Size();
+			if(!MatchRedireSymbol(BStringArray.GetIndex(Args, 0)) && i != 0) {
+				ArgBuilder.append("| ");
+			}
+			for(int j = 0; j < Size; j++) {
+				ArgBuilder.append(BStringArray.GetIndex(Args, j));
+				ArgBuilder.append(" ");
+			}
+		}
+		ProcessBuilder ProcBuilder = new ProcessBuilder("bash", "-c", ArgBuilder.toString());
+		ProcBuilder.inheritIO();
+		if(TargetStream != null) {
+			ProcBuilder.redirectOutput(Redirect.PIPE);
+		}
+		try {
+			final Process Proc = ProcBuilder.start();
+			if(TargetStream != null) {
+				Thread StreamHandler = new Thread(){
+					@Override public void run() {
+						InputStream Input = Proc.getInputStream();
+						byte[] buffer = new byte[512];
+						int ReadSize = 0;
+						try {
+							while((ReadSize = Input.read(buffer, 0, buffer.length)) > -1) {
+								TargetStream.write(buffer, 0, ReadSize);
+							}
+							Input.close();
+							TargetStream.close();
+						}
+						catch (IOException e) {
+							return;
+						}
+					}
+				};
+				StreamHandler.start();
+				StreamHandler.join();
+			}
+			return Proc.waitFor();
+		}
+		catch (IOException e) {
+			System.err.println("executin failed");
+			return -1;
+		}
+		catch (InterruptedException e) {
+			return -1;
+		}
+	}
+
+	private static boolean MatchRedireSymbol(String Symbol) {
+		if(Symbol.equals("<")) {
+			return true;
+		}
+		if(Symbol.equals("1>") || Symbol.equals(">") || Symbol.equals("1>>") || Symbol.equals(">>")) {
+			return true;
+		}
+		if(Symbol.equals("2>") || Symbol.equals("2>>") || Symbol.equals("2>&1")) {
+			return true;
+		}
+		if(Symbol.equals("&>") || Symbol.equals(">&") || Symbol.equals("&>>")) {
+			return true;
+		}
+		return false;
+	}
+
+	public static String RemoveNewLine(String Value) {
+		int Size = Value.length();
+		int EndIndex = Size;
+		for(int i = Size - 1; i > -1; i--) {
+			char ch = Value.charAt(i);
+			if(ch != '\n') {
+				EndIndex = i + 1;
+				break;
+			}
+		}
+		return EndIndex == Size ? Value : Value.substring(0, EndIndex);
 	}
 }

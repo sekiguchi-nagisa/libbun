@@ -400,6 +400,34 @@ class SuffixOptionPatternFunction extends BMatchFunction {
 	}
 }
 
+/**
+ * 
+ * if you use shell grammar, you must implement following class and function <br>
+ *  <br>
+ * # argument class definition <br>
+ * ## normal argument <br>
+ * class CommandArg { <br>
+ *  var value : String <br>
+ * } <br>
+ *  <br>
+ * function createCommandArg(value : String) : CommandArg <br>
+ *  <br>
+ * ## substitution argument <br>
+ * class SubstitutedArg extends CommandArg { <br>
+ *  var values : String[] <br>
+ * } <br>
+ *  <br>
+ * function createSubstitutedArg(value : String) : SubstitutedArg <br>
+ *  <br>
+ * # command executor definition <br>
+ * function ExecCommandInt(argsList : CommandArg[][]) : int          // return exit status <br>
+ * function ExecCommandBoolean(argsList : CommandArg[][]) : boolean  // return true if exit status is 0 or false if exit status is not 0 <br>
+ * function ExecCommandString(argsList : CommandArg[][]) : String    // return command standard out <br>
+ * 
+ * @author sekiguchi nagisa
+ * 
+ */
+
 public class ShellGrammar {
 	// token func
 	public final static BTokenFunction ShellStyleCommentToken = new ShellStyleCommentTokenFunction();
@@ -415,6 +443,7 @@ public class ShellGrammar {
 	public final static BMatchFunction SuffixOptionPattern = new SuffixOptionPatternFunction();
 
 	public static void LoadGrammar(LibBunGamma Gamma) {
+		Gamma.Generator.RequireLibrary("shell", null);
 		Gamma.DefineToken("#", ShellStyleCommentToken);
 		Gamma.DefineToken("Aa_", CommandSymbolToken);
 		Gamma.DefineToken("1", CommandSymbolToken);
@@ -433,30 +462,3 @@ public class ShellGrammar {
 		Gamma.Generator.LangInfo.AppendGrammarInfo("shell");
 	}
 }
-
-
-/**
-
-if you use shell grammar, you must implement following class and function
-
-# argument class definition
-## normal argument
-class CommandArg {
-	var value : String
-}
-
-function createCommandArg(value : String) : CommandArg
-
-## substitution argument
-class SubstitutedArg extends CommandArg {
-	var values : String[]
-}
-
-function createSubstitutedArg(value : String) : SubstitutedArg
-
-# command executor definition
-function ExecCommandInt(argsList : CommandArg[][]) : int          // return exit status
-function ExecCommandBoolean(argsList : CommandArg[][]) : boolean  // return true if exit status is 0 or false if exit status is not 0
-function ExecCommandString(argsList : CommandArg[][]) : String    // return command standard out
-
- **/

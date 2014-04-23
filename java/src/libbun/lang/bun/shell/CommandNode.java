@@ -61,13 +61,6 @@ public class CommandNode extends SyntaxSugarNode {
 	}
 
 	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
-		// FIXME
-		// TODO nagisa
-	}
-
-	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChecker) {
-		@Var BType ContextType = TypeChecker.GetContextType();
-		@Var String FuncName = "ExecCommandInt";
 		if(this.RetType().IsVarType()) {
 			if(ContextType.IsBooleanType() || ContextType.IsIntType() || ContextType.IsStringType()) {
 				this.SetType(ContextType);
@@ -79,6 +72,10 @@ public class CommandNode extends SyntaxSugarNode {
 				this.SetType(BType.IntType);
 			}
 		}
+	}
+
+	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChecker) {
+		@Var String FuncName = "ExecCommandInt";
 		if(this.RetType().IsBooleanType()) {
 			FuncName = "ExecCommandBoolean";
 		}
