@@ -88,9 +88,10 @@ public class BunFunctionNode extends AbstractListNode {
 	public final String GetUniqueName(LibBunGenerator Generator) {
 		@Var String FuncName = this.FuncName();
 		if(FuncName == null) {
-			FuncName = "f";
+			this.GivenName = Generator.NameUniqueSymbol("f");
+			FuncName = this.GivenName;
 		}
-		return Generator.NameUniqueSymbol(FuncName);
+		return FuncName;
 	}
 
 	public final BunBlockNode BlockNode() {

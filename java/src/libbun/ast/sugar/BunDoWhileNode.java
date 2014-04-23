@@ -63,7 +63,6 @@ public final class BunDoWhileNode extends SyntaxSugarNode {
 	/**
 	do {
         A;
-        continue;
 	}while(EXPR);
 	==
 	while(true) {

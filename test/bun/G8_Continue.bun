@@ -1,3 +1,4 @@
+require syntax::bun.extra;
 
 function WhileContinueTest() {
 	var n = 0;

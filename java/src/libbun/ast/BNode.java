@@ -30,13 +30,11 @@ import libbun.ast.error.ErrorNode;
 import libbun.ast.expression.GetNameNode;
 import libbun.ast.literal.BunBooleanNode;
 import libbun.ast.statement.BunIfNode;
-import libbun.ast.statement.BunWhileNode;
 import libbun.encode.LibBunGenerator;
 import libbun.parser.BToken;
 import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
 import libbun.parser.LibBunSource;
-import libbun.parser.LibBunTypeChecker;
 import libbun.parser.LibBunVisitor;
 import libbun.type.BFuncType;
 import libbun.type.BType;
@@ -309,26 +307,6 @@ public abstract class BNode {
 			}
 		}
 		return this.HasUntyped;
-	}
-
-	// Convenient short cut interface
-	public final GetNameNode SetNewGetNameNode(int Index, LibBunTypeChecker Typer, String Name, BType Type) {
-		@Var GetNameNode Node = Typer.CreateGetNameNode(null, Name, Type);
-		this.SetNode(Index, Node);
-		return Node;
-	}
-
-	public final BunBlockNode SetNewBlockNode(int Index, LibBunTypeChecker Typer) {
-		@Var BunBlockNode Node = Typer.CreateBlockNode(null);
-		this.SetNode(Index, Node);
-		return Node;
-	}
-
-	public final BunWhileNode SetNewWhileNode(int Index, LibBunTypeChecker Typer) {
-		@Var BunWhileNode Node = new BunWhileNode(null);
-		this.SetNode(Index, Node);
-		return Node;
-
 	}
 
 	public final BNode ParseExpression(String SourceText) {

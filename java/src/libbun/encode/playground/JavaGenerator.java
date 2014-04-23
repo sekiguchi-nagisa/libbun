@@ -65,8 +65,8 @@ import libbun.type.BFuncType;
 import libbun.type.BType;
 import libbun.util.BArray;
 import libbun.util.BField;
-import libbun.util.LibBunSystem;
 import libbun.util.BunMap;
+import libbun.util.LibBunSystem;
 import libbun.util.Var;
 import libbun.util.ZenMethod;
 
@@ -423,6 +423,9 @@ public class JavaGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while (", Node.CondNode(), ")");
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		this.GenerateExpression(Node.BlockNode());
 	}
 

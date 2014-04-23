@@ -54,6 +54,7 @@ import libbun.ast.decl.BunDefineNode;
 import libbun.ast.decl.BunFunctionNode;
 import libbun.ast.decl.BunLetVarNode;
 import libbun.ast.decl.BunRequireNode;
+import libbun.ast.decl.BunVarBlockNode;
 import libbun.ast.error.ErrorNode;
 import libbun.ast.expression.FuncCallNode;
 import libbun.ast.expression.GetFieldNode;
@@ -745,7 +746,13 @@ class StatementEndPatternFunction extends BMatchFunction {
 
 class BlockPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		@Var BNode BlockNode = new BunBlockNode(ParentNode, null);
+		@Var BNode BlockNode = null;
+		if(LeftNode instanceof BunBlockNode) {
+			BlockNode = LeftNode;  // @see var
+		}
+		else {
+			BlockNode = new BunBlockNode(ParentNode, null);
+		}
 		@Var int SkipStopIndent = TokenContext.GetToken().GetIndentSize();
 		BlockNode = TokenContext.MatchToken(BlockNode, "{", BTokenContext._Required);
 		if(!BlockNode.IsErrorNode()) {
@@ -949,9 +956,10 @@ class VarPatternFunction extends BMatchFunction {
 		VarNode = TokenContext.MatchPattern(VarNode, BunLetVarNode._TypeInfo, "$TypeAnnotation$", BTokenContext._Optional);
 		VarNode = TokenContext.MatchToken(VarNode, "=", BTokenContext._Required);
 		VarNode = TokenContext.MatchPattern(VarNode, BunLetVarNode._InitValue, "$Expression$", BTokenContext._Required);
-		//		if(VarNode instanceof BunLetVarNode) {
-		//			return new BunVarBlockNode(ParentNode, (BunLetVarNode)VarNode);
-		//		}
+		if(TokenContext.MatchToken("in")) {
+			LeftNode = new BunVarBlockNode(ParentNode, (BunLetVarNode)VarNode);
+			return TokenContext.ParsePatternAfter(ParentNode, LeftNode, "$Block$", BTokenContext._Required);
+		}
 		return VarNode;
 	}
 }
@@ -1034,16 +1042,16 @@ class ClassPatternFunction extends BMatchFunction {
 class FieldPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
 		@Var boolean Rememberd = TokenContext.SetParseFlag(false);
-		@Var BNode FieldNode = new BunLetVarNode(ParentNode, 0, null, null);
-		FieldNode = TokenContext.MatchToken(FieldNode, "var", BTokenContext._Required);
-		FieldNode = TokenContext.MatchPattern(FieldNode, BunLetVarNode._NameInfo, "$Name$", BTokenContext._Required);
-		FieldNode = TokenContext.MatchPattern(FieldNode, BunLetVarNode._TypeInfo, "$TypeAnnotation$", BTokenContext._Optional);
+		@Var BNode VarNode = new BunLetVarNode(ParentNode, 0, null, null);
+		VarNode = TokenContext.MatchToken(VarNode, "var", BTokenContext._Required);
+		VarNode = TokenContext.MatchPattern(VarNode, BunLetVarNode._NameInfo, "$Name$", BTokenContext._Required);
+		VarNode = TokenContext.MatchPattern(VarNode, BunLetVarNode._TypeInfo, "$TypeAnnotation$", BTokenContext._Optional);
 		if(TokenContext.MatchToken("=")) {
-			FieldNode = TokenContext.MatchPattern(FieldNode, BunLetVarNode._InitValue, "$Expression$", BTokenContext._Required);
+			VarNode = TokenContext.MatchPattern(VarNode, BunLetVarNode._InitValue, "$Expression$", BTokenContext._Required);
 		}
-		FieldNode = TokenContext.MatchPattern(FieldNode, BNode._Nop, ";", BTokenContext._Required);
+		VarNode = TokenContext.MatchPattern(VarNode, BNode._Nop, ";", BTokenContext._Required);
 		TokenContext.SetParseFlag(Rememberd);
-		return FieldNode;
+		return VarNode;
 	}
 }
 

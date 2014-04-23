@@ -70,8 +70,7 @@ public class BunGenerator extends LibBunSourceGenerator {
 		super(new LibBunLangInfo("Bun-1.0", "bun"));
 	}
 
-	@Override
-	protected void GenerateImportLibrary(String LibName) {
+	@Override protected void GenerateImportLibrary(String LibName) {
 		this.Header.AppendNewLine("require ", LibName, ";");
 	}
 
@@ -296,7 +295,7 @@ public class BunGenerator extends LibBunSourceGenerator {
 
 	@Override
 	protected void GenerateStatementEnd(BNode Node) {
-		if(Node instanceof BunIfNode || Node instanceof BunWhileNode || Node instanceof BunTryNode || Node instanceof BunFunctionNode || Node instanceof BunClassNode) {
+		if(Node instanceof BunIfNode || Node instanceof BunWhileNode || Node instanceof BunTryNode || Node instanceof BunFunctionNode || Node instanceof BunClassNode || Node instanceof BunBlockNode) {
 			return;
 		}
 		if(!this.Source.EndsWith(';')) {
@@ -351,6 +350,9 @@ public class BunGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while (", Node.CondNode(), ")");
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		this.GenerateExpression(Node.BlockNode());
 	}
 

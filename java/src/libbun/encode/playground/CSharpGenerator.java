@@ -631,6 +631,9 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 	@Override
 	public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while (", Node.CondNode(), ")");
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		this.GenerateExpression(Node.BlockNode());
 	}
 

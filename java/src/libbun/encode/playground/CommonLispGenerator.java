@@ -414,6 +414,9 @@ public class CommonLispGenerator extends LibBunSourceGenerator {
 		this.Source.Append("(loop while ");
 		this.GenerateExpression(Node.CondNode());
 		this.Source.AppendNewLine("do");
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		this.GenerateExpression(Node.BlockNode());
 		this.Source.Append(")");
 	}

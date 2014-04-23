@@ -26,22 +26,17 @@ package libbun.parser;
 
 import libbun.ast.AbstractListNode;
 import libbun.ast.BNode;
-import libbun.ast.BunBlockNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
 import libbun.ast.binary.BinaryOperatorNode;
 import libbun.ast.decl.BunFunctionNode;
-import libbun.ast.decl.BunLetVarNode;
-import libbun.ast.decl.BunVarBlockNode;
 import libbun.ast.decl.TopLevelNode;
 import libbun.ast.error.ErrorNode;
 import libbun.ast.error.TypeErrorNode;
 import libbun.ast.expression.BunFormNode;
 import libbun.ast.expression.BunFuncNameNode;
 import libbun.ast.expression.FuncCallNode;
-import libbun.ast.expression.GetNameNode;
 import libbun.ast.literal.BunAsmNode;
-import libbun.ast.statement.BunReturnNode;
 import libbun.ast.unary.BunCastNode;
 import libbun.encode.LibBunGenerator;
 import libbun.type.BFormFunc;
@@ -301,56 +296,56 @@ public abstract class LibBunTypeChecker extends BunVisitor {
 	// ----------------------------------------------------------------------
 	/* Note : the CreateNode serise are designed to treat typed node */
 
-	public BunFunctionNode CreateFunctionNode(BNode ParentNode, String FuncName, BNode Node) {
-		@Var BunFunctionNode FuncNode = new BunFunctionNode(ParentNode);
-		FuncNode.GivenName = FuncName;
-		FuncNode.GivenType = Node.Type;
-		@Var BunBlockNode BlockNode = this.CreateBlockNode(FuncNode);
-		FuncNode.SetNode(BunFunctionNode._Block, BlockNode);
-		if(Node.Type.IsVoidType()) {
-			BlockNode.Append(Node);
-			BlockNode.Append(this.CreateReturnNode(BlockNode));
-		}
-		else {
-			BlockNode.Append(this.CreateReturnNode(BlockNode, Node));
-		}
-		FuncNode.Type = BType.VoidType;
-		return FuncNode;
-	}
-
-	public BunBlockNode CreateBlockNode(BNode ParentNode) {
-		@Var BunBlockNode BlockNode = new BunBlockNode(ParentNode, null);
-		BlockNode.Type = BType.VoidType;
-		return BlockNode;
-	}
-
-	public BunReturnNode CreateReturnNode(BNode ParentNode) {
-		@Var BunReturnNode ReturnNode = new BunReturnNode(ParentNode);
-		ReturnNode.Type = BType.VoidType;
-		return ReturnNode;
-	}
-
-	public BunReturnNode CreateReturnNode(BNode ParentNode, BNode ExprNode) {
-		@Var BunReturnNode ReturnNode = new BunReturnNode(ParentNode);
-		ReturnNode.SetNode(BunReturnNode._Expr, ExprNode);
-		ReturnNode.Type = BType.VoidType;
-		return ReturnNode;
-	}
-
-	public BunVarBlockNode CreateVarNode(BNode ParentNode, String Name, BType DeclType, BNode InitNode) {
-		@Var BunLetVarNode VarNode = new BunLetVarNode(null, 0, null, null);
-		VarNode.GivenName   = Name;
-		VarNode.GivenType   = DeclType;
-		VarNode.SetNode(BunLetVarNode._InitValue, InitNode);
-		VarNode.Type = BType.VoidType;
-		return new BunVarBlockNode(ParentNode, VarNode);
-	}
-
-	public GetNameNode CreateGetNameNode(BNode ParentNode, String Name, BType Type) {
-		@Var GetNameNode NameNode = new GetNameNode(ParentNode, null, Name);
-		NameNode.Type = Type;
-		return NameNode;
-	}
+	//	public BunFunctionNode CreateFunctionNode(BNode ParentNode, String FuncName, BNode Node) {
+	//		@Var BunFunctionNode FuncNode = new BunFunctionNode(ParentNode);
+	//		FuncNode.GivenName = FuncName;
+	//		FuncNode.GivenType = Node.Type;
+	//		@Var BunBlockNode BlockNode = this.CreateBlockNode(FuncNode);
+	//		FuncNode.SetNode(BunFunctionNode._Block, BlockNode);
+	//		if(Node.Type.IsVoidType()) {
+	//			BlockNode.Append(Node);
+	//			BlockNode.Append(this.CreateReturnNode(BlockNode));
+	//		}
+	//		else {
+	//			BlockNode.Append(this.CreateReturnNode(BlockNode, Node));
+	//		}
+	//		FuncNode.Type = BType.VoidType;
+	//		return FuncNode;
+	//	}
+	//
+	//	public BunBlockNode CreateBlockNode(BNode ParentNode) {
+	//		@Var BunBlockNode BlockNode = new BunBlockNode(ParentNode, null);
+	//		BlockNode.Type = BType.VoidType;
+	//		return BlockNode;
+	//	}
+	//
+	//	public BunReturnNode CreateReturnNode(BNode ParentNode) {
+	//		@Var BunReturnNode ReturnNode = new BunReturnNode(ParentNode);
+	//		ReturnNode.Type = BType.VoidType;
+	//		return ReturnNode;
+	//	}
+	//
+	//	public BunReturnNode CreateReturnNode(BNode ParentNode, BNode ExprNode) {
+	//		@Var BunReturnNode ReturnNode = new BunReturnNode(ParentNode);
+	//		ReturnNode.SetNode(BunReturnNode._Expr, ExprNode);
+	//		ReturnNode.Type = BType.VoidType;
+	//		return ReturnNode;
+	//	}
+	//
+	//	public BunVarBlockNode CreateVarNode(BNode ParentNode, String Name, BType DeclType, BNode InitNode) {
+	//		@Var BunLetVarNode VarNode = new BunLetVarNode(null, 0, null, null);
+	//		VarNode.GivenName   = Name;
+	//		VarNode.GivenType   = DeclType;
+	//		VarNode.SetNode(BunLetVarNode._InitValue, InitNode);
+	//		VarNode.Type = BType.VoidType;
+	//		return new BunVarBlockNode(ParentNode, VarNode);
+	//	}
+	//
+	//	public GetNameNode CreateGetNameNode(BNode ParentNode, String Name, BType Type) {
+	//		@Var GetNameNode NameNode = new GetNameNode(ParentNode, null, Name);
+	//		NameNode.Type = Type;
+	//		return NameNode;
+	//	}
 
 	public FuncCallNode CreateFuncCallNode(BNode ParentNode, BToken SourceToken, String FuncName, BFuncType FuncType) {
 		@Var FuncCallNode FuncNode = new FuncCallNode(ParentNode, new BunFuncNameNode(null, SourceToken, FuncName, FuncType));

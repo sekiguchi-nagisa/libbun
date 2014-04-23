@@ -234,6 +234,7 @@ public class BunExtraGrammar {
 
 	/* statement */
 	public final static BMatchFunction ContinuePattern = new ContinuePatternFunction();
+	public final static BMatchFunction ForPattern  = new ForPatternFunction();
 	public final static BMatchFunction DoWhilePattern  = new DoWhilePatternFunction();
 
 	public static void LoadGrammar(LibBunGamma Gamma) {
@@ -259,6 +260,8 @@ public class BunExtraGrammar {
 
 		Gamma.DefineStatement("continue", ContinuePattern);
 		Gamma.DefineStatement("do", DoWhilePattern);
+		Gamma.DefineStatement("for", ForPattern);
+
 	}
 
 	public final static BNode DesugarSelfAssignment(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode, BinaryOperatorNode BinaryNode) {

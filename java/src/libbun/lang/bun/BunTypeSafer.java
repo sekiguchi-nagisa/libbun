@@ -790,7 +790,7 @@ public class BunTypeSafer extends LibBunTypeChecker {
 		this.CheckTypeAt(Node, BunWhileNode._Block, BType.VoidType);
 		if(Node.HasNextNode()) {
 			this.CheckTypeAt(Node, BunWhileNode._Next, BType.VoidType);
-			Node.BlockNode().Append(Node.NextNode());
+			//Node.BlockNode().Append(Node.NextNode());
 		}
 		this.ReturnTypeNode(Node, BType.VoidType);
 	}

@@ -39,7 +39,10 @@ public final class BunForInNode extends SyntaxSugarNode {
 	}
 
 	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
+		TypeChecker.CheckTypeAt(this, BunForInNode._List, BType.VarType);
+		if(this.ListNode().Type.IsArrayType()) {
 
+		}
 	}
 
 	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {

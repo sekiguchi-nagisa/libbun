@@ -318,16 +318,13 @@ public abstract class LibBunGenerator extends BunVisitor {
 
 	@Override public final void VisitDesugarNode(DesugarNode Node) {
 		if(!this.LocallyGenerated(Node.OriginalNode)) {
-			if(Node.IsExpression()) {
-				this.GenerateExpression(Node.AST[0]);
-			}
-			else {
-				@Var int i = 0;
-				while(i < Node.GetAstSize() - 1) {
+			this.GenerateExpression(Node.AST[0]);
+			if(Node.GetAstSize() > 1) {
+				@Var int i = 1;
+				while(i < Node.GetAstSize()) {
 					this.GenerateStatement(Node.AST[i]);
 					i = i + 1;
 				}
-				this.GenerateExpression(Node.AST[Node.GetAstSize() - 1]);
 			}
 		}
 	}
@@ -363,9 +360,18 @@ public abstract class LibBunGenerator extends BunVisitor {
 		}
 		//System.out.println("Node: " + Node);
 		if(!this.LangInfo.AllowTopLevelScript) {
-			@Var String FuncName = this.NameUniqueSymbol("Main");
-			Node = this.TypeChecker.CreateFunctionNode(Node.ParentNode, FuncName, Node);
-			this.TopLevelSymbol = FuncName;
+			@Var BNode FuncNode = null;
+			if(Node.Type.IsVoidType()) {
+				FuncNode = Node.ParseExpression("function () { Bun::X; }");
+			}
+			else {
+				FuncNode = Node.ParseExpression("function () { return Bun::X; }");
+			}
+			FuncNode.ReplaceNode("Bun::X", Node);
+			Node = FuncNode;
+			if(FuncNode instanceof BunFunctionNode) {
+				this.TopLevelSymbol = ((BunFunctionNode)FuncNode).GetUniqueName(this);
+			}
 		}
 		this.GenerateStatement(Node);
 		return true;

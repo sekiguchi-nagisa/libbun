@@ -118,14 +118,14 @@ public class RGenerator extends LibBunSourceGenerator {
 			this.Source.Append(" <- append(" + RecieverName);
 			@Var int i = Node.GetListSize();
 			while(i-- != 0) {
-				this.Source.Append(", ");			
+				this.Source.Append(", ");
 				if(i == 0) {
-					this.Source.Append("after=");			
+					this.Source.Append("after=");
 				}
 				@Var BNode ParamNode = Node.GetListAt(i);
 				this.GenerateExpression(ParamNode);
 			}
-			this.Source.Append(")");			
+			this.Source.Append(")");
 		}
 	}
 
@@ -449,6 +449,9 @@ public class RGenerator extends LibBunSourceGenerator {
 	@Override
 	public void VisitWhileNode(BunWhileNode Node) {
 		this.GenerateExpression("while (", Node.CondNode(),")");
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		this.GenerateExpression(Node.BlockNode());
 	}
 
