@@ -62,3 +62,14 @@ namespace LibBun {
 		}
 	}
 }
+
+// @ArrayPop;@LibBun
+namespace LibBun {
+    public class Lib : Fault {
+        public static T ArrayPop(List<T> array) {
+        	var ret = array[array.Count - 1];
+        	array.RemoveAt(array.Count - 1);
+        	return ret;
+        }
+    }
+}

@@ -98,23 +98,6 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 		this.Source.AppendLineFeed();
 	}
 
-
-	@Override protected void GenerateExpression(BNode Node) {
-		if(Node.IsUntyped() && !Node.IsErrorNode() && !(Node instanceof BunFuncNameNode)) {
-			LibBunLogger._LogError(Node.SourceToken, "untyped error: " + Node);
-			Node.Accept(this);
-			this.Source.Append("/*untyped*/");
-		}
-		else {
-			//			if(ContextType != null && Node.Type != ContextType && !ContextType.IsGreekType()) {
-			//				this.Source.Append("(");
-			//				this.GenerateTypeName(ContextType);
-			//				this.Source.Append(")");
-			//			}
-			Node.Accept(this);
-		}
-	}
-
 	@Override public void VisitArrayLiteralNode(BunArrayLiteralNode Node) {
 		if(Node.GetListSize() == 0) {
 			this.Source.Append("new ", this.GetCSharpTypeName(Node.Type, false), "()");
@@ -152,6 +135,8 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 		this.GenerateExpression(Node.RecvNode());
 		if(Node.RecvNode().Type == BType.StringType){
 			this.GenerateExpression(".Substring(", Node.IndexNode(), ", 1)");
+		}else if(Node.IndexNode().Type == BType.IntType){
+			this.GenerateExpression("[(int)", Node.IndexNode(), "]");
 		}else{
 			this.GenerateExpression("[", Node.IndexNode(), "]");
 		}
@@ -573,7 +558,7 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 			if(Node.Type.Equals(BType.VarType) && ((BunFunctionNode)Node.ParentNode).FuncName() == null){
 				this.Source.Append(Node.GetUniqueName(this));
 			}else{
-				this.Source.Append(this.GetCSharpTypeName(Node.Type, false), " ", Node.GetUniqueName(this));
+				this.Source.Append(this.GetCSharpTypeName(Node.DeclType(), false), " ", Node.GetUniqueName(this));
 			}
 		}
 		else if(Node.IsTopLevel()) {
@@ -586,26 +571,17 @@ public class CSharpGenerator extends LibBunSourceGenerator {
 			this.Source.Append(";");
 			this.Source.CloseIndent("}");
 		}
-		else if(Node.InitValueNode() instanceof BunNullNode){
-			this.Source.Append("dynamic ", Node.GetUniqueName(this), " = ");
-			this.GenerateExpression(Node.InitValueNode());
-		}
 		else {
-			this.Source.Append("var ", Node.GetUniqueName(this), " = ");
-			this.GenerateExpression(Node.InitValueNode());
+			this.Source.Append(this.GetCSharpTypeName(Node.DeclType(), false), " ", Node.GetUniqueName(this));
+			this.GenerateExpression(" = ", Node.InitValueNode(), "");
 		}
 	}
 
 	@Override
 	public void VisitVarBlockNode(BunVarBlockNode Node) {
 		@Var BunLetVarNode VarNode = Node.VarDeclNode();
-		if(VarNode.InitValueNode() instanceof BunNullNode){
-			this.Source.AppendNewLine("dynamic ", VarNode.GetUniqueName(this), " = ");
-		}else{
-			this.Source.AppendNewLine("var ", VarNode.GetUniqueName(this), " = ");
-		}
-		this.GenerateExpression(VarNode.InitValueNode());
-		this.Source.Append(";");
+		this.Source.AppendNewLine(this.GetCSharpTypeName(VarNode.DeclType(), false), " ", VarNode.GetUniqueName(this));
+		this.GenerateExpression(" = ", VarNode.InitValueNode(), ";");
 		this.VisitStmtList(Node);
 	}
 
