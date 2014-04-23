@@ -28,9 +28,14 @@ package libbun.ast;
 import libbun.ast.decl.BunFunctionNode;
 import libbun.ast.error.ErrorNode;
 import libbun.ast.expression.GetNameNode;
+import libbun.ast.literal.BunBooleanNode;
+import libbun.ast.statement.BunIfNode;
 import libbun.ast.statement.BunWhileNode;
+import libbun.encode.LibBunGenerator;
 import libbun.parser.BToken;
+import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
+import libbun.parser.LibBunSource;
 import libbun.parser.LibBunTypeChecker;
 import libbun.parser.LibBunVisitor;
 import libbun.type.BFuncType;
@@ -324,6 +329,36 @@ public abstract class BNode {
 		this.SetNode(Index, Node);
 		return Node;
 
+	}
+
+	public final BNode ParseExpression(String SourceText) {
+		LibBunGenerator Generator = this.GetGamma().Generator;
+		LibBunSource Source = new LibBunSource("(sugar)", 1, SourceText, Generator.Logger);
+		BTokenContext TokenContext = new BTokenContext(Generator.RootParser, Generator, Source, 0, SourceText.length());
+		return TokenContext.ParsePattern(this, "$Expression$", BTokenContext._Required);
+	}
+
+	public final void ReplaceNode(String Name, BNode Node) {
+		if(Node instanceof BunBlockNode) {
+			BunIfNode IfNode = new BunIfNode(null);  // {block} => if(true) {block}
+			IfNode.SetNode(BunIfNode._Cond, new BunBooleanNode(null, null, true));
+			IfNode.AST[BunIfNode._Then] = Node;
+			Node = IfNode;
+		}
+		@Var int i = 0;
+		while(i < this.GetAstSize()) {
+			BNode SubNode = this.AST[i];
+			if(SubNode instanceof GetNameNode) {
+				@Var String NodeName = ((GetNameNode)SubNode).GivenName;
+				if(NodeName.equals(Name)) {
+					this.AST[i] = Node;
+				}
+			}
+			else if(SubNode != null) {
+				SubNode.ReplaceNode(Name, Node);
+			}
+			i = i + 1;
+		}
 	}
 
 }

@@ -1,0 +1,15 @@
+require syntax::bun.extra;
+
+export function main() {
+	var string = "";
+	var i = 1;
+	while(i < 100) {
+		if(i % 3 == 0) { string += "Fizz"; }
+		if(i % 5 == 0) { string += "Buzz"; }
+		if( (i % 3 != 0) && (i % 5 != 0) ) { string += i; }
+		string += " ";
+		i = i + 1;
+	}
+	println(string);
+}
+

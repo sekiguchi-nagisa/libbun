@@ -417,7 +417,7 @@ public class BashGenerator extends LibBunSourceGenerator {
 		}
 		else {
 			this.Source.Append(Node.GetUniqueName(this));
-			this.Source.Append(" = ");
+			this.Source.Append("=");
 			this.GenerateExpression(Node.InitValueNode());
 		}
 	}

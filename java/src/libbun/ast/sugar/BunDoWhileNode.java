@@ -1,9 +1,10 @@
-package libbun.ast.statement;
+package libbun.ast.sugar;
 
 import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
 import libbun.ast.DesugarNode;
 import libbun.ast.SyntaxSugarNode;
+import libbun.ast.statement.BunWhileNode;
 import libbun.parser.LibBunTypeChecker;
 import libbun.type.BType;
 import libbun.util.Var;
@@ -50,11 +51,44 @@ public final class BunDoWhileNode extends SyntaxSugarNode {
 	}
 
 	@Override public void PerformTyping(LibBunTypeChecker TypeChecker, BType ContextType) {
-
+		TypeChecker.CheckTypeAt(this, BunWhileNode._Cond, BType.BooleanType);
+		TypeChecker.CheckTypeAt(this, BunWhileNode._Block, BType.VoidType);
+		if(this.HasNextNode()) {
+			TypeChecker.CheckTypeAt(this, BunWhileNode._Next, BType.VoidType);
+			this.BlockNode().Append(this.NextNode());
+		}
+		TypeChecker.ReturnTypeNode(this, BType.VoidType);
 	}
 
+	/**
+	do {
+        A;
+        continue;
+	}while(EXPR);
+	==
+	while(true) {
+		A;
+		if(!EXPR) {
+	        break;
+	    }
+	}
+	 **/
+
+
 	@Override public DesugarNode PerformDesugar(LibBunTypeChecker TypeChekcer) {
-		return null;
+		@Var String SugarCode = ""     +
+				"while(true) {\n" +
+				"  Block::X;\n"          +
+				"  if(!Expr::Y) {\n"    +
+				"    break;\n"    +
+				"  }\n"           +
+				"}";
+		@Var BNode ParentNode = this.ParentNode;
+		@Var BNode WhileNode = ParentNode.ParseExpression(SugarCode);
+		WhileNode.ReplaceNode("Block::X", this.BlockNode());
+		WhileNode.ReplaceNode("Expr::Y", this.CondNode());
+		System.out.println("WhileNode: " + WhileNode);
+		return new DesugarNode(this, WhileNode);
 	}
 
 }

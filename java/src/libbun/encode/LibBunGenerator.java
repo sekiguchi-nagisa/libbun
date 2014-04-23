@@ -73,7 +73,7 @@ public abstract class LibBunGenerator extends BunVisitor {
 
 	protected LibBunGenerator(LibBunLangInfo LangInfo) {
 		this.RootGamma     = new LibBunGamma(this, null);
-		this.RootParser = new LibBunParser(null);
+		this.RootParser    = new LibBunParser(null);
 		this.Logger        = new LibBunLogger();
 		this.LangInfo      = LangInfo;
 		this.TypeChecker   = null;

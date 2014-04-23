@@ -17,6 +17,8 @@ import libbun.ast.binary.BunSubNode;
 import libbun.ast.literal.BunIntNode;
 import libbun.ast.statement.BunWhileNode;
 import libbun.ast.sugar.BunContinueNode;
+import libbun.ast.sugar.BunDoWhileNode;
+import libbun.ast.sugar.BunForInNode;
 import libbun.parser.BTokenContext;
 import libbun.parser.LibBunGamma;
 import libbun.util.BMatchFunction;
@@ -38,12 +40,12 @@ class ForPatternFunction extends BMatchFunction {
 		WhileNode = TokenContext.MatchToken(WhileNode, "for", BTokenContext._Required);
 		WhileNode = TokenContext.MatchToken(WhileNode, "(", BTokenContext._Required);
 		if(!TokenContext.IsToken(";")) {
-			InitStmtNode = TokenContext.ParsePattern(ParentNode, "$InStatement$", BTokenContext._Required);
+			InitStmtNode = TokenContext.ParsePattern(ParentNode, "$Expression$", BTokenContext._Required);
 		}
 		WhileNode = TokenContext.MatchToken(WhileNode, ";", BTokenContext._Required);
 		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Cond, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
 		WhileNode = TokenContext.MatchToken(WhileNode, ";", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Next, "$InStatement$", BTokenContext._Optional, BTokenContext._AllowSkipIndent);
+		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Next, "$Expression$", BTokenContext._Optional, BTokenContext._AllowSkipIndent);
 		WhileNode = TokenContext.MatchToken(WhileNode, ")", BTokenContext._Required);
 		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Block, "$Block$", BTokenContext._Required);
 		if(InitStmtNode == null) {
@@ -55,31 +57,33 @@ class ForPatternFunction extends BMatchFunction {
 
 class ForInPatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		@Var BNode WhileNode = new BunWhileNode(ParentNode);
-		WhileNode = TokenContext.MatchToken(WhileNode, "for", BTokenContext._Required);
-		WhileNode = TokenContext.MatchToken(WhileNode, "(", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Next, "$InStatement$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
-		WhileNode = TokenContext.MatchToken(WhileNode, "in", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Cond, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
-		WhileNode = TokenContext.MatchToken(WhileNode, ")", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Block, "$Block$", BTokenContext._Required);
-		return WhileNode;
+		@Var BNode ForNode = new BunForInNode(ParentNode);
+		ForNode = TokenContext.MatchToken(ForNode, "for", BTokenContext._Required);
+		ForNode = TokenContext.MatchToken(ForNode, "(", BTokenContext._Required);
+		ForNode = TokenContext.MatchPattern(ForNode, BunForInNode._Var, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
+		ForNode = TokenContext.MatchToken(ForNode, "in", BTokenContext._Required);
+		ForNode = TokenContext.MatchPattern(ForNode, BunForInNode._List, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
+		ForNode = TokenContext.MatchToken(ForNode, ")", BTokenContext._Required);
+		ForNode = TokenContext.MatchPattern(ForNode, BunForInNode._Block, "$Block$", BTokenContext._Required);
+		return ForNode;
 	}
 }
 
 class DoWhilePatternFunction extends BMatchFunction {
 	@Override public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
-		@Var BNode WhileNode = new BunWhileNode(ParentNode);
+		@Var BNode WhileNode = new BunDoWhileNode(ParentNode);
 		WhileNode = TokenContext.MatchToken(WhileNode, "do", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Block, "$Block$", BTokenContext._Required);
-		WhileNode = TokenContext.MatchToken(WhileNode, "while", BTokenContext._Required);
-		WhileNode = TokenContext.MatchToken(WhileNode, "(", BTokenContext._Required);
-		WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Cond, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
-		if(TokenContext.MatchNewLineToken("whatever")) {
-			WhileNode = TokenContext.MatchPattern(WhileNode, BunWhileNode._Next, "$InStatement$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
+		WhileNode = TokenContext.MatchPattern(WhileNode, BunDoWhileNode._Block, "$Block$", BTokenContext._Required);
+		if(TokenContext.MatchNewLineToken("while")) {
+			WhileNode = TokenContext.MatchToken(WhileNode, "(", BTokenContext._Required);
+			WhileNode = TokenContext.MatchPattern(WhileNode, BunDoWhileNode._Cond, "$Expression$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
+			if(TokenContext.MatchNewLineToken("whatever")) {
+				WhileNode = TokenContext.MatchPattern(WhileNode, BunDoWhileNode._Next, "$InStatement$", BTokenContext._Required, BTokenContext._AllowSkipIndent);
+			}
+			WhileNode = TokenContext.MatchToken(WhileNode, ")", BTokenContext._Required);
+			return WhileNode;
 		}
-		WhileNode = TokenContext.MatchToken(WhileNode, ")", BTokenContext._Required);
-		return WhileNode;
+		return TokenContext.CreateExpectedErrorNode(null, "while");
 	}
 }
 
@@ -212,8 +216,6 @@ class DecSuffixPatternFunction extends BMatchFunction {
 }
 
 public class BunExtraGrammar {
-	public final static BMatchFunction ContinuePattern = new ContinuePatternFunction();
-
 	public final static BMatchFunction SelfAddPattern = new SelfAddPatternFunction();
 	public final static BMatchFunction SelfSubPattern = new SelfSubPatternFunction();
 	public final static BMatchFunction SelfMulPattern = new SelfMulPatternFunction();
@@ -229,6 +231,10 @@ public class BunExtraGrammar {
 	public final static BMatchFunction IncSuffixPattern = new IncSuffixPatternFunction();
 	public final static BMatchFunction DecPrefixPattern = new DecPrefixPatternFunction();
 	public final static BMatchFunction DecSuffixPattern = new DecSuffixPatternFunction();
+
+	/* statement */
+	public final static BMatchFunction ContinuePattern = new ContinuePatternFunction();
+	public final static BMatchFunction DoWhilePattern  = new DoWhilePatternFunction();
 
 	public static void LoadGrammar(LibBunGamma Gamma) {
 		//Gamma.SetTypeName(BType.VoidType,  null);
@@ -252,6 +258,7 @@ public class BunExtraGrammar {
 		Gamma.DefineBinaryOperator(">>", SelfRightShiftPattern);
 
 		Gamma.DefineStatement("continue", ContinuePattern);
+		Gamma.DefineStatement("do", DoWhilePattern);
 	}
 
 	public final static BNode DesugarSelfAssignment(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode, BinaryOperatorNode BinaryNode) {

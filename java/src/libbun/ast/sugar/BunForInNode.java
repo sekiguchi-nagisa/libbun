@@ -1,4 +1,4 @@
-package libbun.ast.statement;
+package libbun.ast.sugar;
 
 import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
