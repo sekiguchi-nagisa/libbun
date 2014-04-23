@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.HashMap;
 import java.util.Stack;
 
@@ -182,10 +181,11 @@ public class ShellUtils {
 			}
 		}
 		ProcessBuilder ProcBuilder = new ProcessBuilder("bash", "-c", ArgBuilder.toString());
-		ProcBuilder.inheritIO();
-		if(TargetStream != null) {
-			ProcBuilder.redirectOutput(Redirect.PIPE);
-		}
+		//FIXME: segiguchi
+		//		ProcBuilder.inheritIO();
+		//		if(TargetStream != null) {
+		//			ProcBuilder.redirectOutput(Redirect.PIPE);
+		//		}
 		try {
 			final Process Proc = ProcBuilder.start();
 			if(TargetStream != null) {

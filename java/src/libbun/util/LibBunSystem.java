@@ -564,6 +564,7 @@ public class LibBunSystem {
 		ClassMap.put("syntax::python", libbun.lang.python.PythonGrammar.class);
 
 		// source code by file extension
+		ClassMap.put("bash", libbun.encode.devel.BashGenerator.class);
 		ClassMap.put("bun", libbun.encode.playground.BunGenerator.class);
 		ClassMap.put("c",   libbun.encode.playground.CGenerator.class);
 		ClassMap.put("cl",  libbun.encode.playground.CommonLispGenerator.class);
@@ -582,7 +583,7 @@ public class LibBunSystem {
 		ClassMap.put("r", libbun.encode.playground.RGenerator.class);
 		ClassMap.put("rb", libbun.encode.devel.RubyGenerator.class);
 
-		ClassMap.put("zen", libbun.encode.playground.BunGenerator.class);
+		ClassMap.put("vba", libbun.encode.devel.VBAGenerator.class);
 
 		//
 		ClassMap.put("ssac", libbun.encode.devel.SSACGenerator.class);
