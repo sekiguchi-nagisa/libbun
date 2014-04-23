@@ -436,6 +436,20 @@ public class JavaScriptGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitAssignNode(AssignNode Node) {
+		if(Node.LeftNode() instanceof GetIndexNode){
+			@Var GetIndexNode Indexer = (GetIndexNode)Node.LeftNode();
+			@Var BType RecvType = Indexer.GetAstType(GetIndexNode._Recv);
+			if(RecvType.IsArrayType()) {
+				this.ImportLibrary("@arrayset");
+				this.GenerateExpression("libbun_arrayset(", Indexer.RecvNode(), ", ", Indexer.IndexNode(), ", ");
+				this.GenerateExpression("", Node.RightNode(), ")");
+				return;
+			}else if(RecvType.IsMapType()) {
+				this.GenerateExpression("", Indexer.RecvNode(), "[", Indexer.IndexNode(), "]");
+				this.GenerateExpression(" = ", Node.RightNode(), "");
+				return;
+			}
+		}
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(" = ");
 		this.GenerateExpression(Node.RightNode());
@@ -506,7 +520,7 @@ public class JavaScriptGenerator extends LibBunSourceGenerator {
 	@Override
 	public void VisitVarBlockNode(BunVarBlockNode Node) {
 		@Var BunLetVarNode VarNode = Node.VarDeclNode();
-		this.Source.AppendNewLine(VarNode.GetUniqueName(this), " = ");
+		this.Source.AppendNewLine("var ", VarNode.GetUniqueName(this), " = ");
 		this.GenerateExpression(VarNode.InitValueNode());
 		this.Source.Append(";");
 		this.VisitStmtList(Node);
