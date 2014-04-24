@@ -1,0 +1,4 @@
+require syntax::python
+
+def main():
+	println("hello") #hello
