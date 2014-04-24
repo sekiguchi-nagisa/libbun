@@ -3,7 +3,7 @@
 var Playground;
 (function (Playground) {
     Playground.CodeGenTarget = "js";
-    Playground.ParserTarget = "konoha";
+    Playground.ParserTarget = "syntax::bun";
 
     function CreateEditor(query) {
         var editor = ace.edit(query);
@@ -29,10 +29,6 @@ $(function () {
     Debug.outputViewer = outputViewer;
     outputViewer.setReadOnly(true);
 
-    //var Generate = () => {
-    //    outputViewer.setValue(zenEditor.getValue());
-    //    outputViewer.clearSelection();
-    //};
     var GetSample = function (sampleName) {
         $.ajax({
             type: "GET",
@@ -73,12 +69,12 @@ $(function () {
         timer = setTimeout(GenerateServer, 400);
     });
 
-    var TargetNames = ["JavaScript", "Python", "R", "Erlang", "CommonLisp", "Java", "JVM", "C", "LLVM"];
-    var TargetOptions = ["js", "py", "r", "erl", "cl", "java", "dump-jvm", "c", "ll"];
-    var TargetMode = ["javascript", "python", "r", "erlang", "lisp", "java", "assembly_x86", "c_cpp", "assembly_x86"];
+    var TargetNames = ["C", "CommonLisp", "C Sharp", "Java", "JavaScript", "LLVM", "Python", "R"];
+    var TargetOptions = ["c", "cl", "cs", "java", "js", "ll", "py", "r"];
+    var TargetMode = ["c_cpp", "lisp", "csharp", "java", "javascript", "assembly_x86", "python", "r"];
 
     var ParserNames = ["Bun", "Python"];
-    var ParserOptions = ["konoha", "py"];
+    var ParserOptions = ["syntax::bun", "syntax::python"];
     var ParserMode = ["typescript", "python"];
 
     var bind = function (n) {
@@ -103,14 +99,11 @@ $(function () {
         bind(i);
     }
 
-    var Samples = ["HelloWorld", "BinaryTrees", "Fibonacci"];
+    var Samples = ["HelloWorld", "BinaryTrees", "Fibonacci", "NGram"];
 
     var sample_bind = function (n) {
         $('#sample-' + Samples[n]).click(function () {
             GetSample(Samples[n]);
-            //zenEditor.setValue($("#"+ Samples[n]).html());
-            //zenEditor.clearSelection();
-            //zenEditor.gotoLine(0);
         });
     };
 
@@ -140,4 +133,5 @@ $(function () {
     }
 
     $("#Target-JavaScript-li").addClass("active");
+    GenerateServer();
 });
