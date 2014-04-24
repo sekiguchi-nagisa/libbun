@@ -227,18 +227,21 @@ size: Func<α[],int,void>
  bun: $[0].size($[1])
  c:   @TODO~TODO(0)
  cl:  (FIXME)
+ cs:  $[0].Count
  js:  $[0].size
  py:  @arraysize~libbun_arraysize($[0], $[1], None)
  c:   @arraysize~libbun_ArraySetLength($[0], $[1])
  
 get: Func<α[],int,α>
  #: a.$$() tests the existence of the specified key in this array
- bun,py,js,cs,c: $[0][$[1]]
+ bun,js,py: $[0][$[1]]
+ cs:  $[0][(int)$[1]]
  c:   @TODO~TODO(NULL)
  java: $[0].get($[1])
  
 set: Func<α[],int,α,void>
- bun,py,js,cs,c: $[0][$[1]] = $[2]
+ bun,py,js: $[0][$[1]] = $[2]
+ cs:  $[0][(int)$[1]] = $[2]
  c:   @TODO~TODO(void)
  java: $[0].set($[1], $[2])
 
@@ -261,15 +264,15 @@ insert: Func<α[],int,α,void>
 remove: Func<α[],int,α>
  #: a.$$(n) removes the element at the specified position in this array
  bun: $[0].remove($[1])
- py:  $[0].remove($[1])
- js:  $[0].splice($[1], 0)
  cs:  $[0].RemoveAt($[1])
+ js:  $[0].splice($[1], 0)
+ py:  $[0].remove($[1])
 
 pop: Func<α[],α>
  #: a.$$(n) removes the last element in this array
  bun,py,js: $[0].pop($[1])
  cl:  (vector-pop $[0])
- cs:  ((list) => { var ret = list[list.Count - 1]; list.RemoveAt(list.Count - 1); return ret; })($[0])
+ cs:  @ArrayPop~Lib.ArrayPop($[0])
 
 # boolean[]
 size: Func<boolean[],int,void>
@@ -300,16 +303,15 @@ hasKey: Func<Map<α>,String,boolean>
  #: a.$$() tests the existence of the specified key in this array
  bun: $[0].hasKey($[1])
  cl:  (gethash $[1] $[0])
+ cs:  $[0].ContainsKey($[1])
  lua: ($[0][$[1]] ~= nil)
  py:  $[0].has_key($[1])
  js:  ($[1] in $[0])
  
 get: Func<Map<α>,String,α>
  #: a.$$() tests the existence of the specified key in this array
- bun: $[0][$[1]]
+ bun,cs,py,js: $[0][$[1]]
  cl:  (gethash $[1] $[0])
- py:  $[0][$[1]]
- js:  $[0][$[1]] 
 
 get: Func<Map<α>,String,α,α>
  #: a.$$() tests the existence of the specified key in this array
@@ -318,14 +320,12 @@ get: Func<Map<α>,String,α,α>
  py:  @mapget~libbun_mapget($[0],$[1],$[2])
 
 set: Func<Map<α>,String,α,void>
- bun: $[0][$[1]] = $[2]
- js:  $[0][$[1]] = $[2]
- py:  $[0][$[1]] = $[2]
+ bun,cs,js,py: $[0][$[1]] = $[2]
 
 keys: Func<Map<α>,String[]>
- bun: $[0].keys()
+ bun,py: $[0].keys()
+ cs:  $[0].Keys
  js:  Object.keys($[0])
- py:  $[0].keys()
 
 #Object
 _: Func<Object,String>

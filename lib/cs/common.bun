@@ -18,10 +18,15 @@ define toLowerCase "$[0].ToLowerCase($[1]) ": Func<String,String>
 define toUpperCase "$[0].ToUpperCase($[1]) ": Func<String,String>
 define _ "string.Join(string.Empty, $[0])": Func<α[],String>
 define size "$[0].Count": Func<α[],int>
-define get "$[0][$[1]]": Func<α[],int,α>
+define size "$[0].Count": Func<α[],int,void>
+define get "$[0][(int)$[1]]": Func<α[],int,α>
 define set "$[0][$[1]] = $[2]": Func<α[],int,α,void>
 define add "$[0].Add($[1])": Func<α[],α,void>
 define insert "$[0].Insert($[1], $[2])": Func<α[],int,α,void>
 define remove "$[0].RemoveAt($[1])": Func<α[],int,α>
-define pop "((list) => { var ret = list[list.Count - 1]; list.RemoveAt(list.Count - 1); return ret; })($[0])": Func<α[],α>
+define pop "@ArrayPop~Lib.ArrayPop($[0])": Func<α[],α>
+define hasKey "$[0].ContainsKey($[1])": Func<Map<α>,String,boolean>
+define get "$[0][$[1]]": Func<Map<α>,String,α>
+define set "$[0][$[1]] = $[2]": Func<Map<α>,String,α,void>
+define keys "$[0].Keys": Func<Map<α>,String[]>
 define _ "$[0].ToString()": Func<Object,String>

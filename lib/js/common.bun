@@ -31,7 +31,7 @@ define size "@arraysize~libbun_arraysize($[0], $[1], 0)": Func<int[],int,void>
 define size "@arraysize~libbun_arraysize($[0], $[1], 0.0)": Func<float[],int,void>
 define _ "JSON.stringify($[0])": Func<Map<α>,String>
 define hasKey "($[1] in $[0])": Func<Map<α>,String,boolean>
-define get "$[0][$[1]] ": Func<Map<α>,String,α>
+define get "$[0][$[1]]": Func<Map<α>,String,α>
 define get "@mapget~libbun_mapget($[0],$[1],$[2])": Func<Map<α>,String,α,α>
 define set "$[0][$[1]] = $[2]": Func<Map<α>,String,α,void>
 define keys "Object.keys($[0])": Func<Map<α>,String[]>
