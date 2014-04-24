@@ -300,6 +300,7 @@ hasKey: Func<Map<α>,String,boolean>
  #: a.$$() tests the existence of the specified key in this array
  bun: $[0].hasKey($[1])
  cl:  (gethash $[1] $[0])
+ lua: ($[0][$[1]] ~= nil)
  py:  $[0].has_key($[1])
  js:  ($[1] in $[0])
  
