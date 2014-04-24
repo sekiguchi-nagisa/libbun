@@ -54,6 +54,10 @@ def compile():
     #filecontent = readCompiledFile(name)
     return createResponseJson(message, '', message)
 
+@app.route('/samples/<filename>')
+def server_static(filename):
+    return static_file(filename, root=rootPath + '/../sample')
+
 @app.route('/<filepath:path>')
 def server_static(filepath):
     return static_file(filepath, root=rootPath)

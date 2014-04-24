@@ -11,3 +11,4 @@ define _ "tonumber($[0])": Func<String,int>
 define _ "tonumber($[0])": Func<String,float>
 define + "$[0] .. $[1]": Func<String,String,String>
 define size "table.getn($[0])": Func<String,int>
+define hasKey "($[0][$[1]] ~= nil)": Func<Map<α>,String,boolean>

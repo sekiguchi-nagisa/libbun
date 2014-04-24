@@ -1,0 +1,25 @@
+require syntax::python
+
+def g():
+	println("#Func<void>")
+
+def f():
+	return 1
+
+
+def f(n):
+	return n + 1
+
+def f(a, b):
+	return a + b
+
+export function main() {
+	g();
+	println("#Func<int>: ${f()}");
+	println("#Func<int,int>: ${f(1)}");
+	println("#Func<int,int,int>: ${f(1,2)}");
+	assert(f() == 1);
+	assert(f(1) == 2);
+	assert(f(1,2) == 3);
+}
+
