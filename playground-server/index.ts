@@ -3,7 +3,7 @@ declare var ace: any;
 
 module Playground {
     export var CodeGenTarget = "js";
-    export var ParserTarget  = "konoha";
+    export var ParserTarget  = "syntax::bun";
 
     export function CreateEditor(query: string): any {
         var editor = ace.edit(query);
@@ -67,12 +67,12 @@ $(() => {
         timer = setTimeout(GenerateServer, 400);
     });
 
-    var TargetNames   = ["JavaScript", "Python", "R", "Erlang", "CommonLisp","Java", "JVM",      "C",     "LLVM"];
-    var TargetOptions = ["js",         "py",     "r", "erl",    "cl",        "java", "dump-jvm", "c",     "ll"];
-    var TargetMode    = ["javascript", "python", "r", "erlang", "lisp",      "java", "assembly_x86", "c_cpp", "assembly_x86"];
+    var TargetNames   = ["C",     "CommonLisp", "C Sharp",     "Java", "JavaScript", "LLVM",         "Python", "R"];
+    var TargetOptions = ["c",     "cl",         "cs",     "java", "js",         "ll",           "py",     "r"];
+    var TargetMode    = ["c_cpp", "lisp",       "csharp", "java", "javascript", "assembly_x86", "python", "r"];
 
     var ParserNames   = ["Bun", "Python"];
-    var ParserOptions = ["konoha", "py"];
+    var ParserOptions = ["syntax::bun", "syntax::python"];
     var ParserMode    = ["typescript", "python"];
 
     var bind = (n) => {
@@ -97,7 +97,7 @@ $(() => {
         bind(i);
     }
 
-    var Samples = ["HelloWorld","BinaryTrees", "Fibonacci"];
+    var Samples = ["HelloWorld","BinaryTrees", "Fibonacci", "NGram"];
 
     var sample_bind = (n) => {
         $('#sample-'+Samples[n]).click(function(){
@@ -132,4 +132,5 @@ $(() => {
 
 
     $("#Target-JavaScript-li").addClass("active");
+    GenerateServer();
 });
