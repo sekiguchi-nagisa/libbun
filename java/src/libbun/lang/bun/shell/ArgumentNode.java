@@ -18,7 +18,7 @@ public class ArgumentNode extends SyntaxSugarNode {
 	public final static int _Substitution = 1;
 //	private final static String[] _funcNames = {"createCommandArg", "createSubstitutedArg"};
 
-	@BField private final int ArgType;
+	@BField public final int ArgType;
 
 	public ArgumentNode(BNode ParentNode, int ArgType) {
 		super(ParentNode, 1);
