@@ -178,7 +178,7 @@ public class CommonLispGenerator extends LibBunSourceGenerator {
 			this.GenerateExpression("(string (aref ", Node.RecvNode(), " ", Node.IndexNode(), "))");
 		}
 		else if(RecvType.IsMapType()) {
-			this.GenerateExpression("(gethash ", Node.RecvNode(), " ", Node.IndexNode(), ")");
+			this.GenerateExpression("(gethash ", Node.IndexNode(), " ", Node.RecvNode(), ")");
 		}
 		else {
 			this.GenerateExpression("(nth ", Node.IndexNode(), " ", Node.RecvNode(), ")");
