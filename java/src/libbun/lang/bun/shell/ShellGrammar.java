@@ -443,7 +443,6 @@ public class ShellGrammar {
 	public final static BMatchFunction SuffixOptionPattern = new SuffixOptionPatternFunction();
 
 	public static void LoadGrammar(LibBunGamma Gamma) {
-		Gamma.Generator.RequireLibrary("shell", null);
 		Gamma.DefineToken("#", ShellStyleCommentToken);
 		Gamma.DefineToken("Aa_", CommandSymbolToken);
 		Gamma.DefineToken("1", CommandSymbolToken);

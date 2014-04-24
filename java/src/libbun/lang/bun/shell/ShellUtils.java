@@ -166,7 +166,7 @@ public class ShellUtils {
 		return ShellUtils.RemoveNewLine(StreamBuffer.toString());
 	}
 
-	private static int ExecCommand(ZObjectArray ArgsList, final OutputStream TargetStream) {
+	private static int ExecCommand(ZObjectArray ArgsList, OutputStream TargetStream) {
 		StringBuilder ArgBuilder = new StringBuilder();
 		int ListSize = (int) ArgsList.Size();
 		for(int i = 0; i < ListSize; i++) {
@@ -181,34 +181,17 @@ public class ShellUtils {
 			}
 		}
 		ProcessBuilder ProcBuilder = new ProcessBuilder("bash", "-c", ArgBuilder.toString());
-		//FIXME: segiguchi
-		//		ProcBuilder.inheritIO();
-		//		if(TargetStream != null) {
-		//			ProcBuilder.redirectOutput(Redirect.PIPE);
-		//		}
 		try {
 			final Process Proc = ProcBuilder.start();
-			if(TargetStream != null) {
-				Thread StreamHandler = new Thread(){
-					@Override public void run() {
-						InputStream Input = Proc.getInputStream();
-						byte[] buffer = new byte[512];
-						int ReadSize = 0;
-						try {
-							while((ReadSize = Input.read(buffer, 0, buffer.length)) > -1) {
-								TargetStream.write(buffer, 0, ReadSize);
-							}
-							Input.close();
-							TargetStream.close();
-						}
-						catch (IOException e) {
-							return;
-						}
-					}
-				};
-				StreamHandler.start();
-				StreamHandler.join();
+			if(TargetStream == null) {
+				TargetStream = System.out;
 			}
+			StreamHandler OutputHandler = new StreamHandler(Proc.getInputStream(), TargetStream);
+			StreamHandler ErrorHandler = new StreamHandler(Proc.getErrorStream(), System.err);
+			OutputHandler.start();
+			ErrorHandler.start();
+			OutputHandler.join();
+			ErrorHandler.join();
 			return Proc.waitFor();
 		}
 		catch (IOException e) {
@@ -220,6 +203,29 @@ public class ShellUtils {
 		}
 	}
 
+	private static class StreamHandler extends Thread {
+		private final InputStream Input;
+		private final OutputStream Output;
+
+		public StreamHandler(InputStream Input, OutputStream Output) {
+			this.Input = Input;
+			this.Output = Output;
+		}
+
+		@Override public void run() {
+			byte[] buffer = new byte[512];
+			int ReadSize = 0;
+			try {
+				while((ReadSize = this.Input.read(buffer, 0, buffer.length)) > -1) {
+					this.Output.write(buffer, 0, ReadSize);
+				}
+				this.Input.close();
+			}
+			catch (IOException e) {
+				return;
+			}
+		}
+	}
 	private static boolean MatchRedireSymbol(String Symbol) {
 		if(Symbol.equals("<")) {
 			return true;
