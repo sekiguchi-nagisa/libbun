@@ -582,6 +582,7 @@ public class LibBunSystem {
 		ClassMap.put("python-playground", libbun.encode.playground.PythonGenerator.class);
 		ClassMap.put("r", libbun.encode.playground.RGenerator.class);
 		ClassMap.put("rb", libbun.encode.devel.RubyGenerator.class);
+		ClassMap.put("sml", libbun.encode.devel.SMLSharpGenerator.class);
 
 		ClassMap.put("vba", libbun.encode.devel.VBAGenerator.class);
 
