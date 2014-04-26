@@ -13,13 +13,11 @@ def f(n):
 def f(a, b):
 	return a + b
 
-export function main() {
-	g();
-	println("#Func<int>: ${f()}");
-	println("#Func<int,int>: ${f(1)}");
-	println("#Func<int,int,int>: ${f(1,2)}");
-	assert(f() == 1);
-	assert(f(1) == 2);
-	assert(f(1,2) == 3);
-}
-
+def main():
+	g()
+	println("#Func<int>: ${f()}")
+	println("#Func<int,int>: ${f(1)}")
+	println("#Func<int,int,int>: ${f(1,2)}")
+	assert(f() == 1)
+	assert(f(1) == 2)
+	assert(f(1,2) == 3)

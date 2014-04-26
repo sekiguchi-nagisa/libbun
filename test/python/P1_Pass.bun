@@ -1,0 +1,7 @@
+require syntax::python
+
+def f():
+	pass
+
+def main():
+	f()
