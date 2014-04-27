@@ -77,6 +77,21 @@ public class RGenerator extends LibBunSourceGenerator {
 		this.Source.CloseIndent();
 		this.Source.AppendNewLine("}");
 		this.Source.CloseIndent("}\n");
+		this.Source.OpenIndent("\"+\" <- function(LHS, RHS) {");
+		this.Source.AppendNewLine("if (missing(RHS)) {");
+		this.Source.OpenIndent();
+		this.Source.AppendNewLine("base::\"+\"(LHS)");
+		this.Source.CloseIndent("}");
+		this.Source.AppendNewLine("else if (is.character(c(LHS, RHS))) {");
+		this.Source.OpenIndent();
+		this.Source.AppendNewLine("paste(LHS, RHS, sep = \"\")");
+		this.Source.CloseIndent();
+		this.Source.AppendNewLine("}");
+		this.Source.AppendNewLine("else {");
+		this.Source.OpenIndent();
+		this.Source.AppendNewLine("base::\"+\"(LHS, RHS)");
+		this.Source.CloseIndent("}");
+		this.Source.CloseIndent("}\n");
 	}
 	@Override protected void GenerateImportLibrary(String LibName) {
 	}
@@ -255,6 +270,39 @@ public class RGenerator extends LibBunSourceGenerator {
 		this.Source.Append("~");
 		this.GenerateExpression(Node.RecvNode());
 	}
+	private void GenerateAddOperatorExpression(BinaryOperatorNode Node) {
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append("(");
+		}
+		BType LeftType = Node.LeftNode().Type;
+		BType RightType = Node.RightNode().Type;
+		if(LeftType == BType.StringType || RightType == BType.StringType) {
+			if(LeftType != BType.StringType) {
+				this.Source.Append("as.character(");
+				this.GenerateExpression(Node.LeftNode());
+				this.Source.Append(")");
+			}
+			else {
+				this.GenerateExpression(Node.LeftNode());
+			}
+			this.Source.Append(" + ");
+			if(RightType != BType.StringType) {
+				this.Source.Append("as.character(");
+				this.GenerateExpression(Node.RightNode());
+				this.Source.Append(")");
+			}
+			else {
+				this.GenerateExpression(Node.RightNode());
+			}
+		} else {
+			this.GenerateExpression(Node.LeftNode());
+			this.Source.AppendWhiteSpace("+", " ");
+			this.GenerateExpression(Node.RightNode());
+		}
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append(")");
+		}
+	}
 
 	private void GenerateBinaryOperatorExpression(BinaryOperatorNode Node, String Operator) {
 		if (Node.ParentNode instanceof BinaryOperatorNode) {
@@ -277,7 +325,8 @@ public class RGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitAddNode(BunAddNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "+");
+//		this.GenerateBinaryOperatorExpression(Node, "+");
+		this.GenerateAddOperatorExpression(Node);
 	}
 
 	@Override public void VisitSubNode(BunSubNode Node) {
