@@ -1,9 +1,9 @@
 define assert  "assert($[0])": Func<boolean,String,void>;
 define print   "print($[0])" : Func<String,void>;
 define println "print($[0])" : Func<String,void>;
+define _ "as.character($[0])": Func<boolean,String>
+define _ "as.character($[0])": Func<int,String>
+define _ "as.character($[0])": Func<float,String>
+define _ "$[0]": Func<int,float>
 define _ "float($[0])": Func<int,float>
 define _ "int($[0])": Func<float,int>
-define _ "": Func<String,int>
-define _ "": Func<String,float>
-define + "\"\"": Func<String,String,String>
-
