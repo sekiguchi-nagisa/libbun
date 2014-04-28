@@ -123,8 +123,8 @@ size: Func<String,int>
  cl:   (length $[0])
  cs:   $[0].Length
  java: $[0].length()
- js:   $[0].length 
- lua:   table.getn($[0])
+ js:   $[0].length
+ lua:  #$[0]
  py:   len($[0])
 
 equals: Func<String,String,boolean>
@@ -139,6 +139,7 @@ startsWith: Func<String,String,boolean>
  cl:   (and (>= (length $[0]) (length $[1])) (string= (subseq $[0] 0 (length $[1])) $[1]))
  cs:   $[0].StartsWith($[1])
  js:   ($[0].lastIndexOf($[1], 0) === 0)
+ lua:  (string.sub($[0], 1, string.len($[1]))==$[1])
  py:   $[0].startswith($[1])
 
 endsWith: Func<String,String,boolean>
@@ -147,6 +148,7 @@ endsWith: Func<String,String,boolean>
  cl:   (let ((spos (- (length $[0]) (length $[1])))) (and (>= spos 0) (string= (subseq $[0] spos (length $[0])) $[1])))
  cs:   $[0].EndsWith($[1])
  js:   ($[0].slice(- $[1].length) === $[1])
+ lua:  ($[1]=='' or string.sub($[0],-string.len($[1]))==$[1])
  py:   $[0].endswith($[1])
 
 substring: Func<String,int,String>
@@ -155,6 +157,7 @@ substring: Func<String,int,String>
  c:  @substring~libbun_substring($[0], $[1], strlen($[0]))
  cl: (subseq $[0] $[1])
  cs: $[0].Substring($[1])
+ lua: string.sub($[0], $[1] + 1)
  py:  $[0][$[1]:] 
 
 substring: Func<String,int,int,String>
@@ -163,6 +166,7 @@ substring: Func<String,int,int,String>
  c:  @substring~libbun_substring($[0], $[1], $[2])
  cl: (subseq $[0] $[1] $[2])
  cs: $[0].Substring($[1], $[2])
+ lua: string.sub($[0], $[1] + 1, $[2])
  py:  $[0][$[1]:$[2]]
 
 indexOf: Func<String,String,int>
@@ -171,6 +175,7 @@ indexOf: Func<String,String,int>
  c:   @TODO~TODO(0)
  cl:  (or (search $[1] $[0]) -1)
  cs:  $[0].IndexOf($[1])
+ lua: @indexOf~libbun_indexOf($[0], $[1])
  py:  $[0].find($[1])
 
 lastIndexOf: Func<String,String,int>
@@ -230,6 +235,7 @@ size: Func<α[],int>
  cl:  (length $[0])
  cs:  $[0].Count
  js:  $[0].length
+ lua: #$[0]
  py:  len($[0])
  c:   @arraysize~libbun_ArrayLength($[0])
 
@@ -245,13 +251,13 @@ size: Func<α[],int,void>
  
 get: Func<α[],int,α>
  #: a.$$() tests the existence of the specified key in this array
- bun,js,py: $[0][$[1]]
+ bun,js,lua,py: $[0][$[1]]
  cs:  $[0][(int)$[1]]
  c:   @TODO~TODO(NULL)
  java: $[0].get($[1])
  
 set: Func<α[],int,α,void>
- bun,py,js: $[0][$[1]] = $[2]
+ bun,js,lua,py: $[0][$[1]] = $[2]
  cs:  $[0][(int)$[1]] = $[2]
  c:   @TODO~TODO(void)
  java: $[0].set($[1], $[2])
@@ -263,6 +269,7 @@ add: Func<α[],α,void>
  cl: (vector-push $[1])
  cs: $[0].Add($[1])
  js: $[0].push($[1])
+ lua: table.insert($[0],$[1])
  py: $[0].append($[1])
 
 insert: Func<α[],int,α,void>
@@ -270,6 +277,7 @@ insert: Func<α[],int,α,void>
  bun: $[0].insert($[1], $[2])
  cs:  $[0].Insert($[1], $[2])
  js:  $[0].splice($[1], 0, $[2])
+ lua: table.insert($[0], $[1] + 1, $[2])
  py:  $[0].insert($[1], $[2])
 
 remove: Func<α[],int,α>
@@ -277,6 +285,7 @@ remove: Func<α[],int,α>
  bun: $[0].remove($[1])
  cs:  $[0].RemoveAt($[1])
  js:  $[0].splice($[1], 0)
+ lua: table.remove($[0], $[1] + 1)
  py:  $[0].remove($[1])
 
 pop: Func<α[],α>
@@ -315,7 +324,7 @@ hasKey: Func<Map<α>,String,boolean>
  bun: $[0].hasKey($[1])
  cl:  (gethash $[1] $[0])
  cs:  $[0].ContainsKey($[1])
- lua: ($[0][$[1]] ~= nil)
+ lua: (not ($[0][$[1]] == nil))
  py:  $[0].has_key($[1])
  js:  ($[1] in $[0])
  

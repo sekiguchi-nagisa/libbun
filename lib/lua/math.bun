@@ -1,0 +1,23 @@
+define math::E      "math.exp(1)": float
+define math::PI     "math.pi": float
+define math::abs    "math.abs($[0])": Func<int,int>
+define math::abs    "math.abs($[0])": Func<float,float>
+define math::sin    "math.sin($[0])": Func<float,float>
+define math::cos    "math.cos($[0])": Func<float,float>
+define math::tan    "math.tan($[0])": Func<float,float>
+define math::sqrt   "math.sqrt($[0])": Func<float,float>
+define math::acos   "math.acos($[0])": Func<float,float>
+define math::asin   "math.asin($[0])": Func<float,float>
+define math::atan   "math.atan($[0])": Func<float,float>
+define math::atan2  "math.atan2($[0], $[1])": Func<float,float>
+define math::ceil   "math.ceil($[0])": Func<float,float>
+define math::round  "math.round($[0])": Func<float,float>
+define math::floor  "math.floor($[0])": Func<float,float>
+define math::exp    "math.exp($[0])": Func<float,float>
+define math::log    "math.log($[0])": Func<float,float>
+define math::max    "math.max($[0], $[1])": Func<float,float,float>
+define math::min    "math.min($[0], $[1])": Func<float,float,float>
+define math::max    "math.max($[0], $[1])": Func<int,int,int>
+define math::min    "math.min($[0], $[1])": Func<int,int,int>
+define math::pow    "math.pow($[0], $[1])": Func<float,float,float>
+define math::random "math.round($[0])": Func<float,float>
