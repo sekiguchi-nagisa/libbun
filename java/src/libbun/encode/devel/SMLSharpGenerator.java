@@ -29,6 +29,7 @@ import libbun.ast.decl.BunFunctionNode;
 import libbun.ast.decl.BunLetVarNode;
 import libbun.ast.decl.BunVarBlockNode;
 import libbun.ast.error.ErrorNode;
+import libbun.ast.expression.BunFuncNameNode;
 import libbun.ast.expression.FuncCallNode;
 import libbun.ast.expression.GetFieldNode;
 import libbun.ast.expression.GetIndexNode;
@@ -42,6 +43,7 @@ import libbun.ast.literal.BunIntNode;
 import libbun.ast.literal.BunMapLiteralNode;
 import libbun.ast.literal.BunNullNode;
 import libbun.ast.literal.BunStringNode;
+import libbun.ast.literal.ConstNode;
 import libbun.ast.statement.BunBreakNode;
 import libbun.ast.statement.BunIfNode;
 import libbun.ast.statement.BunReturnNode;
@@ -56,6 +58,7 @@ import libbun.ast.unary.BunPlusNode;
 import libbun.ast.unary.UnaryOperatorNode;
 import libbun.encode.LibBunSourceGenerator;
 import libbun.parser.LibBunLangInfo;
+import libbun.type.BType;
 import libbun.util.Var;
 
 public class SMLSharpGenerator extends LibBunSourceGenerator {
@@ -106,26 +109,34 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitNotNode(BunNotNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(Bool.not ");
+		this.GenerateExpression(Node.RecvNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitPlusNode(BunPlusNode Node) {
-		// TODO Auto-generated method stub
-
+		this.GenerateExpression(Node.RecvNode());
 	}
 
 	@Override
 	public void VisitMinusNode(BunMinusNode Node) {
-		// TODO Auto-generated method stub
-
+		if(Node.RecvNode() instanceof ConstNode) {
+			this.Source.Append("~");
+			this.GenerateExpression(Node.RecvNode());
+		}
+		else {
+			this.Source.Append("(~ ");
+			this.GenerateExpression(Node.RecvNode());
+			this.Source.Append(")");
+		}
 	}
 
 	@Override
 	public void VisitComplementNode(BunComplementNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.notb ");
+		this.GenerateExpression(Node.RecvNode());
+		this.Source.Append(")");
 	}
 
 	@Override
@@ -142,104 +153,168 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitAddNode(BunAddNode Node) {
-		// TODO Auto-generated method stub
-
+		if(Node.Type.IsStringType()) {
+			this.Source.Append("(");
+			@Var BNode LeftNode = Node.LeftNode();
+			if(!LeftNode.Type.IsStringType()) {
+				LeftNode = this.TypeChecker.EnforceNodeType(Node.LeftNode(), BType.StringType);
+			}
+			this.GenerateExpression(LeftNode);
+			this.Source.Append(" ^ ");
+			@Var BNode RightNode = Node.RightNode();
+			if(!RightNode.Type.IsStringType()) {
+				RightNode = this.TypeChecker.EnforceNodeType(Node.RightNode(), BType.StringType);
+			}
+			this.GenerateExpression(RightNode);
+			this.Source.Append(")");
+		}
+		else {
+			this.Source.Append("(");
+			this.GenerateExpression(Node.LeftNode());
+			this.Source.Append(" + ");
+			this.GenerateExpression(Node.RightNode());
+			this.Source.Append(")");
+		}
 	}
 
 	@Override
 	public void VisitSubNode(BunSubNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" - ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitMulNode(BunMulNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" * ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitDivNode(BunDivNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" / ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitModNode(BunModNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" mod ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitLeftShiftNode(BunLeftShiftNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.<< (");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", (Word.fromLargeInt ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")))");
 	}
 
 	@Override
 	public void VisitRightShiftNode(BunRightShiftNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.~>> (");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", (Word.fromLargeInt ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")))");
 	}
 
 	@Override
 	public void VisitBitwiseAndNode(BunBitwiseAndNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.andb (");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append("))");
 	}
 
 	@Override
 	public void VisitBitwiseOrNode(BunBitwiseOrNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.orb (");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append("))");
 	}
 
 	@Override
 	public void VisitBitwiseXorNode(BunBitwiseXorNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(LargeInt.xorb (");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append("))");
 	}
 
 	@Override
 	public void VisitEqualsNode(BunEqualsNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" = ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitNotEqualsNode(BunNotEqualsNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" <> ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitLessThanNode(BunLessThanNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" < ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitLessThanEqualsNode(BunLessThanEqualsNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" <= ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitGreaterThanNode(BunGreaterThanNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" > ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitGreaterThanEqualsNode(BunGreaterThanEqualsNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(" >= ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitGroupNode(GroupNode Node) {
-		// TODO Auto-generated method stub
-
+		this.GenerateExpression(Node.ExprNode());
 	}
 
 	@Override
@@ -262,14 +337,31 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitFuncCallNode(FuncCallNode Node) {
-		// TODO Auto-generated method stub
-
+		@Var BunFuncNameNode FuncNameNode = Node.FuncNameNode();
+		this.Source.Append("(");
+		if(FuncNameNode != null) {
+			this.Source.Append(FuncNameNode.GetSignature());
+		}
+		else {
+			this.GenerateExpression(Node.FunctorNode());
+		}
+		if(Node.GetListSize() == 0) {
+			this.Source.Append(" ())");
+		}
+		else {
+			this.GenerateListNode(" ", Node, " ", ")");
+		}
 	}
 
 	@Override
 	public void VisitGetNameNode(GetNameNode Node) {
-		// TODO Auto-generated method stub
+		if(Node.ResolvedNode.IsReadOnly()) {
+			this.Source.Append(Node.GetUniqueName(this));
+		}
+		else {
+			// TODO Auto-generated method stub
 
+		}
 	}
 
 	@Override
@@ -389,8 +481,13 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitLetNode(BunLetVarNode Node) {
-		// TODO Auto-generated method stub
+		if(Node.IsParamNode()) {
+			this.Source.Append(Node.GetGivenName());
+		}
+		else {
+			// TODO Auto-generated method stub
 
+		}
 	}
 
 	@Override
@@ -399,7 +496,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 		//}
 		this.Source.Append("fun ");
 		if(Node.FuncName() != null) {
-			this.Source.Append(Node.FuncName());
+			this.Source.Append(Node.ResolvedFuncType.StringfySignature(Node.FuncName()));
 		}
 		if(Node.GetListSize() == 0) {
 			this.Source.Append(" ()");
