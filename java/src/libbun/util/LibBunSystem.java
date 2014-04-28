@@ -562,6 +562,7 @@ public class LibBunSystem {
 		ClassMap.put("syntax::lisp",   libbun.lang.lisp.LispGrammar.class);
 		ClassMap.put("syntax::konoha", libbun.lang.konoha.KonohaGrammar.class);
 		ClassMap.put("syntax::python", libbun.lang.python.PythonGrammar.class);
+		ClassMap.put("syntax::c", libbun.lang.c.CGrammar.class);
 
 		// source code by file extension
 		ClassMap.put("bash", libbun.encode.devel.BashGenerator.class);
