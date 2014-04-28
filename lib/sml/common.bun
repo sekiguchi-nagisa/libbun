@@ -1,11 +1,11 @@
-define assert "SMLUnit.Assert.assertTrue ($[0])": Func<boolean,String,void>
+define assert "SMLUnit.Assert.assertTrue $[0]": Func<boolean,String,void>
 define println "TextIO.print ($[0] ^ \"\\n\")": Func<String,void>
-define print "TextIO.print ($[0])": Func<String,void>
-define _ "Bool.toString ($[0])": Func<boolean,String>
-define _ "Real.fromInt ($[0])": Func<int,float>
-define _ "Int.toString ($[0])": Func<int,String>
-define _ "Real.toInt ($[0])": Func<float,int>
-define _ "Real.toString ($[0])": Func<float,String>
-define _ "Int.fromString ($[0])": Func<String,int>
-define _ "Real.fromString ($[0])": Func<String,float>
+define print "TextIO.print $[0]": Func<String,void>
+define _ "Bool.toString $[0]": Func<boolean,String>
+define _ "Real.fromInt $[0]": Func<int,float>
+define _ "Int.toString $[0]": Func<int,String>
+define _ "Real.toInt $[0]": Func<float,int>
+define _ "Real.toString $[0]": Func<float,String>
+define _ "Int.fromString $[0]": Func<String,int>
+define _ "Real.fromString $[0]": Func<String,float>
 define + "$[0] ^ $[1]": Func<String,String,String>
