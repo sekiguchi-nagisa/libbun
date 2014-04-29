@@ -1,5 +1,9 @@
 #!/bin/bash
-#Usage: testbun.sh $FILES
+#Usage: buntest $FILES
+
+if [ -z $PROCESS ]; then
+	PROCESS=1
+fi
 
 if [ -z $OUTDIR ]; then
 	echo "set OUTDIR"
@@ -11,64 +15,26 @@ if [ -z $TARGET ]; then
 	exit 1
 fi
 
-if [ -n $CHECKEXT ]; then
-	CHECKEXT=$TARGET
-fi
-
 if [ -z $BUNJAR ]; then
         BUNJAR='libbun-0.1.jar'
 fi
 
 OUTLOG="$OUTDIR/$TARGET.log"
 OUTLOG1="$OUTLOG.1"
-OUTLOG2="$OUTLOG.2"
 
 if [ -f $OUTLOG ]; then
 	rm -f "$OUTLOG" 
 	rm -f "$OUTLOG1"
-	rm -f "$OUTLOG2"
 fi
 
-count_ok=0
-count_failed=0
+echo $* | OUTDIR=$OUTDIR OUTLOG1=$OUTLOG1 BUNJAR=$BUNJAR TARGET=$TARGET CHECK=$CHECK xargs -n1 -P$PROCESS test/bin/each_test
 
-for SRCPATH in $*
-do
-	INEXT=${SRCPATH##*.}
-	SRCFILE=`basename $SRCPATH .$INEXT`
-	OUTPATH="$OUTDIR/$SRCFILE"
-	STDERR="$OUTDIR/STDERR"
-	echo "" >> $OUTLOG2
-	CHECKED=" $SRCFILE"
-	echo "java -ea -jar $BUNJAR -t $TARGET -o $OUTPATH $SRCPATH" >> $OUTLOG2
-	java -ea -jar $BUNJAR -t $TARGET -o $OUTPATH $SRCPATH >> $OUTLOG2 2> $STDERR
-	EXIT_JAVA=$?
-	if [ $EXIT_JAVA -eq 0 -a -n "$CHECK" ]; then
-		echo "$CHECK $OUTPATH.$CHECKEXT" >> $OUTLOG2
-		$CHECK "$OUTPATH.$CHECKEXT" >> $OUTLOG2 2> $STDERR
-		EXIT_JAVA=$?
-		CHECKED="$CHECKED ($CHECK $OUTPATH.$CHECKEXT)"
-	fi
-	if [ $EXIT_JAVA -eq 0 ]; then
-		echo "[OK]$CHECKED" >> $OUTLOG1
-		echo "[OK]$CHECKED"
-		count_ok=`expr $count_ok + 1`
-	else
-		echo "[FAILED]$CHECKED" >> $OUTLOG1
-		echo "[FAILED]$CHECKED"
-		count_failed=`expr $count_failed + 1`
-	fi
-	if [ -f $STDERR ]; then
-		cat $STDERR
-		cat $STDERR >> $OUTLOG2
-		rm -r $STDERR
-	fi
-done
-
+wait
+count_failed=$(cat $OUTLOG1 | awk "/FAILED/" | wc -l | sed 's/ //g')
+count_ok=$(cat $OUTLOG1 | awk "/OK/" | wc -l | sed 's/ //g')
 echo "# of OK: $count_ok, # of FAILED: $count_failed" >> $OUTLOG1
 echo "# of OK: $count_ok, # of FAILED: $count_failed"
 
-cat $OUTLOG1 $OUTLOG2 > $OUTLOG
+cat $OUTLOG1 $OUTDIR/*.out > $OUTLOG
 rm -f $OUTLOG1
-rm -f $OUTLOG2
-
+rm -f $OUTDIR/*.out

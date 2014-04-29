@@ -1,0 +1,56 @@
+#!/bin/bash
+#Usage: each_test
+
+if [ -z $SRCPATH ]; then
+	SRCPATH=$*
+fi
+
+if [ -z $OUTLOG1 ]; then
+	echo "set OUTLOG1"
+	exit 1
+fi
+
+if [ -z $BUNJAR ]; then
+	echo "set BUNJAR"
+	exit 1
+fi
+
+if [ -n $CHECKEXT ]; then
+	CHECKEXT=$TARGET
+fi
+
+INEXT=${SRCPATH##*.}
+SRCFILE=`basename $SRCPATH .$INEXT`
+OUTPATH="$OUTDIR/$SRCFILE"
+
+STDERR="$OUTDIR/$SRCFILE.err"
+OUTLOG2="$OUTDIR/$SRCFILE.out"
+
+if [ -f $OUTLOG2 ]; then
+	rm -f "$OUTLOG2"
+fi
+
+echo "" >> $OUTLOG2
+CHECKED=" $SRCFILE"
+
+echo "java -ea -jar $BUNJAR -t $TARGET -o $OUTPATH $SRCPATH" >> $OUTLOG2
+java -ea -jar $BUNJAR -t $TARGET -o $OUTPATH $SRCPATH >> $OUTLOG2 2> $STDERR
+EXIT_JAVA=$?
+if [ $EXIT_JAVA -eq 0 -a -n "$CHECK" ]; then
+	echo "$CHECK $OUTPATH.$CHECKEXT" >> $OUTLOG2
+	$CHECK "$OUTPATH.$CHECKEXT" >> $OUTLOG2 2> $STDERR
+	EXIT_JAVA=$?
+	CHECKED="$CHECKED ($CHECK $OUTPATH.$CHECKEXT)"
+fi
+if [ $EXIT_JAVA -eq 0 ]; then
+	echo "[OK]$CHECKED" >> $OUTLOG1
+	echo "[OK]$CHECKED"
+else
+	echo "[FAILED]$CHECKED" >> $OUTLOG1
+	echo "[FAILED]$CHECKED"
+fi
+if [ -f $STDERR ]; then
+	cat $STDERR
+	cat $STDERR >> $OUTLOG2
+	rm -r $STDERR
+fi
