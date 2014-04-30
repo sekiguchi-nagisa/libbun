@@ -10,5 +10,16 @@ define _ "tostring($[0])": Func<float,String>
 define _ "tonumber($[0])": Func<String,int>
 define _ "tonumber($[0])": Func<String,float>
 define + "$[0] .. $[1]": Func<String,String,String>
-define size "table.getn($[0])": Func<String,int>
-define hasKey "($[0][$[1]] ~= nil)": Func<Map<α>,String,boolean>
+define size "#$[0]": Func<String,int>
+define startsWith "(string.sub($[0], 1, string.len($[1]))==$[1])": Func<String,String,boolean>
+define endsWith "($[1]=='' or string.sub($[0],-string.len($[1]))==$[1])": Func<String,String,boolean>
+define substring "string.sub($[0], $[1] + 1)": Func<String,int,String>
+define substring "string.sub($[0], $[1] + 1, $[2])": Func<String,int,int,String>
+define indexOf "@indexOf~libbun_indexOf($[0], $[1])": Func<String,String,int>
+define size "#$[0]": Func<α[],int>
+define get "$[0][$[1]]": Func<α[],int,α>
+define set "$[0][$[1]] = $[2]": Func<α[],int,α,void>
+define add "table.insert($[0],$[1])": Func<α[],α,void>
+define insert "table.insert($[0], $[1] + 1, $[2])": Func<α[],int,α,void>
+define remove "table.remove($[0], $[1] + 1)": Func<α[],int,α>
+define hasKey "(not ($[0][$[1]] == nil))": Func<Map<α>,String,boolean>

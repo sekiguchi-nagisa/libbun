@@ -60,6 +60,7 @@ import libbun.ast.unary.UnaryOperatorNode;
 import libbun.encode.LibBunSourceGenerator;
 import libbun.parser.LibBunLangInfo;
 import libbun.parser.LibBunLogger;
+import libbun.type.BClassType;
 import libbun.type.BFuncType;
 import libbun.type.BType;
 import libbun.util.Var;
@@ -137,23 +138,13 @@ public class LuaGenerator extends LibBunSourceGenerator {
 		BType LeftType = Node.LeftNode().Type;
 		BType RightType = Node.RightNode().Type;
 		if(LeftType == BType.StringType || RightType == BType.StringType) {
-			if(LeftType != BType.StringType) {
-				this.Source.Append("tostring(");
-				this.GenerateExpression(Node.LeftNode());
-				this.Source.Append(")");
-			}
-			else {
-				this.GenerateExpression(Node.LeftNode());
-			}
+			this.Source.Append("tostring(");
+			this.GenerateExpression(Node.LeftNode());
+			this.Source.Append(")");
 			this.Source.Append(" .. ");
-			if(RightType != BType.StringType) {
-				this.Source.Append("tostring(");
-				this.GenerateExpression(Node.RightNode());
-				this.Source.Append(")");
-			}
-			else {
-				this.GenerateExpression(Node.RightNode());
-			}
+			this.Source.Append("tostring(");
+			this.GenerateExpression(Node.RightNode());
+			this.Source.Append(")");
 		} else {
 			this.GenerateExpression(Node.LeftNode());
 			this.Source.AppendWhiteSpace("+", " ");
@@ -205,11 +196,31 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitLeftShiftNode(BunLeftShiftNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, "<<");
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append("(");
+		}
+		this.Source.Append("bit32.lshift(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append(")");
+		}
 	}
 
 	@Override public void VisitRightShiftNode(BunRightShiftNode Node) {
-		this.GenerateBinaryOperatorExpression(Node, ">>");
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append("(");
+		}
+		this.Source.Append("bit32.rshift(");
+		this.GenerateExpression(Node.LeftNode());
+		this.Source.Append(", ");
+		this.GenerateExpression(Node.RightNode());
+		this.Source.Append(")");
+		if (Node.ParentNode instanceof BinaryOperatorNode) {
+			this.Source.Append(")");
+		}
 	}
 
 	@Override public void VisitBitwiseAndNode(BunBitwiseAndNode Node) {
@@ -261,15 +272,19 @@ public class LuaGenerator extends LibBunSourceGenerator {
 		@Var int i = 0;
 		while(i < Node.GetListSize()) {
 			@Var BunMapEntryNode Entry = Node.GetMapEntryNode(i);
-			this.GenerateExpression("", Entry.KeyNode(), "= ", Entry.ValueNode(), ","); //FIXME
+			@Var BunStringNode KeyNode = (BunStringNode)Entry.KeyNode(); //FIXME
+			this.GenerateExpression(KeyNode.StringValue + "= ", Entry.ValueNode(), "");
 			i = i + 1;
+			if(i < Node.GetListSize()) {
+				this.Source.Append(",");
+			}
 		}
 		this.Source.Append("} ");  // space is needed to distinguish block
 	}
 
 	@Override public void VisitNewObjectNode(NewObjectNode Node) {
-		this.Source.Append("new "); //FIXME
 		this.GenerateTypeName(Node.Type);
+		this.Source.Append(".new");
 		this.GenerateListNode("(", Node, ",", ")");
 	}
 
@@ -309,12 +324,16 @@ public class LuaGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitGetFieldNode(GetFieldNode Node) {
 		this.GenerateExpression(Node.RecvNode());
-		this.Source.Append(".", Node.GetName());
+		if(Node.Type instanceof BFuncType) {
+			this.Source.Append(":", Node.GetName());
+		} else {
+			this.Source.Append(".", Node.GetName());
+		}
 	}
 
 	@Override public void VisitMethodCallNode(MethodCallNode Node) {
 		this.GenerateExpression(Node.RecvNode());
-		this.Source.Append(".", Node.MethodName());
+		this.Source.Append(":", Node.MethodName());
 		this.GenerateListNode("(", Node, ",", ")");
 	}
 
@@ -337,9 +356,9 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitBlockNode(BunBlockNode Node) {
-		this.Source.OpenIndent(""); //FIXME
+		this.Source.OpenIndent(); //FIXME
 		this.VisitStmtList(Node);
-		this.Source.CloseIndent("");
+		this.Source.CloseIndent();
 	}
 
 	@Override
@@ -356,7 +375,7 @@ public class LuaGenerator extends LibBunSourceGenerator {
 
 	@Override public void VisitVarBlockNode(BunVarBlockNode Node) {
 		@Var BunLetVarNode VarNode = Node.VarDeclNode();
-		this.Source.AppendNewLine(VarNode.GetUniqueName(this), " = ");
+		this.Source.Append("local ", VarNode.GetUniqueName(this), " = ");
 		this.GenerateExpression(VarNode.InitValueNode());
 		this.VisitStmtList(Node);
 	}
@@ -380,28 +399,54 @@ public class LuaGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override public void VisitWhileNode(BunWhileNode Node) {
-		this.GenerateExpression("while ", Node.CondNode(), " do");
-		this.GenerateExpression(Node.BlockNode());
-		this.Source.AppendNewLine("end");
+		if(Node.HasNextNode()) {
+			this.GenerateExpression("while ", Node.CondNode(), " do");
+			this.GenerateExpression(Node.BlockNode());
+			this.Source.OpenIndent();
+			this.Source.AppendNewLine();
+			this.GenerateExpression(Node.NextNode());
+			this.Source.CloseIndent();
+			this.Source.AppendNewLine("end");
+		} else {
+			this.GenerateExpression("while ", Node.CondNode(), " do");
+			this.GenerateExpression(Node.BlockNode());
+			this.Source.AppendNewLine("end");
+		}
 	}
 
 	@Override public void VisitBreakNode(BunBreakNode Node) {
 		this.Source.OpenIndent("do");
 		this.Source.AppendNewLine();
 		this.Source.Append("break");
-		this.Source.AppendNewLine();
 		this.Source.CloseIndent("end");
 	}
 
 	@Override public void VisitThrowNode(BunThrowNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("error(");
+		this.GenerateExpression(Node.ExprNode());
+		this.Source.Append(")");
 	}
 
 	@Override
 	public void VisitTryNode(BunTryNode Node) {
-		// TODO Auto-generated method stub
-
+		this.ImportLibrary("@try");
+		this.Source.OpenIndent("libbun_try({");
+		this.Source.AppendNewLine("try = function()");
+		this.GenerateExpression(Node.TryBlockNode());
+		this.Source.AppendNewLine("end");
+		if(Node.HasCatchBlockNode()) {
+			this.Source.Append(",");
+			this.Source.AppendNewLine("catch = function(e)"); //FIXME e
+			this.GenerateExpression(Node.CatchBlockNode());
+			this.Source.AppendNewLine("end");
+		}
+		if(Node.HasFinallyBlockNode()) {
+			this.Source.Append(",");
+			this.Source.AppendNewLine("finally = function()");
+			this.GenerateExpression(Node.FinallyBlockNode());
+			this.Source.AppendNewLine("end");
+		}
+		this.Source.CloseIndent("})");
 	}
 
 	@Override
@@ -415,6 +460,9 @@ public class LuaGenerator extends LibBunSourceGenerator {
 		}
 	}
 
+	private String CreateMethoName(BType ClassType, String MethodName) {
+		return this.NameClass(ClassType) + "." + MethodName;
+	}
 
 	@Override public void VisitFunctionNode(BunFunctionNode Node) {
 		if(!Node.IsTopLevelDefineFunction()) {
@@ -440,29 +488,51 @@ public class LuaGenerator extends LibBunSourceGenerator {
 				}
 			}
 			if(this.IsMethod(Node.FuncName(), FuncType)) {
-				this.Source.AppendNewLine(this.NameMethod(FuncType.GetRecvType(), Node.FuncName()));
+				this.Source.AppendNewLine(this.CreateMethoName(FuncType.GetRecvType(), Node.FuncName()));
 				this.Source.Append(" = ", FuncType.StringfySignature(Node.FuncName()));
 			}
 		}
 	}
 
 	@Override public void VisitClassNode(BunClassNode Node) {
-		// TODO Auto-generated method stub
+		@Var BType SuperType = Node.ClassType.GetSuperType();
+		@Var String ClassName = this.NameClass(Node.ClassType);
+		this.Source.AppendNewLine(ClassName, " = {}");
+		this.Source.AppendNewLine(ClassName, "_mt = { __index = " , ClassName + " }");
+		this.Source.AppendNewLine();
+		this.Source.AppendNewLine("function ", ClassName, ":new()");
+		this.Source.OpenIndent();
+		this.Source.AppendNewLine("local __initObject = ");
+		if(!SuperType.Equals(BClassType._ObjectType)) {
+			this.Source.Append(this.NameClass(SuperType), ".new()");
+		}
+		else {
+			this.Source.Append("{}");
+		}
+		@Var int i = 0;
+		while (i < Node.GetListSize()) {
+			@Var BunLetVarNode FieldNode = Node.GetFieldNode(i);
+			if(!FieldNode.DeclType().IsFuncType()) {
+				this.Source.AppendNewLine("__initObject.", FieldNode.GetGivenName(), " = ");
+				this.GenerateExpression(FieldNode.InitValueNode());
+			}
+			i = i + 1;
+		}
+		this.Source.AppendNewLine("return setmetatable(__initObject, ", ClassName,"_mt)");
+		this.Source.CloseIndent("end");
 	}
 
 	@Override public void VisitGetIndexNode(GetIndexNode Node) {
 		@Var BType RecvType = Node.GetAstType(GetIndexNode._Recv);
 		if(RecvType.IsMapType()) {
-			//this.ImportLibrary("@mapget");
 			this.GenerateExpression("", Node.RecvNode(), "[", Node.IndexNode(), "]");
 		}
 		else if(RecvType.IsArrayType()) {
-			this.ImportLibrary("@arrayget");
-			this.GenerateExpression("libbun_arrayget(", Node.RecvNode(), ", ", Node.IndexNode(), ")");
+			this.GenerateExpression(Node.RecvNode());
+			this.GenerateExpression("[", Node.IndexNode(), " + 1]");
 		}
 		else {
-			this.GenerateExpression(Node.RecvNode());
-			this.GenerateExpression("[", Node.IndexNode(), "]");
+			this.GenerateExpression("string.sub(", Node.RecvNode(), ", ", Node.IndexNode(), " + 1,", Node.IndexNode(), " + 1)");
 		}
 	}
 

@@ -7,7 +7,7 @@ define _ "String($[0])": Func<int,String>
 define / "@intdiv~libbun_intdiv($[0], $[1])": Func<int,int,int>
 define _ "$[0]": Func<float,int>
 define _ "String($[0])": Func<float,String>
-define size "$[0].length ": Func<String,int>
+define size "$[0].length": Func<String,int>
 define equals "$[0] == $[1]": Func<String,String,boolean>
 define startsWith "($[0].lastIndexOf($[1], 0) === 0)": Func<String,String,boolean>
 define endsWith "($[0].slice(- $[1].length) === $[1])": Func<String,String,boolean>
