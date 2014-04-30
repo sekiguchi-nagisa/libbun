@@ -523,9 +523,11 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 	public void VisitFunctionNode(BunFunctionNode Node) {
 		//if(Node.IsExport) {
 		//}
-		this.Source.Append("fun ");
 		if(Node.FuncName() != null) {
-			this.Source.Append(Node.ResolvedFuncType.StringfySignature(Node.FuncName()));
+			this.Source.Append("fun ", Node.ResolvedFuncType.StringfySignature(Node.FuncName()));
+		}
+		else {
+			this.Source.Append("(fn");
 		}
 		if(Node.GetListSize() == 0) {
 			this.Source.Append(" ()");
@@ -542,6 +544,9 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 		this.GenerateExpression(Node.BlockNode());
 		if(Node.IsTopLevelDefineFunction()) {
 			this.Source.Append(";");
+		}
+		else if(Node.FuncName() == null) {
+			this.Source.Append(")");
 		}
 	}
 
