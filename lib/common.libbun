@@ -8,7 +8,7 @@ assert: Func<boolean,String,void>
  py:  assert $[0], $[1]
  js:  console.assert($[0], $[1])
  lua: assert($[0], $[1])
- sml: SMLUnit.Assert.assertTrue $[0]
+ sml: (SMLUnit.Assert.assertTrue $[0])
 
 println: Func<String,void>
  bun:  println($[0])
@@ -19,7 +19,7 @@ println: Func<String,void>
  js:   console.log($[0])
  py:   print $[0]
  lua:  print($[0])
- sml:  TextIO.print ($[0] ^ "\n")
+ sml:  (TextIO.print ($[0] ^ "\n"))
 
 print: Func<String,void>
  bun:  print($[0])
@@ -30,7 +30,7 @@ print: Func<String,void>
  js:   console.log($[0])
  py:   print $[0],
  lua:  print($[0])
- sml:  TextIO.print $[0]
+ sml:  (TextIO.print $[0])
 
 ## boolean
 _: Func<boolean,String>
@@ -42,7 +42,7 @@ _: Func<boolean,String>
  js:   String($[0])
  py:   (u'true' if $[0] else u'false')
  lua:  tostring($[0])
- sml:  Bool.toString $[0]
+ sml:  (Bool.toString $[0])
 
 ## int
 _: Func<int,float>
@@ -54,7 +54,7 @@ _: Func<int,float>
  js:   $[0]
  py:   float($[0])
  lua:  $[0]
- sml:  Real.fromInt $[0]
+ sml:  (Real.fromInt $[0])
 
 _: Func<int,String>
  bun: ((String)$[0])
@@ -65,7 +65,7 @@ _: Func<int,String>
  js: String($[0])
  py:  unicode($[0])
  lua: tostring($[0])
- sml: Int.toString $[0]
+ sml: (Int.toString $[0])
 
 /: Func<int,int,int>
  js: @intdiv~libbun_intdiv($[0], $[1])
@@ -81,7 +81,7 @@ _: Func<float,int>
  js:   $[0]
  py:   int($[0])
  lua:  math.floor($[0])
- sml:  Real.toInt $[0]
+ sml:  (Real.toInt $[0])
 
 _: Func<float,String>
  bun:   ((String)$[0])
@@ -92,7 +92,7 @@ _: Func<float,String>
  js:   String($[0])
  cs:   ($[0]).ToString()
  lua:  tostring($[0])
- sml:  Real.toString $[0]
+ sml:  (Real.toString $[0])
 
 ## String
 
@@ -101,20 +101,20 @@ _: Func<String,int>
  c:   @s2i~libbun_s2i($[0])
  cl:  (parse-integer $[0])
  lua: tonumber($[0])
- sml: Int.fromString $[0]
+ sml: (Int.fromString $[0])
 
 _: Func<String,float>
  bun: ((float)$[0])
  c:   @s2f~libbun_s2f($[0])
  cl:  (read-from-string $[0])
  lua: tonumber($[0])
- sml: Real.fromString $[0]
+ sml: (Real.fromString $[0])
 
 +: Func<String,String,String>
  c:  @concat~libbun_concat($[0], $[1])
  cl: ~(format nil "~a~a" $[0] $[1])
  lua: $[0] .. $[1]
- sml: $[0] ^ $[1]
+ sml: ($[0] ^ $[1])
 
 size: Func<String,int>
  #: s.size() returns the length of a string $s
