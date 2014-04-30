@@ -914,6 +914,9 @@ public class AsmJavaGenerator extends LibBunGenerator {
 	}
 
 	@Override public void VisitWhileNode(BunWhileNode Node) {
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
 		Label continueLabel = new Label();
 		Label breakLabel = new Label();
 		this.AsmBuilder.BreakLabelStack.push(breakLabel);
@@ -935,7 +938,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		this.AsmBuilder.visitJumpInsn(GOTO, l);
 	}
 
-	@Override public void VisitThrowNode(BunThrowNode Node) {
+	@Override public void VisitThrowNode(BunThrowNode Node) { //TODO: exception wrapper
 		String ClassName = Type.getInternalName(RuntimeException.class);
 		this.AsmBuilder.SetLineNumber(Node);
 		this.AsmBuilder.visitTypeInsn(NEW, ClassName);
@@ -956,7 +959,7 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		this.AsmBuilder.visitLabel(TryCatchLabel.EndTryLabel);
 		this.AsmBuilder.visitJumpInsn(GOTO, TryCatchLabel.FinallyLabel);
 		// catch block
-		if(Node.HasCatchBlockNode()) {	//TODO: exception variable
+		if(Node.HasCatchBlockNode()) {	//TODO: exception wrapper
 			Label CatchLabel = new Label();
 			AsmTryCatchLabel Label = this.TryCatchLabel.peek();
 			Class<?> ExceptionClass = Exception.class;
