@@ -3,6 +3,7 @@ package libbun.lang.c;
 import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
 import libbun.ast.EmptyNode;
+import libbun.ast.decl.BunClassNode;
 import libbun.ast.decl.BunFunctionNode;
 import libbun.ast.decl.BunLetVarNode;
 import libbun.ast.decl.BunPrototypeNode;
@@ -97,25 +98,27 @@ public class CGrammar {
 		DefineStatement(Gamma, "$Statement_Block$", new StatementWithinBlockPatternFunction());
 		DefineStatement(Gamma, "$Label$", new LabelPatternFunction());
 		DefineStatement(Gamma, "$FuncDecl$", FuncDeclPattern);
-		DefineStatement(Gamma, "inline", FuncDeclPattern);
-		DefineStatement(Gamma, "static", FuncDeclPattern);
 		Gamma.DefineExpression("$ParamDecl$", new ParamDeclPatternFunction());
 		DefineStatement(Gamma, "$VarDecl$", VarDeclPattern);
-		DefineStatement(Gamma, "static", VarDeclPattern);
 		DefineStatement(Gamma, "$Block$", BlockPattern);
-		DefineStatement(Gamma, "{", BlockPattern);
 		Gamma.DefineExpression("$Expression$", BunGrammar.ExpressionPattern);
 		Gamma.DefineExpression("$RightExpression$", BunGrammar.RightExpressionPattern);
 		Gamma.DefineExpression("$SymbolExpression$", BunGrammar.SymbolExpressionPattern);
 		Gamma.DefineExpression("$Name$", BunGrammar.NamePattern);
+		Gamma.DefineExpression("$VarName$", new VarNamePatternFunction());
+		Gamma.DefineExpression("$MemberDecl$", new MemberDeclPatternFunction());
 
 		// define statement pattern
+		DefineStatement(Gamma, "{", BlockPattern);
 		DefineStatement(Gamma, ";", new SemicolonPatternFunction());
 		DefineStatement(Gamma, "return", new ReturnPatternFunction());
 		DefineStatement(Gamma, "break", new BreakPatternFunction());
 		DefineStatement(Gamma, "continue", new ContinuePatternFunction());
 		DefineStatement(Gamma, "goto", new GotoPatternFunction());
 		DefineStatement(Gamma, "if", new IfPatternFunction());
+		DefineStatement(Gamma, "static", new StaticPatternFunction());
+		DefineStatement(Gamma, "inline", new InlinePatternFunction());
+		DefineStatement(Gamma, "struct", new StructPatternFunction());
 		
 		Gamma.DefineExpressionSuffix("->", BunGrammar.GetFieldPattern);
 		Gamma.DefineExpressionSuffix(".", BunGrammar.GetFieldPattern);
@@ -132,7 +135,7 @@ public class CGrammar {
 	}
 
 	public static BToken MatchArray(BTokenContext TokenContext) {
-		BToken OpenBracketToken = TokenContext.GetToken(BTokenContext._Required);
+		BToken OpenBracketToken = TokenContext.GetToken(BTokenContext._MoveNext);
 		BToken CloseBracketToken = null;
 		while(TokenContext.HasNext()) {
 			BToken Token = TokenContext.GetToken();
@@ -290,6 +293,9 @@ class StatementPatternFunction extends BMatchFunction {
 class FuncDeclPatternFunction extends BMatchFunction {
 	@Override
 	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		if(!ParentNode.IsTopLevel()) {
+			return null;
+		}
 		BNode Node = new BunFunctionNode(ParentNode);
 		Node = CGrammar.MatchTypeAndName(TokenContext, (BunFunctionNode) Node, BunFunctionNode._TypeInfo, BunFunctionNode._NameInfo, new String[]{"("}, false);
 		Node = TokenContext.MatchNtimes(Node, "(", "$ParamDecl$", ",", ")");
@@ -485,6 +491,96 @@ class GotoPatternFunction extends BMatchFunction {
 		Node = TokenContext.MatchToken(Node, "goto", BTokenContext._Required);
 		Node = TokenContext.MatchPattern(Node, JumpNode._Label, "$Name$", BTokenContext._Required);
 		Node = TokenContext.MatchToken(Node, ";", BTokenContext._Required);
+		return Node;
+	}
+}
+
+class StaticPatternFunction extends BMatchFunction {
+	@Override
+	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		BNode Node = TokenContext.ParsePattern(ParentNode, "$FuncDecl$", BTokenContext._Optional);
+		if(Node != null) {
+			return Node;
+		}
+		return TokenContext.ParsePattern(ParentNode, "$VarDecl$", BTokenContext._Required);
+	}
+}
+
+class InlinePatternFunction extends BMatchFunction {
+	@Override
+	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		return TokenContext.ParsePattern(ParentNode, "$FuncDecl$", BTokenContext._Required);
+	}
+}
+
+class StructPatternFunction extends BMatchFunction {
+	@Override
+	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		BNode ClassNode = new BunClassNode(ParentNode);
+		ClassNode = TokenContext.MatchToken(ClassNode, "struct", BTokenContext._Required);
+		ClassNode = TokenContext.MatchPattern(ClassNode, BunClassNode._NameInfo, "$Name$", BTokenContext._Required);
+		ClassNode = TokenContext.MatchNtimes(ClassNode, "{", "$MemberDecl$", null, "}");
+		if(TokenContext.MatchToken(";")) {
+			return ClassNode;
+		}
+		BNode Node = new TypeAndVarDeclNode(ParentNode);
+		Node.SetNode(TypeAndVarDeclNode._TypeDecl, ClassNode);
+		Node = TokenContext.MatchPattern(Node, TypeAndVarDeclNode._VarDecl, "$VarName$", BTokenContext._Required);
+		return Node;
+	}
+}
+
+class MemberDeclPatternFunction extends BMatchFunction {	// TODO: multiple member decl
+	@Override
+	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		BNode Node = new BunLetVarNode(ParentNode, 0, null, null);
+		Node = CGrammar.MatchTypeAndName(TokenContext, Node, BunLetVarNode._TypeInfo, BunLetVarNode._NameInfo, new String[]{";", ","}, true);
+		Node = TokenContext.MatchToken(Node, ";", BTokenContext._Required);
+		return Node;
+	}
+}
+
+class VarNamePatternFunction extends BMatchFunction {
+	@Override
+	public BNode Invoke(BNode ParentNode, BTokenContext TokenContext, BNode LeftNode) {
+		BArray<BToken> ArrayTokenList = new BArray<BToken>(new BToken[]{});
+		BArray<BToken> PointerTokenList = new BArray<BToken>(new BToken[]{});
+		BToken VarNameToken = null;
+		while(TokenContext.HasNext()) {
+			BToken Token = TokenContext.GetToken();
+			if(Token.IsNameSymbol()) {
+				VarNameToken = Token;
+			}
+			else if(Token.EqualsText("*")) {
+				PointerTokenList.add(Token);
+			}
+			else if(Token.EqualsText("[")) {
+				ArrayTokenList.add(CGrammar.MatchArray(TokenContext));
+			}
+			else {
+				break;
+			}
+			TokenContext.MoveNext();
+		}
+		if(VarNameToken == null) {
+			return null;
+		}
+		BunLetVarNode Node = new BunLetVarNode(ParentNode, 0, null, null);
+		String TypeName = LeftNode.Type.GetName();
+		int size = PointerTokenList.size();
+		for(int i = 0; i < size; i++) {
+			if(i != 0) {
+				TypeName += " ";
+			}
+			TypeName += BArray.GetIndex(PointerTokenList, i).GetText();
+		}
+		size = ArrayTokenList.size();
+		for(int i = 0; i < size; i++) {
+			TypeName += BArray.GetIndex(ArrayTokenList, i).GetText();
+		}
+		BType Type = ParentNode.GetGamma().GetType(TypeName, null, true);
+		Node.SetNode(BunLetVarNode._NameInfo, new GetNameNode(Node, VarNameToken, VarNameToken.GetText()));
+		Node.SetNode(BunLetVarNode._TypeInfo, new BunTypeNode(Node, null, Type));
 		return Node;
 	}
 }
