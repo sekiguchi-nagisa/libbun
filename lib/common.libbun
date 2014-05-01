@@ -54,7 +54,7 @@ _: Func<int,float>
  js:   $[0]
  py:   float($[0])
  lua:  $[0]
- sml:  (Real.fromInt $[0])
+ sml:  (Real.fromLargeInt $[0])
 
 _: Func<int,String>
  bun: ((String)$[0])
@@ -65,7 +65,7 @@ _: Func<int,String>
  js: String($[0])
  py:  unicode($[0])
  lua: tostring($[0])
- sml: (Int.toString $[0])
+ sml: (IntInf.toString $[0])
 
 /: Func<int,int,int>
  js: @intdiv~libbun_intdiv($[0], $[1])
@@ -81,7 +81,7 @@ _: Func<float,int>
  js:   $[0]
  py:   int($[0])
  lua:  math.floor($[0])
- sml:  (Real.toInt $[0])
+ sml:  (Real.toLargeInt $[0])
 
 _: Func<float,String>
  bun:   ((String)$[0])
@@ -101,7 +101,7 @@ _: Func<String,int>
  c:   @s2i~libbun_s2i($[0])
  cl:  (parse-integer $[0])
  lua: tonumber($[0])
- sml: (Int.fromString $[0])
+ sml: (IntInf.fromString $[0])
 
 _: Func<String,float>
  bun: ((float)$[0])
