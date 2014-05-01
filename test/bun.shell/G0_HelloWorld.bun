@@ -1,0 +1,6 @@
+require syntax::bun.shell
+
+export function main() {
+	import command echo
+	echo "##Hello,world"
+}

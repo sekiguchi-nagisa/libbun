@@ -1,5 +1,7 @@
 package libbun.parser;
 
+import libbun.parser.peg.ParserContext;
+import libbun.parser.peg.PegParser;
 import libbun.util.BField;
 import libbun.util.BIgnored;
 import libbun.util.LibBunSystem;
@@ -8,17 +10,17 @@ import libbun.util.Var;
 public class BToken {
 	public final static BToken _NullToken = new BToken();
 
-	@BField public final LibBunSource Source;
-	@BField public int  StartIndex;
-	@BField public int  EndIndex;
-
 	private BToken() {
-		this.Source = new LibBunSource();
+		this.Source = new ParserSource();
 		this.StartIndex = 0;
 		this.EndIndex = 0;
 	}
 
-	public BToken(LibBunSource Source, int StartIndex, int EndIndex) {
+	@BField public final ParserSource Source;
+	@BField public int  StartIndex;
+	@BField public int  EndIndex;
+
+	public BToken(ParserSource Source, int StartIndex, int EndIndex) {
 		this.Source = Source;
 		this.StartIndex = StartIndex;
 		this.EndIndex = EndIndex;
@@ -27,6 +29,50 @@ public class BToken {
 	public final int size() {
 		return this.EndIndex - this.StartIndex;
 	}
+
+	public final boolean IsNull() {
+		return (this.StartIndex == this.EndIndex);
+	}
+
+	public final int indexOf(String s) {
+		int loc = this.Source.SourceText.indexOf(s, this.StartIndex);
+		if(loc != -1 && loc < this.EndIndex) {
+			return loc - this.StartIndex;
+		}
+		return -1;
+	}
+
+	public final String substring(int startIndex) {
+		return this.Source.SourceText.substring(startIndex + this.StartIndex, this.EndIndex);
+	}
+
+	public final String substring(int startIndex, int endIndex) {
+		startIndex = startIndex + this.StartIndex;
+		endIndex = endIndex + this.StartIndex;
+		if(endIndex <= this.EndIndex) {
+			return this.Source.SourceText.substring(startIndex, endIndex);
+		}
+		return null;
+	}
+
+	public final ParserContext newParserContext(PegParser parser) {
+		return new ParserContext(parser, this.Source, this.StartIndex, this.EndIndex);
+	}
+
+	public final ParserContext newParserContext(PegParser parser, int startIndex) {
+		return new ParserContext(parser, this.Source, this.StartIndex + startIndex, this.EndIndex);
+	}
+
+	public final ParserContext newParserContext(PegParser parser, int startIndex, int endIndex) {
+		endIndex = endIndex + this.StartIndex;
+		if(endIndex > this.EndIndex) {
+			endIndex = this.EndIndex;
+		}
+		return new ParserContext(parser, this.Source, this.StartIndex + startIndex, endIndex);
+	}
+
+
+
 
 	public final String GetFileName() {
 		return this.Source.FileName;
@@ -115,10 +161,6 @@ public class BToken {
 		return true;
 	}
 
-
-	public final boolean IsNull() {
-		return (this == BToken._NullToken);
-	}
 
 	public final boolean IsIndent() {
 		return this instanceof BIndentToken;

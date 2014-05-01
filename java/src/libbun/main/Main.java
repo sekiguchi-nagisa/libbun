@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunConst;
+import libbun.parser.peg.PegBunGrammar;
 import libbun.util.BStringArray;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
@@ -43,6 +44,9 @@ public class Main {
 
 	// -o
 	private static String OutputFileName = null;
+
+	// --peg
+	private static String PegFileName = null;
 
 	//	// -l
 	//	private static boolean ShowListMode = false;
@@ -85,6 +89,11 @@ public class Main {
 			}
 			if ((Argument.equals("-p") || Argument.equals("--parser")) && (Index < Args.length)) {
 				GivenParser = Args[Index];
+				Index += 1;
+				continue;
+			}
+			if ((Argument.equals("--peg")) && (Index < Args.length)) {
+				PegFileName = Args[Index];
 				Index += 1;
 				continue;
 			}
@@ -133,6 +142,9 @@ public class Main {
 
 	public final static void InvokeLibBun(String[] Args) {
 		ParseCommand(Args);
+		if(PegFileName != null) {
+			PegBunGrammar.test(PegFileName);
+		}
 		@Var LibBunGenerator Generator = LibBunSystem._InitGenerator(Target, Parser);
 		if(InputFileName != null) {
 			Generator.LoadFile(InputFileName, null);

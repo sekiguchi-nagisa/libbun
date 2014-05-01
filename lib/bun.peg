@@ -1,0 +1,52 @@
+Comment <- '/*' (!'*/' .)*  '*/' / '//' (!'\n' .)*
+
+Name <- &[A-Za-z_] variable
+
+
+Block <- {'{' ($n=Stmt)* '}'}
+if    <- {'if' '(' $0=Expr ')' $1=Block ('else' $2=(if / Block))?}
+Stmt  <- if
+Stmt  <- {'while' '(' $0=Expr ')' $1=Block}
+Stmt  <- {'break'}
+Stmt  <- {'try' $0=Block ('catch' '(' $1=Name ')' $2=Block)? ('finally' $3=Block)?}
+Stmt  <- {'throw' ($0=Expr)}
+Stmt  <- {'return' ($0=Expr)?}
+Stmt  <- {'var' $0=Name (':' $1=Type)? '=' $2=Expr ('in' $n=Block)?}
+Stmt  <- {'let' $0=Name (':' $1=Type)? '=' $2=Expr ('in' $n=Block)?}
+Stmt  <- {'function' $0=Name '(' ($n=Param)? (',' $n=Param)* ')' (':' $1=Type)? $2=Block}
+Param <- {$0=Name (':' $1=Type)?}
+
+Type <- &[A-Za-z_] type
+Type <- Type {'[]'} type
+Type <- Type {'<' $0=Type (',' $1=Type)* '>'} type
+
+Stmt <- Expr
+Expr <- Expr {'==' $1=Expr}
+Expr <- Expr {'!=' $1=Expr}
+Expr <- Expr {'<' $1=Expr}
+Expr <- Expr {'>' $1=Expr}
+Expr <- Expr {'<=' $1=Expr}
+Expr <- Expr {'>=' $1=Expr}
+
+Expr <- Expr {'+' $1=Expr}
+Expr <- Expr {'-' $1=Expr}
+Expr <- Expr {'*' $1=Expr}
+Expr <- Expr {'/' $1=Expr}
+Expr <- Expr {'%' $1=Expr}
+
+Expr <- Term
+Term <- Name
+Term <- {'(' $0=Expr ')'}
+Term <- {'+' $0=Term}
+Term <- {'-' $0=Term}
+Term <- Term {'.' $1=Name}
+Term <- Term {'[' $1=Expr ']'}
+Term <- Term {'(' ($n=Expr)? (',' $n=Expr)* ')' !(' '* '{')}
+Term <- Term {'.' $1=Name '(' ($n=Expr)? (',' $n=Expr)* ')'}
+Term <- {'new' $0=Type '(' ($n=Expr)? (',' $n=Expr)* ')'}
+
+Term <- &["']     string
+Term <- &[0-9]    number
+Term <- &('null' ![A-z0-9_])   const
+Term <- &'true'   const
+Term <- &'false'  const

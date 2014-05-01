@@ -72,6 +72,27 @@ public abstract class BinaryOperatorNode extends BNode {
 		return false;
 	}
 
+	private final BNode RightJoin(BinaryOperatorNode RightNode) {
+		@Var BNode RightLeftNode = RightNode.LeftNode();
+		if(this.IsRightJoin(RightLeftNode)) {
+			RightNode.SetNode(BinaryOperatorNode._Left, this.RightJoin((BinaryOperatorNode) RightLeftNode));
+		}
+		else {
+			RightNode.SetNode(BinaryOperatorNode._Left, this);
+			this.SetNode(BinaryOperatorNode._Right, RightLeftNode);
+		}
+		return RightNode;
+	}
+
+	public BNode SetRightBinaryNode(BNode RightNode) {
+		if(this.IsRightJoin(RightNode)) {
+			return this.RightJoin((BinaryOperatorNode) RightNode);
+		}
+		this.SetRightNode(RightNode);
+		return this;
+	}
+
+
 	private final BNode RightJoin(BNode ParentNode, BinaryOperatorNode RightNode) {
 		@Var BNode RightLeftNode = RightNode.LeftNode();
 		if(this.IsRightJoin(RightLeftNode)) {
@@ -83,6 +104,7 @@ public abstract class BinaryOperatorNode extends BNode {
 		}
 		return RightNode;
 	}
+
 
 	//	public final BNode AppendParsedRightNode(BNode ParentNode, BTokenContext TokenContext) {
 	//		@Var BNode RightNode = TokenContext.ParsePattern(ParentNode, "$Expression$", BTokenContext._Required);

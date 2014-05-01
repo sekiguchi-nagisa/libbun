@@ -78,6 +78,7 @@ public class RegExpGrammar {
 	public final static BMatchFunction RegExpPattern = new RegExpPatternFunction();
 	public static void LoadGrammar(LibBunGamma Gamma) {
 		Gamma.SetTypeName(BunRegExpNode._RegExpType, null);
+		Gamma.Generator.RequireLibrary("regex", null);
 		Gamma.DefineToken("\\", BackSlashToken);
 		Gamma.DefineExpression("/", RegExpPattern);
 	}

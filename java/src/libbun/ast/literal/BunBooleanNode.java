@@ -25,8 +25,8 @@
 package libbun.ast.literal;
 
 import libbun.ast.BNode;
-import libbun.parser.BunVisitor;
 import libbun.parser.BToken;
+import libbun.parser.BunVisitor;
 import libbun.parser.LibBunVisitor;
 import libbun.type.BType;
 import libbun.util.BField;
@@ -43,6 +43,9 @@ public final class BunBooleanNode extends LiteralNode {
 	}
 	@Override public BNode Dup(boolean TypedClone, BNode ParentNode) {
 		return this.DupField(TypedClone, new BunBooleanNode(ParentNode, this.SourceToken, this.BooleanValue));
+	}
+	@Override public final String toString() {
+		return "" + this.BooleanValue;
 	}
 	@Override public final void Accept(LibBunVisitor Visitor) {
 		if(Visitor instanceof BunVisitor) {

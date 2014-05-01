@@ -53,6 +53,15 @@ public class GetNameNode extends MutableNode {
 		return this.DupField(TypedClone, NewNode);
 	}
 
+	@Override public final String toString() {
+		if(this.IsUntyped()) {
+			return this.GivenName;
+		}
+		else {
+			return this.GivenName + ":" + this.Type.GetName();
+		}
+	}
+
 	@Override public void Accept(LibBunVisitor Visitor) {
 		Visitor.VisitGetNameNode(this);
 	}

@@ -88,6 +88,14 @@ public final class BunMap <T> extends BunObject {
 		return this.Map.containsKey(Key);
 	}
 
+	public final BArray<String> keys() {
+		BArray<String> a = new BArray<String>(new String[this.Map.size()]);
+		for(String k : this.Map.keySet()) {
+			a.add(k);
+		}
+		return a;
+	}
+
 	public final static <T> T GetIndex(BunMap<T> aMap, String Key) {
 		return aMap.Map.get(Key);
 	}

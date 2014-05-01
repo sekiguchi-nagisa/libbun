@@ -34,7 +34,7 @@ import libbun.util.BTokenFunction;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
-public final class BTokenContext {
+public class BTokenContext {
 	public final static boolean     _Required          = true;
 	public final static boolean     _Optional          = false;
 	public final static boolean     _AllowSkipIndent   = true;
@@ -56,10 +56,10 @@ public final class BTokenContext {
 	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, String FileName, int LineNumber, String SourceText) {
 		this.Generator = Generator;
 		this.Parser = Parser;
-		this.SourceContext = new BSourceContext(new LibBunSource(FileName, LineNumber, SourceText, Generator.Logger), 0, SourceText.length(), this);
+		this.SourceContext = new BSourceContext(new ParserSource(FileName, LineNumber, SourceText, Generator.Logger), 0, SourceText.length(), this);
 	}
 
-	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, LibBunSource Source, int StartIndex, int EndIndex) {
+	public BTokenContext(LibBunParser Parser, LibBunGenerator Generator, ParserSource Source, int StartIndex, int EndIndex) {
 		this.Generator = Generator;
 		this.Parser = Parser;
 		this.SourceContext = new BSourceContext(Source, StartIndex, EndIndex, this);

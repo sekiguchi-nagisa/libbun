@@ -7,13 +7,13 @@ import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
 public final class BSourceContext /*extends LibBunSource*/ {
-	@BField public final LibBunSource Source;
+	@BField public final ParserSource Source;
 	@BField final LibBunParser Parser;
 	@BField final BArray<BToken>  ParsedTokenList;
 	@BField int SourcePosition = 0;
 	@BField final int EndPosition;
 
-	public BSourceContext(LibBunSource Source, int StartIndex, int EndIndex, BTokenContext TokenContext) {
+	public BSourceContext(ParserSource Source, int StartIndex, int EndIndex, BTokenContext TokenContext) {
 		this.Source = Source;
 		this.SourcePosition = StartIndex;
 		this.EndPosition = EndIndex;
