@@ -9,6 +9,7 @@ public abstract class PegNode {
 	Peg createdPeg;
 	int startIndex;
 	int endIndex;
+
 	PegNode(Peg createdPeg, int startIndex, int endIndex) {
 		this.createdPeg = createdPeg;
 		this.startIndex = startIndex;
@@ -48,7 +49,7 @@ class PegParsedNode extends PegNode {
 
 	@Override public String toString() {
 		if(this.elementList != null) {
-			String s = "{";
+			String s = "{'" + this.debugSource.substring(this.startIndex, this.endIndex) + "' ";
 			for(int i = 0; i < this.elementList.size(); i++) {
 				if(i > 0) {
 					s = s + ",";
@@ -68,11 +69,12 @@ class PegParsedNode extends PegNode {
 	@Override
 	void stringfy(BToken source, LibBunSourceBuilder sb) {
 		if(this.elementList == null) {
-			sb.AppendNewLine(source.substring(this.startIndex, this.endIndex), "   ## " + this.createdPeg);
+			sb.AppendNewLine(source.substring(this.startIndex, this.endIndex), "   ## by " + this.createdPeg);
 		}
 		else {
 			sb.AppendNewLine("node");
-			sb.OpenIndent(" {   ## " + this.createdPeg);
+			sb.OpenIndent(" {            ## by " + this.createdPeg);
+			sb.AppendNewLine("'", source.substring(this.startIndex, this.endIndex), "'");
 			for(int i = 0; i < this.elementList.size(); i++) {
 				this.elementList.ArrayValues[i].stringfy(source, sb);
 			}

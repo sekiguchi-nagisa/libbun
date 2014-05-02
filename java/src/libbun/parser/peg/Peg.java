@@ -367,6 +367,10 @@ class PegTokenExpr extends PegSymbolExpr {
 		//		sourceContext.skipWhiteSpace(false);
 		BToken token = sourceContext.newToken();
 		if(sourceContext.sliceMatchedText(token, this.symbol)) {
+			if(parentNode.endIndex == 0) {
+				parentNode.startIndex = token.StartIndex;
+				parentNode.endIndex = token.EndIndex;
+			}
 			return parentNode;
 		}
 		return sourceContext.newErrorNode(this, "expected " + this.symbol);
@@ -526,6 +530,7 @@ class PegLabelExpr extends PegTokenExpr {
 		}
 		return "";
 	}
+
 	@Override void check(PegParser p, int level) {
 		if(!p.hasPattern(this.symbol)) {
 			LibBunSystem._PrintLine("undefined label: " + this.symbol);
@@ -608,7 +613,9 @@ class PegNodeExpr extends PegPredicate {
 					}
 				}
 			}
-			newnode.endIndex = sourceContext.getPosition();
+			if(newnode.endIndex == 0) {
+				newnode.endIndex = sourceContext.getPosition();
+			}
 		}
 		return newnode;
 	}
