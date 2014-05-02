@@ -3,7 +3,6 @@ package libbun.parser.peg;
 import java.io.IOException;
 
 import libbun.ast.BNode;
-import libbun.ast.BunBlockNode;
 import libbun.ast.binary.BunAddNode;
 import libbun.ast.binary.BunMulNode;
 import libbun.ast.expression.GetNameNode;
@@ -51,11 +50,19 @@ public class PegBunGrammar {
 		while ((Line = ReadLine2(">>> ", "    ")) != null) {
 			try {
 				ParserContext source = new ParserContext(p, Line);
-				BNode node = source.parseBunNode(new BunBlockNode(null, null), "Stmt");
-				System.out.println("parsed node: " + node);
+				BToken token = source.newToken(0, Line.length());
+				PegNode node = source.parsePegNode(new PegParsedNode(null, 0, 0), "Stmt");
+				if(node != null) {
+					System.out.println("parsed: " + node.toString(token));
+				}
+				else {
+					System.out.println("parsed: " + node);
+				}
 				if(source.hasChar()) {
 					System.out.println("uncosumed: '" + source + "'");
 				}
+				System.out.println("hit: " + source.memoHit + ", miss: " + source.memoMiss);
+
 				linenum = linenum + 1;
 			}
 			catch (Exception e) {

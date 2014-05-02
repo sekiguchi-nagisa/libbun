@@ -6,6 +6,7 @@ import libbun.parser.BToken;
 import libbun.parser.ParserSource;
 import libbun.util.BArray;
 import libbun.util.BField;
+import libbun.util.BunMap;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
@@ -18,12 +19,14 @@ public final class ParserContext  {
 
 	public final BArray<Log> logStack = new BArray<Log>(new Log[64]);
 	int stackTop = 0;
+	BToken debugToken ;
 
 	public ParserContext(PegParser Parser, ParserSource Source, int StartIndex, int EndIndex) {
 		this.parser = Parser;
 		this.source = Source;
 		this.currentPosition = StartIndex;
 		this.endPosition = EndIndex;
+		this.debugToken = this.newToken(StartIndex, EndIndex);
 	}
 
 	ParserContext(PegParser Parser, String source) {
@@ -50,6 +53,10 @@ public final class ParserContext  {
 	}
 
 	public void rollback(int pos) {
+		//		if(pos == 0 && this.currentPosition > pos) {
+		//			System.out.println("rollback first");
+		//			new Exception().printStackTrace();
+		//		}
 		this.currentPosition = pos;
 	}
 
@@ -216,34 +223,59 @@ public final class ParserContext  {
 		return this.parser.newNode(NodeName, ParentNode);
 	}
 
-	public final BNode parseBunNode(BNode parentNode, String pattern) {
-		return this.matchPattern(parentNode, pattern);
-	}
-
-	public BNode matchPattern(BNode parentNode, String name) {
-		PegExpr e = this.parser.getPattern(name, this.getFirstChar());
-		//System.out.println("matching " + parentNode + "   " + name + "... " + e);
-		if(e != null) {
-			return e.matchAll(parentNode, this);
-		}
-		return this.createExpectedErrorNode(parentNode, this.newToken(), name);
-	}
-
 	public boolean isLeftRecursion(String PatternName) {
-		PegExpr e = this.parser.getRightPattern(PatternName, this.getFirstChar());
+		Peg e = this.parser.getRightPattern(PatternName, this.getFirstChar());
 		return e != null;
 	}
 
-	public BNode matchRightPattern(BNode ParentNode, String PatternName) {
-		PegExpr e = this.parser.getRightPattern(PatternName, this.getFirstChar());
-		if(e != null) {
-			int pos = this.currentPosition;
-			BNode Node = e.matchAll(ParentNode, this);
-			if(Node == null || Node.IsErrorNode()) {
-				this.rollback(pos);
+	//	public BNode matchRightPattern(BNode ParentNode, String PatternName) {
+	//		Peg e = this.parser.getRightPattern(PatternName, this.getFirstChar());
+	//		if(e != null) {
+	//			int pos = this.currentPosition;
+	//			BNode Node = e.matchAll(ParentNode, this);
+	//			if(Node == null || Node.IsErrorNode()) {
+	//				this.rollback(pos);
+	//			}
+	//			return Node;
+	//		}
+	//		return null;
+	//	}
+
+	private final BunMap<PegNode> memoMap = new BunMap<PegNode>(null);
+	private final PegNode trueNode = new PegParsedNode(null, 0, 0);
+	int memoHit = 0;
+	int memoMiss = 0;
+	int memoSize = 0;
+
+	public final PegNode parsePegNode(PegNode parentNode, String pattern) {
+		int pos = this.getPosition();
+		String key = pattern + ":" + pos;
+		PegNode node = this.memoMap.GetValue(key, null);
+		if(node != null) {
+			this.memoHit = this.memoHit + 1;
+			if(node == this.trueNode) {
+				return parentNode;
 			}
-			return Node;
+			return node;
 		}
+		Peg e = this.parser.getPattern(pattern, this.getFirstChar());
+		this.memoMiss = this.memoMiss + 1;
+		//System.out.println("matching " + parentNode + "   " + pattern + "... " + e);
+		if(e != null) {
+			node = e.lazyMatchAll(parentNode, this);
+		}
+		//System.out.println("matched " + parentNode + "   " + pattern + "... " + node);
+		if(node == parentNode) {
+			this.memoMap.put(key, this.trueNode);
+			return node;
+		}
+		this.memoMap.put(key, node);
+		return node;
+	}
+
+
+	public PegNode parseRightPegNode(PegNode left, String symbol) {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -259,12 +291,12 @@ public final class ParserContext  {
 		return null;
 	}
 
-	final int getStackPosition(PegExpr trace) {
+	final int getStackPosition(Peg trace) {
 		this.pushImpl(trace, null, '\0', null, 0, null);
 		return this.stackTop;
 	}
 
-	private void pushImpl(PegExpr trace, String msg, char type, BNode parentNode, int index, BNode childNode) {
+	private void pushImpl(Peg trace, String msg, char type, Object parentNode, int index, Object childNode) {
 		Log log = null;
 		if(this.stackTop < this.logStack.size()) {
 			if(this.logStack.ArrayValues[this.stackTop] == null) {
@@ -286,11 +318,11 @@ public final class ParserContext  {
 		this.stackTop = this.stackTop + 1;
 	}
 
-	void pushLog(PegExpr trace, String msg) {
+	void pushLog(Peg trace, String msg) {
 		this.pushImpl(trace, msg, 'm', null, 0, null);
 	}
 
-	void push(PegExpr trace, BNode parentNode, int index, BNode childNode) {
+	void push(Peg trace, BNode parentNode, int index, BNode childNode) {
 		this.pushImpl(trace, "", 'p', parentNode, index, childNode);
 	}
 
@@ -302,16 +334,34 @@ public final class ParserContext  {
 		}
 	}
 
+	public void push(Peg trace, PegNode parentNode, int index, PegNode node) {
+		this.pushImpl(trace, "", 'p', parentNode, index, node);
+	}
+
+	public PegNode newPegNode(Peg created, int startIndex, int endIndex) {
+		PegNode node = new PegParsedNode(created, startIndex, endIndex);
+		node.debugSource = this.debugToken;
+		return node;
+	}
+
+	public PegNode newErrorNode(Peg created, String msg) {
+		PegNode node = new PegFailureNode(created, this.currentPosition, msg);
+		node.debugSource = this.debugToken;
+		return node;
+	}
+
+
 }
 
 class Log {
 	int sourcePosition;
-	PegExpr trace;
+	Peg trace;
 	String msg;
 	char type;
-	BNode parentNode;
+	Object parentNode;
 	int index;
-	BNode childNode;
+	Object childNode;
+
 	@Override public String toString() {
 		return "" + this.sourcePosition + " " + this.msg;
 	}

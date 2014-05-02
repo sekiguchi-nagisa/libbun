@@ -80,7 +80,7 @@ public final class LibBunSourceBuilder {
 
 	public final void AppendLineFeed() {
 		if(this.LastChar != '\n') {
-			this.SourceList.add(this.Template.LineFeed);
+			this.SourceList.add("\n"/*this.Template.LineFeed*/);
 		}
 	}
 
@@ -118,7 +118,7 @@ public final class LibBunSourceBuilder {
 
 	private final void AppendIndentString() {
 		if (this.CurrentIndentString == null) {
-			this.CurrentIndentString = LibBunSystem._JoinStrings(this.Template.Tab, this.IndentLevel);
+			this.CurrentIndentString = LibBunSystem._JoinStrings("   ", this.IndentLevel);
 		}
 		this.SourceList.add(this.CurrentIndentString);
 	}

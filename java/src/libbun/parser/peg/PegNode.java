@@ -1,60 +1,102 @@
 package libbun.parser.peg;
 
-import libbun.ast.BNode;
-import libbun.parser.LibBunVisitor;
-import libbun.util.LibBunSystem;
-import libbun.util.Var;
+import libbun.encode.LibBunSourceBuilder;
+import libbun.parser.BToken;
+import libbun.util.BArray;
 
-public class PegNode extends BNode {
-	public PegNode(BNode ParentNode, int Size) {
-		super(ParentNode, Size);
+public abstract class PegNode {
+	BToken debugSource;
+	Peg createdPeg;
+	int startIndex;
+	int endIndex;
+	PegNode(Peg createdPeg, int startIndex, int endIndex) {
+		this.createdPeg = createdPeg;
+		this.startIndex = startIndex;
+		this.endIndex   = endIndex;
 	}
-	public PegNode(BNode parentNode, BNode firstNode) {
-		super(parentNode, 1);
-		this.SetNode(0, firstNode);
+
+	public final boolean isErrorNode() {
+		return this instanceof PegFailureNode;
 	}
-	public void setOrAppend(int index, BNode node) {
-		if(index == -1) {
-			this.Append(node);
-		}
-		else {
-			if(index >= this.GetAstSize()) {
-				this.resizeAst(index + 1);
-			}
-			this.SetNode(index, node);
-		}
-	}
-	@Override public void Accept(LibBunVisitor Visitor) {
-		// TODO Auto-generated method stub
-	}
-	@Override public String toString() {
-		@Var String Self = "(peg ";
-		if(this.SourceToken != null) {
-			Self = Self + this.SourceToken.GetText() + " ";
-		}
-		if(this.AST != null) {
-			@Var int i = 0;
-			while(i < this.AST.length) {
-				if(i > 0) {
-					Self = Self + ",";
-				}
-				if(this.AST[i] == null) {
-					Self = Self + "null";
-				}
-				else {
-					if(this.AST[i].ParentNode == this) {
-						Self = Self + this.AST[i].toString();
-					}
-					else {
-						Self = Self + "*" + LibBunSystem._GetClassName(this.AST[i])+"*";
-					}
-				}
-				i = i + 1;
-			}
-		}
-		Self = Self + ")";
-		return Self;
+
+	public abstract void set(int index, PegNode childNode);
+	abstract void stringfy(BToken source, LibBunSourceBuilder sb);
+
+	String toString(BToken source) {
+		LibBunSourceBuilder sb = new LibBunSourceBuilder(null, null);
+		this.stringfy(source, sb);
+		return sb.toString();
 	}
 
 }
 
+class PegParsedNode extends PegNode {
+	BArray<PegNode> elementList;
+
+	PegParsedNode(Peg createdPeg, int startIndex, int endIndex) {
+		super(createdPeg, startIndex, endIndex);
+		this.elementList = null;
+	}
+
+
+	@Override public void set(int index, PegNode childNode) {
+		if(this.elementList == null) {
+			this.elementList = new BArray<PegNode>(new PegNode[2]);
+		}
+		this.elementList.add(childNode);
+	}
+
+	@Override public String toString() {
+		if(this.elementList != null) {
+			String s = "{";
+			for(int i = 0; i < this.elementList.size(); i++) {
+				if(i > 0) {
+					s = s + ",";
+				}
+				s = s + this.elementList.ArrayValues[i].toString();
+			}
+			return s + "}";
+		}
+		else {
+			if(this.endIndex > this.startIndex) {
+				return this.debugSource.substring(this.startIndex, this.endIndex);
+			}
+			return "{}";
+		}
+	}
+
+	@Override
+	void stringfy(BToken source, LibBunSourceBuilder sb) {
+		if(this.elementList == null) {
+			sb.AppendNewLine(source.substring(this.startIndex, this.endIndex), "   ## " + this.createdPeg);
+		}
+		else {
+			sb.AppendNewLine("node");
+			sb.OpenIndent(" {   ## " + this.createdPeg);
+			for(int i = 0; i < this.elementList.size(); i++) {
+				this.elementList.ArrayValues[i].stringfy(source, sb);
+			}
+			sb.CloseIndent("}");
+		}
+	}
+}
+
+class PegFailureNode extends PegNode {
+	String errorMessage;
+	PegFailureNode(Peg createdPeg, int startIndex, String errorMessage) {
+		super(createdPeg, startIndex, startIndex);
+		this.errorMessage = errorMessage;
+	}
+	@Override public void set(int index, PegNode childNode) {
+
+	}
+
+	@Override public String toString() {
+		return "!!ERROR: " + this.errorMessage + "!!";
+	}
+
+	@Override void stringfy(BToken source, LibBunSourceBuilder sb) {
+		sb.AppendNewLine(this.toString() + "   ## " + this.createdPeg);
+	}
+
+}

@@ -12,9 +12,9 @@ public final class PegParser {
 	public LibBunLogger logger;
 	PegParser stackedParser;
 	private int serialNumberCount = 1;
-	BunMap<PegExpr>  pegMap;
+	BunMap<Peg>  pegMap;
 	BunMap<BNode>    nodeMap;
-	BunMap<PegExpr>  pegCache = null;
+	BunMap<Peg>  pegCache = null;
 	BunMap<String>   keywordCache = null;
 	BunMap<String>   firstCharCache = null;
 
@@ -25,7 +25,7 @@ public final class PegParser {
 	}
 
 	public void Init() {
-		this.pegMap = new BunMap<PegExpr>(null);
+		this.pegMap = new BunMap<Peg>(null);
 		this.nodeMap = new BunMap<BNode>(null);
 	}
 
@@ -46,7 +46,7 @@ public final class PegParser {
 			if(loc > 0) {
 				String name = token.substring(0,loc).trim();
 				ParserContext sub = token.newParserContext(this, loc+2);
-				PegExpr e = PegExpr._ParsePegExpr(sub);
+				Peg e = Peg._ParsePegExpr(sub);
 				//System.out.println("#### '" + name + "' <- " + e);
 				if(e != null) {
 					this.setPegRule(name, e);
@@ -73,7 +73,7 @@ public final class PegParser {
 	//		this.define(new PegBuilder(), peg);
 	//	}
 
-	public void setPegRule(String name, PegExpr e) {
+	public void setPegRule(String name, Peg e) {
 		if(e instanceof PegOrElseExpr) {
 			this.setPegRule(name, ((PegOrElseExpr) e).secondExpr);
 			this.setPegRule(name, ((PegOrElseExpr) e).firstExpr);
@@ -83,7 +83,7 @@ public final class PegParser {
 		}
 	}
 
-	private void setImpl(String name, PegExpr e) {
+	private void setImpl(String name, Peg e) {
 		String key = name;
 		if(e instanceof PegLabelExpr) {
 			String label = ((PegLabelExpr) e).symbol;
@@ -97,7 +97,7 @@ public final class PegParser {
 		//System.out.println("'"+ key + "' <- " + e + " ## first_chars=" + e.firstChars());
 		e.serialNumber = this.serialNumberCount;
 		this.serialNumberCount = this.serialNumberCount + 1;
-		PegExpr Defined = this.pegMap.GetValue(key, null);
+		Peg Defined = this.pegMap.GetValue(key, null);
 		if(Defined != null) {
 			e = new PegOrElseExpr(null, e, Defined);
 		}
@@ -105,7 +105,7 @@ public final class PegParser {
 	}
 
 	private void initCache() {
-		this.pegCache = new BunMap<PegExpr>(null);
+		this.pegCache = new BunMap<Peg>(null);
 		this.keywordCache = new BunMap<String>(null);
 		this.firstCharCache = new BunMap<String>(null);
 	}
@@ -115,7 +115,7 @@ public final class PegParser {
 		BArray<String> list = this.pegMap.keys();
 		for(int i = 0; i < list.size(); i++) {
 			String key = list.ArrayValues[i];
-			PegExpr e = this.pegMap.GetValue(key, null);
+			Peg e = this.pegMap.GetValue(key, null);
 			e.checkAll(this, 0);
 			this.check(key, e);
 			System.out.println(e.toPrintableString(key));
@@ -139,7 +139,7 @@ public final class PegParser {
 		//		}
 	}
 
-	private boolean contains(PegExpr defined, PegExpr e) {
+	private boolean contains(Peg defined, Peg e) {
 		if(defined instanceof PegOrElseExpr) {
 			if(this.contains(((PegOrElseExpr) defined).firstExpr, e)) {
 				return true;
@@ -149,8 +149,8 @@ public final class PegParser {
 		return defined == e;
 	}
 
-	private void setcache(String key, PegExpr e) {
-		PegExpr defined = this.pegCache.GetValue(key, null);
+	private void setcache(String key, Peg e) {
+		Peg defined = this.pegCache.GetValue(key, null);
 		if(defined != null) {
 			if(this.contains(defined, e)) {
 				return;
@@ -166,7 +166,7 @@ public final class PegParser {
 		this.pegCache.put(key, e);
 	}
 
-	private void setcache(String key, String chars, PegExpr e) {
+	private void setcache(String key, String chars, Peg e) {
 		if(chars == null || chars.length() == 0) {
 			this.setcache(key, e);
 			System.out.println("uncached key key='"+key+"': " + e + " " + e.getClass());
@@ -178,7 +178,7 @@ public final class PegParser {
 		}
 	}
 
-	private void check(String key, PegExpr e) {
+	private void check(String key, Peg e) {
 		//		System.out.println(">> key='"+key+"': " + e);
 		if(e instanceof PegOrElseExpr) {
 			this.check(key, ((PegOrElseExpr) e).firstExpr);
@@ -193,15 +193,15 @@ public final class PegParser {
 	}
 
 
-	public final PegExpr getPattern(String name, String firstChar) {
-		PegExpr p = this.pegCache.GetValue(name, null);
+	public final Peg getPattern(String name, String firstChar) {
+		Peg p = this.pegCache.GetValue(name, null);
 		if(p != null) {
 			return this.pegMap.GetValue(name, null);
 		}
 		return this.pegCache.GetValue(name+"$"+firstChar, null);
 	}
 
-	public final PegExpr getRightPattern(String name, String firstChar) {
+	public final Peg getRightPattern(String name, String firstChar) {
 		return this.getPattern(" "+ name, firstChar);
 	}
 
@@ -211,7 +211,7 @@ public final class PegParser {
 
 	public final BNode newNode(String name, BNode parent) {
 		BNode node = this.nodeMap.GetValue(name, null);
-		if(node instanceof PegNode) {
+		if(node instanceof PegBunNode) {
 			return node;
 		}
 		if(node != null) {
@@ -222,7 +222,7 @@ public final class PegParser {
 			return newnode;
 		}
 		//System.out.println("undefined node: " + name);
-		return new PegNode(parent, 0);
+		return new PegBunNode(parent, 0);
 	}
 
 
