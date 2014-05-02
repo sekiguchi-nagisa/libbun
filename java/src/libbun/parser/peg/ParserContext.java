@@ -4,6 +4,7 @@ import libbun.ast.BNode;
 import libbun.ast.error.ErrorNode;
 import libbun.parser.BToken;
 import libbun.parser.ParserSource;
+import libbun.util.BArray;
 import libbun.util.BField;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
@@ -14,6 +15,9 @@ public final class ParserContext  {
 	@BField private final int endPosition;
 	@BField public  PegParser    parser;
 	@BField private final boolean IsAllowSkipIndent = false;
+
+	public final BArray<Log> logStack = new BArray<Log>(new Log[64]);
+	int stackTop = 0;
 
 	public ParserContext(PegParser Parser, ParserSource Source, int StartIndex, int EndIndex) {
 		this.parser = Parser;
@@ -255,4 +259,60 @@ public final class ParserContext  {
 		return null;
 	}
 
+	final int getStackPosition(PegExpr trace) {
+		this.pushImpl(trace, null, '\0', null, 0, null);
+		return this.stackTop;
+	}
+
+	private void pushImpl(PegExpr trace, String msg, char type, BNode parentNode, int index, BNode childNode) {
+		Log log = null;
+		if(this.stackTop < this.logStack.size()) {
+			if(this.logStack.ArrayValues[this.stackTop] == null) {
+				this.logStack.ArrayValues[this.stackTop] = new Log();
+			}
+			log = this.logStack.ArrayValues[this.stackTop];
+		}
+		else {
+			log = new Log();
+			this.logStack.add(log);
+		}
+		log.trace = trace;
+		log.sourcePosition = this.currentPosition;
+		log.msg = msg;
+		log.type = type;
+		log.parentNode = parentNode;
+		log.index = index;
+		log.childNode = childNode;
+		this.stackTop = this.stackTop + 1;
+	}
+
+	void pushLog(PegExpr trace, String msg) {
+		this.pushImpl(trace, msg, 'm', null, 0, null);
+	}
+
+	void push(PegExpr trace, BNode parentNode, int index, BNode childNode) {
+		this.pushImpl(trace, "", 'p', parentNode, index, childNode);
+	}
+
+	void popBack(int stackPostion, boolean backtrack) {
+		this.stackTop = stackPostion-1;
+		Log log = this.logStack.ArrayValues[stackPostion-1];
+		if(backtrack) {
+			this.rollback(log.sourcePosition);
+		}
+	}
+
+}
+
+class Log {
+	int sourcePosition;
+	PegExpr trace;
+	String msg;
+	char type;
+	BNode parentNode;
+	int index;
+	BNode childNode;
+	@Override public String toString() {
+		return "" + this.sourcePosition + " " + this.msg;
+	}
 }

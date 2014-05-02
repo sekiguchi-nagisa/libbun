@@ -1,15 +1,22 @@
 package libbun.parser.peg;
 
 import libbun.ast.BNode;
-import libbun.ast.binary.BinaryOperatorNode;
 import libbun.ast.error.ErrorNode;
 import libbun.parser.BToken;
 import libbun.util.BunMap;
 import libbun.util.LibBunSystem;
 
 public abstract class PegExpr {
+	public final static boolean _BackTrack = true;
+	public BToken source;
 	public int serialNumber = 0;
 	public PegExpr nextExpr = null;
+
+
+	PegExpr(BToken source) {
+		this.source = source;
+	}
+
 	public void appendNext(PegExpr e) {
 		PegExpr list = this;
 		while(list.nextExpr != null) {
@@ -34,7 +41,7 @@ public abstract class PegExpr {
 				return node;
 			}
 			e = e.nextExpr;
-			this.debug(this.shorten(e) + "    @" + node + " char='" + sourceContext.getChar() + "'");
+			//this.debug(this.shorten(e) + "    @" + node + " char='" + sourceContext.getChar() + "'");
 		}
 		return e.match(node, sourceContext);
 	}
@@ -144,17 +151,18 @@ public abstract class PegExpr {
 			if(ch == ' ') {
 				return left;
 			}
+			BToken source = sourceContext.newToken();
 			if(ch == '*') {
 				sourceContext.consume(1);
-				return new PegNTimesExpr(left, 0);
+				return new PegOneMoreExpr(source, left, 0);
 			}
 			if(ch == '?') {
 				sourceContext.consume(1);
-				return new PegOptionalExpr(left);
+				return new PegOptionalExpr(source, left);
 			}
 			if(ch == '+') {  // a+  => a
 				sourceContext.consume(1);
-				return new PegNTimesExpr(left, 1);
+				return new PegOneMoreExpr(source, left, 1);
 			}
 			System.out.println("unknown postfix = '" + ch + "'");
 		}
@@ -164,45 +172,45 @@ public abstract class PegExpr {
 	private static PegExpr _ParseSingleExpr(ParserContext sourceContext) {
 		PegExpr right = null;
 		sourceContext.skipWhiteSpace(false);
-		BToken token = sourceContext.newToken();
+		BToken source = sourceContext.newToken();
 		char ch = sourceContext.getChar();
 		//System.out.println(">> " + ch + " next=" + Context.GetPosition());
 		if(ch == '\0') {
 			return null;
 		}
 		if(sourceContext.isSymbolLetter(ch)) {
-			if(sourceContext.sliceSymbol(token, ".")) {
-				right = new PegLabelExpr(token.GetText());
+			if(sourceContext.sliceSymbol(source, ".")) {
+				right = new PegLabelExpr(source, source.GetText());
 				return PegExpr._ParsePostfix(sourceContext, right);
 			}
 		}
 		sourceContext.consume(1);
 		if(ch == '\'' || ch == '"') {
-			if(sourceContext.sliceQuotedTextUntil(token, ch, "")) {
-				token.EndIndex = sourceContext.consume(1);
-				right = new PegTokenExpr(LibBunSystem._UnquoteString(token.GetText()));
+			if(sourceContext.sliceQuotedTextUntil(source, ch, "")) {
+				source.EndIndex = sourceContext.consume(1);
+				right = new PegTokenExpr(source, LibBunSystem._UnquoteString(source.GetText()));
 				return PegExpr._ParsePostfix(sourceContext, right);
 			}
 		}
 		if(ch == '.') {
-			right = new PegAnyExpr();
+			right = new PegAnyExpr(source);
 			return PegExpr._ParsePostfix(sourceContext, right);
 		}
 		if(ch == '[') {
-			token.StartIndex = sourceContext.getPosition();
-			if(sourceContext.sliceQuotedTextUntil(token, ']', "")) {
-				token.EndIndex = sourceContext.getPosition();
+			source.StartIndex = sourceContext.getPosition();
+			if(sourceContext.sliceQuotedTextUntil(source, ']', "")) {
+				source.EndIndex = sourceContext.getPosition();
 				sourceContext.consume(1);
-				right = new PegCharUnionExpr(LibBunSystem._UnquoteString(token.GetText()));
+				right = new PegCharUnionExpr(source, LibBunSystem._UnquoteString(source.GetText()));
 				return PegExpr._ParsePostfix(sourceContext, right);
 			}
 		}
 		if(ch == '$') {
 			char n = sourceContext.nextChar();
-			if(sourceContext.sliceMatchedText(token, "=")) {
+			if(sourceContext.sliceMatchedText(source, "=")) {
 				right = PegExpr._ParseSingleExpr(sourceContext);
 				if(right != null) {
-					right = new PegPushExpr(n, right);
+					right = new PegPushExpr(source, n, right);
 				}
 				return right;
 			}
@@ -212,21 +220,21 @@ public abstract class PegExpr {
 		if(ch == '&') {
 			right = PegExpr._ParseSingleExpr(sourceContext);
 			if(right != null) {
-				right = new PegAndExpr(right);
+				right = new PegAndExpr(source, right);
 			}
 			return right;
 		}
 		if(ch == '!') {
 			right = PegExpr._ParseSingleExpr(sourceContext);
 			if(right != null) {
-				right = new PegNotExpr(right);
+				right = new PegNotExpr(source, right);
 			}
 			return right;
 		}
 		if(ch == '(') {
-			token.StartIndex = sourceContext.getPosition();
-			if(PegExpr.sliceGroup(sourceContext, token, ch, ')')) {
-				ParserContext sub = token.newParserContext(sourceContext.parser);
+			source.StartIndex = sourceContext.getPosition();
+			if(PegExpr.sliceGroup(sourceContext, source, ch, ')')) {
+				ParserContext sub = source.newParserContext(sourceContext.parser);
 				right = PegExpr._ParsePegExpr(sub);
 				if(right != null) {
 					right = PegExpr._ParsePostfix(sourceContext, right);
@@ -237,12 +245,12 @@ public abstract class PegExpr {
 			return null;
 		}
 		if(ch == '{') {
-			token.StartIndex = sourceContext.getPosition();
-			if(PegExpr.sliceGroup(sourceContext, token, ch, '}')) {
-				ParserContext sub = token.newParserContext(sourceContext.parser);
+			source.StartIndex = sourceContext.getPosition();
+			if(PegExpr.sliceGroup(sourceContext, source, ch, '}')) {
+				ParserContext sub = source.newParserContext(sourceContext.parser);
 				right = PegExpr._ParsePegExpr(sub);
 				if(right != null) {
-					right = new PegNodeExpr(right);
+					right = new PegNodeExpr(source, right);
 				}
 				return right;
 			}
@@ -279,14 +287,21 @@ public abstract class PegExpr {
 		PegExpr left = PegExpr._ParseSequenceExpr(sourceContext);
 		sourceContext.skipWhiteSpace(false);
 		if(sourceContext.hasChar()) {
-			//			sourceContext.skipWhiteSpace(false);
-			//			System.out.println("ch = " + sourceContext.getChar());
 			PegExpr right = PegExpr._ParsePegExpr(sourceContext);
 			if(right != null) {
-				return new PegOrElseExpr(left, right);
+				return new PegOrElseExpr(sourceContext.newToken(), left, right);
 			}
 		}
 		return left;
+	}
+
+	protected void dump(String msg) {
+		if(this.source != null) {
+			System.out.println(this.source.Source.FormatErrorMarker("*", this.source.StartIndex, msg));
+		}
+		else {
+			System.out.println("unknown source: " + msg);
+		}
 	}
 
 	protected void warning(String msg) {
@@ -304,33 +319,38 @@ public abstract class PegExpr {
 	protected void debugUnmatched(String msg) {
 		//System.out.println("unmatched: " + msg + "   @" + this);
 	}
-
 }
 
-class PegTokenExpr extends PegExpr {
-	String token;
-	public PegTokenExpr(String token) {
-		this.token = token;
+abstract class PegSymbolExpr extends PegExpr {
+	String symbol;
+	public PegSymbolExpr (BToken source, String symbol) {
+		super(source);
+		this.symbol = symbol;
+	}
+}
+
+class PegTokenExpr extends PegSymbolExpr {
+	public PegTokenExpr(BToken source, String symbol) {
+		super(source, symbol);
 	}
 	@Override protected String stringfy() {
-		return LibBunSystem._QuoteString("'", this.token, "'");
+		return LibBunSystem._QuoteString("'", this.symbol, "'");
 	}
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		BToken token = sourceContext.newToken();
-
-		if(sourceContext.sliceMatchedText(token, this.token)) {
+		if(sourceContext.sliceMatchedText(token, this.symbol)) {
 			if(parentNode.SourceToken == null) {
 				parentNode.SourceToken = token;
 			}
 			return parentNode;
 		}
-		return sourceContext.createExpectedErrorNode(parentNode, token, this.token);
+		return sourceContext.createExpectedErrorNode(parentNode, token, this.symbol);
 	}
 	@Override public String firstChars(BunMap<PegExpr> m) {
-		return ""+this.token.charAt(0);
+		return ""+this.symbol.charAt(0);
 	}
 	@Override void check(PegParser p, int level) {
-		p.keywordCache.put(this.token, this.token);
+		p.keywordCache.put(this.symbol, this.symbol);
 		if(level == 0) {
 			String ch = this.firstChars(null);
 			p.firstCharCache.put(ch, ch);
@@ -338,9 +358,9 @@ class PegTokenExpr extends PegExpr {
 	}
 }
 
-class PegAnyExpr extends PegTokenExpr {
-	public PegAnyExpr() {
-		super(".");
+class PegAnyExpr extends PegSymbolExpr {
+	public PegAnyExpr(BToken source) {
+		super(source, ".");
 	}
 	@Override protected String stringfy() {
 		return ".";
@@ -361,8 +381,8 @@ class PegAnyExpr extends PegTokenExpr {
 
 class PegCharUnionExpr extends PegTokenExpr {
 	String charSet;
-	public PegCharUnionExpr(String token) {
-		super(token);
+	public PegCharUnionExpr(BToken source, String token) {
+		super(source, token);
 		token = token.replaceAll("A-Z", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 		token = token.replaceAll("a-z", "abcdefghijklmnopqrstuvwxyz");
 		token = token.replaceAll("A-z", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
@@ -375,11 +395,11 @@ class PegCharUnionExpr extends PegTokenExpr {
 		if(this.charSet.indexOf(ch) == -1) {
 			return sourceContext.CreateUnexpectedCharacterNode(parentNode, ch);
 		}
-		this.debugMatched("char '"+ch+"'");
+		//this.debugMatched("char '"+ch+"'");
 		return parentNode;
 	}
 	@Override protected String stringfy() {
-		return "[" + this.token + "]";
+		return "[" + this.symbol + "]";
 	}
 	@Override public String firstChars(BunMap<PegExpr> m) {
 		return this.charSet;
@@ -391,7 +411,8 @@ class PegCharUnionExpr extends PegTokenExpr {
 class PegPushExpr extends PegExpr {
 	PegExpr innerExpr;
 	int nodeAppendIndex = -2;
-	public PegPushExpr(char n, PegExpr e) {
+	public PegPushExpr(BToken source, char n, PegExpr e) {
+		super(source);
 		this.innerExpr = e;
 		if('0' <= n && n <= '9') {
 			this.nodeAppendIndex = (int)LibBunSystem._ParseInt(""+n);
@@ -415,47 +436,54 @@ class PegPushExpr extends PegExpr {
 		this.innerExpr.checkAll(p, level);
 	}
 
-	public final BNode appendNode(BNode parentNode, BNode childNode) {
-		//System.out.println("push " + parentNode + " index=" + this.nodeAppendIndex + ", " + childNode);
+	public final BNode appendNode(BNode parentNode, BNode childNode, ParserContext sourceContext) {
 		if(parentNode == childNode) {
 			this.warning("node was not created: " + childNode);
 			return parentNode;
 		}
 		if(this.nodeAppendIndex != -2) {
-			if(this.nodeAppendIndex == 1 && parentNode instanceof BinaryOperatorNode) {
-				return ((BinaryOperatorNode)parentNode).SetRightBinaryNode(childNode);
-			}
-			parentNode.SetNode(this.nodeAppendIndex, childNode);
+			//			sourceContext.pushLog("push " + this.nodeAppendIndex + " " + parentNode + "/" + childNode + " for " + this.innerExpr);
+			//			this.innerExpr.dump("push " + this.nodeAppendIndex + " " + parentNode + "/" + childNode + " for " + this.innerExpr);
+			sourceContext.push(this, parentNode, this.nodeAppendIndex, childNode);
+			//			if(this.nodeAppendIndex == 1 && parentNode instanceof BinaryOperatorNode) {
+			//				return ((BinaryOperatorNode)parentNode).SetRightBinaryNode(childNode);
+			//			}
+			//			if(parentNode instanceof PegNode) {
+			//				((PegNode) parentNode).setOrAppend(this.nodeAppendIndex, childNode);
+			//			}
+			//			else {
+			//				parentNode.SetNode(this.nodeAppendIndex, childNode);
+			//			}
 			return parentNode;
 		}
 		return childNode;
 	}
 
-	@Override public BNode match(BNode parentNode, ParserContext context) {
-		BNode node = this.innerExpr.matchAll(parentNode, context);
+	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
+		BNode node = this.innerExpr.matchAll(parentNode, sourceContext);
 		//System.out.println("matched push" + node);
 		if(node == null) {
-			node = context.createExpectedErrorNode(parentNode, null, this.innerExpr.toString());
+			node = sourceContext.createExpectedErrorNode(parentNode, null, this.innerExpr.toString());
 			return node;
 		}
 		if(node.IsErrorNode()) {
 			return node;
 		}
-		return this.appendNode(parentNode, node);
+		return this.appendNode(parentNode, node, sourceContext);
 	}
 }
 
 class PegLabelExpr extends PegTokenExpr {
-	public PegLabelExpr(String token) {
-		super(token);
+	public PegLabelExpr(BToken source, String token) {
+		super(source, token);
 	}
 	@Override protected String stringfy() {
-		return this.token;
+		return this.symbol;
 	}
 
 	@Override public String firstChars(BunMap<PegExpr> m) {
 		if(m != null) {
-			PegExpr e = m.GetValue(this.token, null);
+			PegExpr e = m.GetValue(this.symbol, null);
 			if(e != null) {
 				return e.firstChars(m);
 			}
@@ -463,40 +491,47 @@ class PegLabelExpr extends PegTokenExpr {
 		return "";
 	}
 	@Override void check(PegParser p, int level) {
-		if(!p.hasPattern(this.token)) {
-			LibBunSystem._PrintLine("undefined label: " + this.token);
+		if(!p.hasPattern(this.symbol)) {
+			LibBunSystem._PrintLine("undefined label: " + this.symbol);
 		}
 	}
 
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		//System.out.println("matching " + parentNode + "   " + this.toString());
-		BNode left = sourceContext.parseBunNode(parentNode, this.token);
+		BNode left = sourceContext.parseBunNode(parentNode, this.symbol);
 		if(left == null || left.IsErrorNode()) {
 			return left;
 		}
-		if(sourceContext.isLeftRecursion(this.token)) {
-			int rollback = sourceContext.getPosition();
+		if(sourceContext.isLeftRecursion(this.symbol)) {
+			int stackPosition = sourceContext.getStackPosition(this);
 			//System.out.println("trying left recursion of " + this.token + " ...");
-			BNode rightNode = sourceContext.matchRightPattern(left, this.token);
+			BNode rightNode = sourceContext.matchRightPattern(left, this.symbol);
 			if(rightNode != null && !rightNode.IsErrorNode()) {
 				//System.out.println("ok left recursion of " + this.token + " ..." + rightNode);
 				return rightNode;
 			}
-			sourceContext.rollback(rollback);
+			sourceContext.popBack(stackPosition, PegExpr._BackTrack);
 		}
 		return left;
 	}
 }
 
-class PegNodeExpr extends PegExpr {
+abstract class PegPredicate extends PegExpr {
 	PegExpr innerExpr;
+	public PegPredicate(BToken source, PegExpr e) {
+		super(source);
+		this.innerExpr = e;
+	}
+}
+
+class PegNodeExpr extends PegPredicate {
 	String nodeName = null;
 	String leftLabel = null;
 
-	public PegNodeExpr(PegExpr e) {
-		this.innerExpr = e;
-		if(e instanceof PegTokenExpr) {
-			this.nodeName = ((PegTokenExpr)e).token;
+	public PegNodeExpr(BToken source, PegExpr e) {
+		super(source, e);
+		if(e instanceof PegSymbolExpr) {
+			this.nodeName = ((PegSymbolExpr)e).symbol;
 		}
 	}
 
@@ -506,22 +541,61 @@ class PegNodeExpr extends PegExpr {
 
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		// prefetch first node..
-		int pos = sourceContext.getPosition();
+		int stack = sourceContext.getStackPosition(this);
 		BNode node = this.innerExpr.match(parentNode, sourceContext);
-		sourceContext.rollback(pos);
+		sourceContext.popBack(stack, PegExpr._BackTrack);
 		if(node == null || node.IsErrorNode()) {
 			return node;
 		}
+		stack = sourceContext.getStackPosition(this);
 		if(this.leftLabel != null) {
 			BNode LeftNode = parentNode;
 			parentNode = sourceContext.newNode(this.nodeName, LeftNode.ParentNode);
-			parentNode.SetNode(0, LeftNode);
-			System.out.println("new left: " + parentNode);
+			//sourceContext.pushLog(this, "create: " + this.nodeName + " -> " + parentNode);
+			//			parentNode.SetNode(0, LeftNode);
+			sourceContext.push(this, parentNode, 0, LeftNode);
+			//			System.out.println("new left: " + parentNode);
 		}
 		else {
 			parentNode = sourceContext.newNode(this.nodeName, parentNode);
+			//sourceContext.pushLog(this, "create: " + this.nodeName + " -> " + parentNode);
 		}
-		return this.innerExpr.matchAll(parentNode, sourceContext);
+		node = this.innerExpr.matchAll(parentNode, sourceContext);
+		if(node == null || node.IsErrorNode()) {
+			sourceContext.popBack(stack, PegExpr._BackTrack);
+		}
+		else {
+			int top = sourceContext.getStackPosition(this);
+			for(int i = stack; i < top; i++) {
+				Log log = sourceContext.logStack.ArrayValues[i];
+				if(log.type == 'p') {
+					if(log.parentNode == parentNode) {
+						if(parentNode instanceof PegNode) {
+							((PegNode) parentNode).setOrAppend(log.index, log.childNode);
+						}
+						else{
+							parentNode.SetNode(log.index, log.childNode);
+						}
+					}
+					else {
+						this.warning("different parent by" + log.trace + "\n\tcreated: " + parentNode + "\n\tset " + log.parentNode + "\n\tat " + log.index + ": " + log.childNode);
+					}
+				}
+			}
+			//			sourceContext.pushLog("created: " + this.nodeName + " -> " + node);
+			//			int top = sourceContext.getStackPosition(this);
+			//			for(int i = 0; i < top; i++) {
+			//				if(i < stack) {
+			//					System.out.println("LOG : " + sourceContext.logStack.ArrayValues[i]);
+			//				}
+			//				else {
+			//					System.out.println("LOG*: " + sourceContext.logStack.ArrayValues[i]);
+			//				}
+			//			}
+			//			sourceContext.popBack(stack, false);
+			//			sourceContext.pushLog("closeNode: " + pos);
+		}
+		return node;
 	}
 
 	@Override public String firstChars(BunMap<PegExpr> m) {
@@ -539,20 +613,19 @@ class PegNodeExpr extends PegExpr {
 	}
 }
 
-class PegOptionalExpr extends PegExpr {
-	PegExpr innerExpr;
-	public PegOptionalExpr(PegExpr e) {
-		this.innerExpr = e;
+class PegOptionalExpr extends PegPredicate {
+	public PegOptionalExpr(BToken source, PegExpr e) {
+		super(source, e);
 	}
 	@Override protected String stringfy() {
 		return this.groupfy(this.innerExpr) + "?";
 	}
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		BNode node = parentNode;
-		int pos = sourceContext.getPosition();
+		int stackPosition = sourceContext.getStackPosition(this);
 		node = this.innerExpr.matchAll(node, sourceContext);
 		if(node == null || node.IsErrorNode()) {
-			sourceContext.rollback(pos);
+			sourceContext.popBack(stackPosition, PegExpr._BackTrack);
 			node = parentNode;
 		}
 		return node;
@@ -571,11 +644,10 @@ class PegOptionalExpr extends PegExpr {
 
 }
 
-class PegNTimesExpr extends PegExpr {
-	PegExpr innerExpr;
+class PegOneMoreExpr extends PegPredicate {
 	int min = 0;
-	public PegNTimesExpr(PegExpr e, int min) {
-		this.innerExpr = e;
+	public PegOneMoreExpr(BToken source, PegExpr e, int min) {
+		super(source, e);
 		this.min = min;
 	}
 	@Override protected String stringfy() {
@@ -592,11 +664,13 @@ class PegNTimesExpr extends PegExpr {
 		while(node != null && !node.IsErrorNode()) {
 			if(node != parentNode) {
 				this.warning("ignored result of " + this.innerExpr);
+				node = new PegNode(parentNode, node);
 			}
 			node = this.innerExpr.matchAll(node, context);
 			count = count + 1;
 		}
 		if(!(count > this.min)) {
+			this.debug("less than min=" + this.min);
 			return null;
 		}
 		return parentNode;
@@ -610,7 +684,6 @@ class PegNTimesExpr extends PegExpr {
 		}
 	}
 	@Override void check(PegParser p, int level) {
-		System.out.println("level: " + level);
 		this.innerExpr.checkAll(p, level);
 	}
 }
@@ -618,7 +691,8 @@ class PegNTimesExpr extends PegExpr {
 class PegOrElseExpr extends PegExpr {
 	PegExpr firstExpr;
 	PegExpr secondExpr;
-	PegOrElseExpr(PegExpr e, PegExpr e2) {
+	PegOrElseExpr(BToken source, PegExpr e, PegExpr e2) {
+		super(source);
 		this.firstExpr = e;
 		this.secondExpr = e2;
 	}
@@ -628,14 +702,15 @@ class PegOrElseExpr extends PegExpr {
 
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		PegExpr e = this;
-		int pos = sourceContext.getPosition();
+		int stackPosition = sourceContext.getStackPosition(this);
+
 		while(e instanceof PegOrElseExpr) {
 			BNode node = parentNode;
 			node = ((PegOrElseExpr) e).firstExpr.matchAll(node, sourceContext);
 			if(node != null && !node.IsErrorNode()) {
 				return node;
 			}
-			sourceContext.rollback(pos);
+			sourceContext.popBack(stackPosition, PegExpr._BackTrack);
 			e = ((PegOrElseExpr) e).secondExpr;
 		}
 		return this.secondExpr.matchAll(parentNode, sourceContext);
@@ -649,19 +724,18 @@ class PegOrElseExpr extends PegExpr {
 	}
 }
 
-class PegAndExpr extends PegExpr {
-	PegExpr innerExpr;
-	PegAndExpr(PegExpr Expr) {
-		this.innerExpr = Expr;
+class PegAndExpr extends PegPredicate {
+	PegAndExpr(BToken source, PegExpr e) {
+		super(source, e);
 	}
 	@Override protected String stringfy() {
 		return "&" + this.groupfy(this.innerExpr);
 	}
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		BNode node = parentNode;
-		int pos = sourceContext.getPosition();
+		int stackPosition = sourceContext.getStackPosition(this);
 		node = this.innerExpr.matchAll(node, sourceContext);
-		sourceContext.rollback(pos);
+		sourceContext.popBack(stackPosition, PegExpr._BackTrack);
 		return node;
 	}
 	@Override public String firstChars(BunMap<PegExpr> m) {
@@ -673,19 +747,18 @@ class PegAndExpr extends PegExpr {
 
 }
 
-class PegNotExpr extends PegExpr {
-	PegExpr innerExpr;
-	PegNotExpr(PegExpr e) {
-		this.innerExpr = e;
+class PegNotExpr extends PegPredicate {
+	PegNotExpr(BToken source, PegExpr e) {
+		super(source, e);
 	}
 	@Override protected String stringfy() {
 		return "!" + this.groupfy(this.innerExpr);
 	}
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
 		BNode Node = parentNode;
-		int Rollback = sourceContext.getPosition();
+		int stackPosition = sourceContext.getStackPosition(this);
 		Node = this.innerExpr.matchAll(Node, sourceContext);
-		sourceContext.rollback(Rollback);
+		sourceContext.popBack(stackPosition, PegExpr._BackTrack);
 		if(Node == null || Node.IsErrorNode()) {
 			return parentNode;
 		}
@@ -699,13 +772,16 @@ class PegNotExpr extends PegExpr {
 class PegFunctionExpr extends PegExpr {
 	PegFunction f;
 	PegFunctionExpr(PegFunction f) {
+		super(null);
 		this.f = f;
 	}
 	@Override protected String stringfy() {
-		return "(peg function)";
+		return "(peg function " + this.f + ")";
 	}
 	@Override public BNode match(BNode parentNode, ParserContext sourceContext) {
-		return this.f.Invoke(parentNode, sourceContext);
+		BNode node = this.f.Invoke(parentNode, sourceContext);
+		//sourceContext.pushLog(this, "create " + parentNode + "/" + node + " by " + this.f);
+		return node;
 	}
 	@Override void check(PegParser p, int level) {
 

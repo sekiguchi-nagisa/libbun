@@ -9,8 +9,20 @@ public class PegNode extends BNode {
 	public PegNode(BNode ParentNode, int Size) {
 		super(ParentNode, Size);
 	}
-	public BNode Tokneize(ParserContext SourceContext) {
-		return this;
+	public PegNode(BNode parentNode, BNode firstNode) {
+		super(parentNode, 1);
+		this.SetNode(0, firstNode);
+	}
+	public void setOrAppend(int index, BNode node) {
+		if(index == -1) {
+			this.Append(node);
+		}
+		else {
+			if(index >= this.GetAstSize()) {
+				this.resizeAst(index + 1);
+			}
+			this.SetNode(index, node);
+		}
 	}
 	@Override public void Accept(LibBunVisitor Visitor) {
 		// TODO Auto-generated method stub

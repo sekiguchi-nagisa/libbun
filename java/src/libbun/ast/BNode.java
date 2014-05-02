@@ -176,6 +176,22 @@ public abstract class BNode {
 		}
 	}
 
+	protected final void resizeAst(int size) {
+		if(this.AST == null && size > 0) {
+			this.AST = LibBunSystem._NewNodeArray(size);
+		}
+		else if(this.AST.length != size) {
+			@Var BNode[] newast = LibBunSystem._NewNodeArray(size);
+			if(size > this.AST.length) {
+				LibBunSystem._ArrayCopy(this.AST, 0, newast, 0, this.AST.length);
+			}
+			else {
+				LibBunSystem._ArrayCopy(this.AST, 0, newast, 0, size);
+			}
+			this.AST = newast;
+		}
+	}
+
 	public final void Append(BNode Node, boolean EnforcedParent) {
 		if(this.AST == null) {
 			this.AST = LibBunSystem._NewNodeArray(1);

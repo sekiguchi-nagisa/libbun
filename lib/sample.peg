@@ -1,8 +1,10 @@
 
 Value <- &[0-9] number
 Product <- {$n=Value '*' $n=Value}
-Product <- Value !'*'
+Product <- Value !([ ]* '*')
+
 Sum <- {$n=Product ('+' $n=Product)+}
 Sum <- Product !'+'
+
 Stmt <- Sum
 

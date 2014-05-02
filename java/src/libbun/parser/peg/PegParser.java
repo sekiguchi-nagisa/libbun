@@ -86,7 +86,7 @@ public final class PegParser {
 	private void setImpl(String name, PegExpr e) {
 		String key = name;
 		if(e instanceof PegLabelExpr) {
-			String label = ((PegLabelExpr) e).token;
+			String label = ((PegLabelExpr) e).symbol;
 			//System.out.println("first name: " + name + ", " + label);
 			if(label.equals(name) && e.nextExpr != null) {
 				key = " " + key;  // left recursion
@@ -99,7 +99,7 @@ public final class PegParser {
 		this.serialNumberCount = this.serialNumberCount + 1;
 		PegExpr Defined = this.pegMap.GetValue(key, null);
 		if(Defined != null) {
-			e = new PegOrElseExpr(e, Defined);
+			e = new PegOrElseExpr(null, e, Defined);
 		}
 		this.pegMap.put(key, e);
 	}
@@ -156,10 +156,10 @@ public final class PegParser {
 				return;
 			}
 			if(e.serialNumber < defined.serialNumber) {
-				e = new PegOrElseExpr(defined, e);
+				e = new PegOrElseExpr(null, defined, e);
 			}
 			else {
-				e = new PegOrElseExpr(e, defined);
+				e = new PegOrElseExpr(null, e, defined);
 			}
 		}
 		//System.out.println("duplicated key='"+key+"': " + e + " #" + e.SerialNumber);
