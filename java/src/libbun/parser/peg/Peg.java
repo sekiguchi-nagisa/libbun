@@ -24,8 +24,8 @@ public abstract class Peg {
 	}
 
 	Peg shorten(Peg e) {
-		if(e instanceof PegOrElseExpr) {
-			return ((PegOrElseExpr) e).firstExpr;
+		if(e instanceof PegChoice) {
+			return ((PegChoice) e).firstExpr;
 		}
 		return e;
 	}
@@ -64,7 +64,7 @@ public abstract class Peg {
 			String s = "";
 			Peg e = this;
 			while(e != null) {
-				if(e instanceof PegOrElseExpr) {
+				if(e instanceof PegChoice) {
 					s = s + "(" + e.stringfy() + ")";
 				}
 				else {
@@ -93,10 +93,10 @@ public abstract class Peg {
 	protected abstract String stringfy();
 
 	private String joinPrintableString(String s, Peg e) {
-		if(e instanceof PegOrElseExpr) {
-			s = s + ((PegOrElseExpr)e).firstExpr;
+		if(e instanceof PegChoice) {
+			s = s + ((PegChoice)e).firstExpr;
 			s = s + "\n\t/ ";
-			s = this.joinPrintableString(s, ((PegOrElseExpr)e).secondExpr);
+			s = this.joinPrintableString(s, ((PegChoice)e).secondExpr);
 		}
 		else {
 			s = s + e.toString();
@@ -106,9 +106,6 @@ public abstract class Peg {
 
 	public final String toPrintableString(String name) {
 		return (this.joinPrintableString(name + " <- ", this));
-	}
-
-	public void setLeftRecursion(String leftLabel) {
 	}
 
 	final void checkAll(PegParser p, int level) {
@@ -315,7 +312,7 @@ public abstract class Peg {
 		if(sourceContext.hasChar()) {
 			Peg right = Peg._ParsePegExpr(sourceContext);
 			if(right != null) {
-				return new PegOrElseExpr(sourceContext.newToken(), left, right);
+				return new PegChoice(sourceContext.newToken(), left, right);
 			}
 		}
 		return left;
@@ -710,10 +707,10 @@ class PegOneMoreExpr extends PegPredicate {
 	}
 }
 
-class PegOrElseExpr extends Peg {
+class PegChoice extends Peg {
 	Peg firstExpr;
 	Peg secondExpr;
-	PegOrElseExpr(BToken source, Peg e, Peg e2) {
+	PegChoice(BToken source, Peg e, Peg e2) {
 		super(source);
 		this.firstExpr = e;
 		this.secondExpr = e2;
@@ -725,14 +722,14 @@ class PegOrElseExpr extends Peg {
 	@Override public PegNode lazyMatch(PegNode parentNode, ParserContext sourceContext) {
 		Peg e = this;
 		int stackPosition = sourceContext.getStackPosition(this);
-		while(e instanceof PegOrElseExpr) {
+		while(e instanceof PegChoice) {
 			PegNode node = parentNode;
-			node = ((PegOrElseExpr) e).firstExpr.lazyMatchAll(node, sourceContext);
+			node = ((PegChoice) e).firstExpr.lazyMatchAll(node, sourceContext);
 			if(!node.isErrorNode()) {
 				return node;
 			}
 			sourceContext.popBack(stackPosition, Peg._BackTrack);
-			e = ((PegOrElseExpr) e).secondExpr;
+			e = ((PegChoice) e).secondExpr;
 		}
 		return this.secondExpr.lazyMatchAll(parentNode, sourceContext);
 	}

@@ -72,9 +72,9 @@ public final class PegParser {
 	//	}
 
 	public void setPegRule(String name, Peg e) {
-		if(e instanceof PegOrElseExpr) {
-			this.setPegRule(name, ((PegOrElseExpr) e).secondExpr);
-			this.setPegRule(name, ((PegOrElseExpr) e).firstExpr);
+		if(e instanceof PegChoice) {
+			this.setPegRule(name, ((PegChoice) e).secondExpr);
+			this.setPegRule(name, ((PegChoice) e).firstExpr);
 		}
 		else {
 			this.setImpl(name, e);
@@ -87,17 +87,16 @@ public final class PegParser {
 			String label = ((PegLabelExpr) e).symbol;
 			//System.out.println("first name: " + name + ", " + label);
 			if(label.equals(name) && e.nextExpr != null) {
-				key = " " + key;  // left recursion
+				key = "+" + key;  // left recursion
 				e = e.nextExpr;
-				e.setLeftRecursion(name);
 			}
 		}
 		//System.out.println("'"+ key + "' <- " + e + " ## first_chars=" + e.firstChars());
 		e.serialNumber = this.serialNumberCount;
 		this.serialNumberCount = this.serialNumberCount + 1;
-		Peg Defined = this.pegMap.GetValue(key, null);
-		if(Defined != null) {
-			e = new PegOrElseExpr(null, e, Defined);
+		Peg defined = this.pegMap.GetValue(key, null);
+		if(defined != null) {
+			e = new PegChoice(null, e, defined);
 		}
 		this.pegMap.put(key, e);
 	}
@@ -138,11 +137,11 @@ public final class PegParser {
 	}
 
 	private boolean contains(Peg defined, Peg e) {
-		if(defined instanceof PegOrElseExpr) {
-			if(this.contains(((PegOrElseExpr) defined).firstExpr, e)) {
+		if(defined instanceof PegChoice) {
+			if(this.contains(((PegChoice) defined).firstExpr, e)) {
 				return true;
 			}
-			return this.contains(((PegOrElseExpr) defined).secondExpr, e);
+			return this.contains(((PegChoice) defined).secondExpr, e);
 		}
 		return defined == e;
 	}
@@ -154,10 +153,10 @@ public final class PegParser {
 				return;
 			}
 			if(e.serialNumber < defined.serialNumber) {
-				e = new PegOrElseExpr(null, defined, e);
+				e = new PegChoice(null, defined, e);
 			}
 			else {
-				e = new PegOrElseExpr(null, e, defined);
+				e = new PegChoice(null, e, defined);
 			}
 		}
 		//System.out.println("duplicated key='"+key+"': " + e + " #" + e.SerialNumber);
@@ -167,7 +166,7 @@ public final class PegParser {
 	private void setcache(String key, String chars, Peg e) {
 		if(chars == null || chars.length() == 0) {
 			this.setcache(key, e);
-			System.out.println("uncached key key='"+key+"': " + e + " " + e.getClass());
+			//System.out.println("uncached key key='"+key+"': " + e + " " + e.getClass());
 		}
 		else {
 			for(int i = 0; i < chars.length(); i++) {
@@ -178,9 +177,9 @@ public final class PegParser {
 
 	private void check(String key, Peg e) {
 		//		System.out.println(">> key='"+key+"': " + e);
-		if(e instanceof PegOrElseExpr) {
-			this.check(key, ((PegOrElseExpr) e).firstExpr);
-			this.check(key, ((PegOrElseExpr) e).secondExpr);
+		if(e instanceof PegChoice) {
+			this.check(key, ((PegChoice) e).firstExpr);
+			this.check(key, ((PegChoice) e).secondExpr);
 			return;
 		}
 		this.setcache(key, e.firstChars(this.pegMap), e);
@@ -190,7 +189,6 @@ public final class PegParser {
 		return this.pegMap.GetValue(name, null) != null;
 	}
 
-
 	public final Peg getPattern(String name, String firstChar) {
 		Peg p = this.pegCache.GetValue(name, null);
 		if(p != null) {
@@ -198,9 +196,8 @@ public final class PegParser {
 		}
 		return this.pegCache.GetValue(name+"$"+firstChar, null);
 	}
-
 	public final Peg getRightPattern(String name, String firstChar) {
-		return this.getPattern(" "+ name, firstChar);
+		return this.getPattern("+"+ name, firstChar);
 	}
 
 	public final void setNode(String name, BNode node) {

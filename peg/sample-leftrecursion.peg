@@ -1,0 +1,6 @@
+
+Stmt    <- Expr
+Expr    <- Expr {+ ('+' / '-') $Expr}*
+Expr    <- Expr {+ ('*' / '/') $Expr}*
+Expr    <- {[0-9]+} / '(' Expr ')'
+

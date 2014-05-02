@@ -268,6 +268,7 @@ public final class ParserContext  {
 			node = this.newErrorNode(null, "undefined label " + pattern);
 		}
 		//System.out.println("matched " + parentNode + "   " + pattern + "... " + node);
+		System.out.println("push: " + key);
 		if(node == parentNode) {
 			this.memoMap.put(key, this.trueNode);
 			return node;
@@ -278,8 +279,7 @@ public final class ParserContext  {
 
 
 	public PegNode parseRightPegNode(PegNode left, String symbol) {
-		// TODO Auto-generated method stub
-		return null;
+		return this.parsePegNode(left, "+"+symbol);
 	}
 
 	public BNode createExpectedErrorNode(BNode parentNode, BToken token, String text) {
