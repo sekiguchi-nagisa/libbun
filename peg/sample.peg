@@ -3,5 +3,5 @@ Stmt    <- Expr
 Expr    <- Sum
 Sum     <- Product {+ ('+' / '-') $Product}*
 Product <- Value {+ ('*' / '/') $Value}*
-Value   <- &[0-9]+ number / '(' Expr ')'
+Value   <- {[0-9]+} / '(' Expr ')'
 

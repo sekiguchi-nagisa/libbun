@@ -264,6 +264,9 @@ public final class ParserContext  {
 		if(e != null) {
 			node = e.lazyMatchAll(parentNode, this);
 		}
+		else {
+			node = this.newErrorNode(null, "undefined label " + pattern);
+		}
 		//System.out.println("matched " + parentNode + "   " + pattern + "... " + node);
 		if(node == parentNode) {
 			this.memoMap.put(key, this.trueNode);

@@ -3,15 +3,12 @@ package libbun.parser.peg;
 import java.io.IOException;
 
 import libbun.ast.BNode;
-import libbun.ast.binary.BunAddNode;
-import libbun.ast.binary.BunMulNode;
 import libbun.ast.expression.GetNameNode;
 import libbun.ast.literal.BunBooleanNode;
 import libbun.ast.literal.BunFloatNode;
 import libbun.ast.literal.BunIntNode;
 import libbun.ast.literal.BunNullNode;
 import libbun.ast.literal.BunStringNode;
-import libbun.ast.unary.BunPlusNode;
 import libbun.parser.BToken;
 import libbun.parser.LibBunConst;
 import libbun.util.LibBunSystem;
@@ -20,14 +17,14 @@ import libbun.util.Var;
 public class PegBunGrammar {
 	public final static void test(String FileName) {
 		PegParser p = new PegParser(null, null);
-		p.setPegRule("number", new PegFunctionExpr(new NumberLiteral()));
-		p.setPegRule("const", new PegFunctionExpr(new ConstLiteral()));
-		p.setPegRule("string", new PegFunctionExpr(new StringLiteral()));
-		p.setPegRule("variable", new PegFunctionExpr(new Variable()));
+		//		p.setPegRule("number", new PegFunctionExpr(new NumberLiteral()));
+		//		p.setPegRule("const", new PegFunctionExpr(new ConstLiteral()));
+		//		p.setPegRule("string", new PegFunctionExpr(new StringLiteral()));
+		//		p.setPegRule("variable", new PegFunctionExpr(new Variable()));
 		p.loadPegFile(FileName);
-		p.setNode("+",  new BunPlusNode(null));
-		p.setNode("Expr:+", new BunAddNode(null));
-		p.setNode("Expr:*", new BunMulNode(null));
+		//		p.setNode("+",  new BunPlusNode(null));
+		//		p.setNode("Expr:+", new BunAddNode(null));
+		//		p.setNode("Expr:*", new BunMulNode(null));
 		//		p.setNode("null",  new PegNullNode(null));
 		//		p.setNode("true",  new PegTrueNode(null));
 		//		p.setNode("false", new PegFalseNode(null));

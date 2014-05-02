@@ -424,10 +424,11 @@ class PegCharUnionExpr extends PegTokenExpr {
 		this.charSet = token;
 	}
 	@Override public PegNode lazyMatch(PegNode parentNode, ParserContext sourceContext) {
-		char ch = sourceContext.nextChar();
+		char ch = sourceContext.getChar();
 		if(this.charSet.indexOf(ch) == -1) {
 			return sourceContext.newErrorNode(this, "unexpected character: '" + ch + "'");
 		}
+		sourceContext.consume(1);
 		return parentNode;
 	}
 
@@ -680,11 +681,11 @@ class PegOneMoreExpr extends PegPredicate {
 		int count = 0;
 		while(true) {
 			PegNode node = this.innerExpr.lazyMatchAll(prevNode, sourceContext);
-			if(node != prevNode) {
-				this.warning("ignored result of " + this.innerExpr);
-			}
 			if(node.isErrorNode()) {
 				break;
+			}
+			if(node != prevNode) {
+				this.warning("ignored result of " + this.innerExpr);
 			}
 			prevNode = node;
 			count = count + 1;
@@ -692,6 +693,7 @@ class PegOneMoreExpr extends PegPredicate {
 		if(count < this.min) {
 			return sourceContext.newErrorNode(this, "requiring at most " + this.min + " times");
 		}
+		//System.out.println("prevNode: " + prevNode + "s,e=" + prevNode.startIndex + ", " + prevNode.endIndex);
 		return prevNode;
 	}
 

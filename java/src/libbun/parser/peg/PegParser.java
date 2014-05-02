@@ -42,12 +42,10 @@ public final class PegParser {
 		BToken token = sourceContext.newToken();
 		for(;sourceContext.sliceQuotedTextUntil(token, '\n', "");) {
 			int loc = token.indexOf("<-");
-			//System.out.println("## " + token.GetText() + ", loc=" + loc);
 			if(loc > 0) {
 				String name = token.substring(0,loc).trim();
 				ParserContext sub = token.newParserContext(this, loc+2);
 				Peg e = Peg._ParsePegExpr(sub);
-				//System.out.println("#### '" + name + "' <- " + e);
 				if(e != null) {
 					this.setPegRule(name, e);
 				}
