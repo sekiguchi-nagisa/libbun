@@ -1,5 +1,6 @@
 package libbun.encode.devel;
 
+import libbun.ast.AbstractListNode;
 import libbun.ast.BNode;
 import libbun.ast.BunBlockNode;
 import libbun.ast.GroupNode;
@@ -65,6 +66,10 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	public SMLSharpGenerator() {
 		super(new LibBunLangInfo("SML#-2.0", "sml"));
+		this.SetNativeType(BType.BooleanType, "bool");
+		this.SetNativeType(BType.IntType, "intInf");
+		this.SetNativeType(BType.FloatType, "real");
+		this.SetNativeType(BType.StringType, "string");
 	}
 
 	@Override
@@ -134,7 +139,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitComplementNode(BunComplementNode Node) {
-		this.Source.Append("(LargeInt.notb ");
+		this.Source.Append("(IntInf.notb ");
 		this.GenerateExpression(Node.RecvNode());
 		this.Source.Append(")");
 	}
@@ -224,7 +229,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitLeftShiftNode(BunLeftShiftNode Node) {
-		this.Source.Append("(LargeInt.<< (");
+		this.Source.Append("(IntInf.<< (");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(", (Word.fromLargeInt ");
 		this.GenerateExpression(Node.RightNode());
@@ -233,7 +238,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitRightShiftNode(BunRightShiftNode Node) {
-		this.Source.Append("(LargeInt.~>> (");
+		this.Source.Append("(IntInf.~>> (");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(", (Word.fromLargeInt ");
 		this.GenerateExpression(Node.RightNode());
@@ -242,7 +247,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitBitwiseAndNode(BunBitwiseAndNode Node) {
-		this.Source.Append("(LargeInt.andb (");
+		this.Source.Append("(IntInf.andb (");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(", ");
 		this.GenerateExpression(Node.RightNode());
@@ -251,7 +256,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitBitwiseOrNode(BunBitwiseOrNode Node) {
-		this.Source.Append("(LargeInt.orb (");
+		this.Source.Append("(IntInf.orb (");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(", ");
 		this.GenerateExpression(Node.RightNode());
@@ -260,7 +265,7 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 
 	@Override
 	public void VisitBitwiseXorNode(BunBitwiseXorNode Node) {
-		this.Source.Append("(LargeInt.xorb (");
+		this.Source.Append("(IntInf.xorb (");
 		this.GenerateExpression(Node.LeftNode());
 		this.Source.Append(", ");
 		this.GenerateExpression(Node.RightNode());
@@ -354,12 +359,8 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 		else {
 			this.GenerateExpression(Node.FunctorNode());
 		}
-		if(Node.GetListSize() == 0) {
-			this.Source.Append(" ())");
-		}
-		else {
-			this.GenerateListNode(" ", Node, " ", ")");
-		}
+		this.GenerateArgumentListNode(Node);
+		this.Source.Append(")");
 	}
 
 	private boolean DoesNeedReference(BNode Node) {
@@ -444,9 +445,14 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 	@Override
 	public void VisitBlockNode(BunBlockNode Node) {
 		this.Source.AppendWhiteSpace();
-		this.Source.OpenIndent("(");
-		this.GenerateStmtListNode(Node);
-		this.Source.CloseIndent(")");
+		if(Node.GetListSize() == 0) {
+			this.Source.Append("()");
+		}
+		else {
+			this.Source.OpenIndent("(");
+			this.GenerateStmtListNode(Node);
+			this.Source.CloseIndent(")");
+		}
 	}
 
 	@Override
@@ -456,19 +462,18 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 		this.GenerateExpression(LetVarNode.InitValueNode());
 		this.Source.Append(" in");
 		this.VisitBlockNode(Node);
-		this.Source.Append("end");
+		this.Source.Append(" end");
 	}
 
 	@Override
 	public void VisitIfNode(BunIfNode Node) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void VisitReturnNode(BunReturnNode Node) {
-		if (Node.HasReturnExpr() && !Node.ExprNode().Type.IsVoidType()) {
-			this.GenerateExpression(Node.ExprNode());
+		this.Source.Append("if ");
+		this.GenerateExpression(Node.CondNode());
+		this.Source.Append(" then ");
+		this.GenerateExpression(Node.ThenNode());
+		this.Source.AppendNewLine("else ");
+		if (Node.HasElseNode()) {
+			this.GenerateExpression(Node.ElseNode());
 		}
 		else {
 			this.Source.Append("()");
@@ -476,15 +481,53 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 	}
 
 	@Override
+	public void VisitReturnNode(BunReturnNode Node) {
+		this.Source.Append("raise Return");
+		if (Node.HasReturnExpr() && !Node.ExprNode().Type.IsVoidType()) {
+			this.Source.Append(" ");
+			this.GenerateExpression(Node.ExprNode());
+		}
+	}
+
+	@Override
 	public void VisitWhileNode(BunWhileNode Node) {
-		// TODO Auto-generated method stub
+		/* definition of break */
+		this.Source.OpenIndent("let exception Break;");
+
+		/* definition of loop */
+		this.Source.AppendNewLine("fun WhileLoop () = (if ");
+		this.GenerateExpression(Node.CondNode());
+		this.Source.Append(" then ");
+
+		/* whatever */
+		if(Node.HasNextNode()) {
+			Node.BlockNode().Append(Node.NextNode());
+		}
+
+		/* loop body */
+		if(Node.BlockNode().GetListSize() == 0) {
+			this.Source.Append("WhileLoop ()) else ())");
+		}
+		else {
+			this.Source.OpenIndent("(");
+			this.GenerateStmtListNode(Node.BlockNode());
+			this.Source.Append(";");
+			this.Source.AppendNewLine("WhileLoop ()");
+			this.Source.CloseIndent(") else ())");
+		}
+
+		/* start loop */
+		this.Source.CloseIndent("in");
+		this.Source.OpenIndent(" (");
+		this.Source.AppendNewLine("WhileLoop ()");
+		this.Source.AppendNewLine("handle Break => ()");
+		this.Source.CloseIndent(") end");
 
 	}
 
 	@Override
 	public void VisitBreakNode(BunBreakNode Node) {
-		// TODO Auto-generated method stub
-
+		this.Source.Append("raise Break");
 	}
 
 	@Override
@@ -519,34 +562,55 @@ public class SMLSharpGenerator extends LibBunSourceGenerator {
 		}
 	}
 
+	private void GenerateArgumentListNode(AbstractListNode VargNode) {
+		if(VargNode.GetListSize() == 0) {
+			this.Source.Append(" ()");
+		}
+		else {
+			this.GenerateListNode(" ", VargNode, " ", "");
+		}
+	}
+
 	@Override
 	public void VisitFunctionNode(BunFunctionNode Node) {
 		//if(Node.IsExport) {
 		//}
-		if(Node.FuncName() != null) {
-			this.Source.Append("fun ", Node.ResolvedFuncType.StringfySignature(Node.FuncName()));
-		}
-		else {
+		@Var boolean IsAnonymousFunction = Node.FuncName() == null;
+		@Var boolean DoesReturnValue = !Node.ReturnType().IsVoidType();
+		if(IsAnonymousFunction) {
 			this.Source.Append("(fn");
 		}
-		if(Node.GetListSize() == 0) {
-			this.Source.Append(" ()");
-		}
 		else {
-			this.GenerateListNode(" ", Node, " ", "");
+			this.Source.Append("fun ", Node.ResolvedFuncType.StringfySignature(Node.FuncName()));
 		}
-		if(Node.FuncName() != null) {
-			this.Source.Append(" = ");
-		}
-		else {
+		this.GenerateArgumentListNode(Node);
+		if(IsAnonymousFunction) {
 			this.Source.Append(" => ");
 		}
-		this.GenerateExpression(Node.BlockNode());
-		if(Node.IsTopLevelDefineFunction()) {
-			this.Source.Append(";");
+		else {
+			this.Source.Append(" = ");
 		}
-		else if(Node.FuncName() == null) {
+		this.Source.Append("let exception Return");
+		if(DoesReturnValue) {
+			this.Source.Append(" of ");
+			this.GenerateTypeName(Node.ReturnType());
+		}
+		this.Source.Append(" in");
+		this.GenerateExpression(Node.BlockNode());
+		this.Source.Append(" handle Return");
+		if(DoesReturnValue) {
+			this.Source.Append(" v => v");
+		}
+		else {
+			this.Source.Append(" => ()");
+
+		}
+		this.Source.Append(" end");
+		if(IsAnonymousFunction) {
 			this.Source.Append(")");
+		}
+		else if(Node.IsTopLevelDefineFunction()) {
+			this.Source.Append(";");
 		}
 	}
 
