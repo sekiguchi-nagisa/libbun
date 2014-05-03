@@ -40,7 +40,7 @@ public class BBooleanArray extends BunObject {
 		if(Index < a.Size) {
 			return a.ArrayValues[(int)Index];
 		}
-		ZObjectArray.ThrowOutOfArrayIndex(a.Size, Index);
+		BArray.ThrowOutOfArrayIndex(a.Size, Index);
 		return false;
 	}
 
@@ -49,7 +49,7 @@ public class BBooleanArray extends BunObject {
 			a.ArrayValues[(int)Index] = Value;
 			return;
 		}
-		ZObjectArray.ThrowOutOfArrayIndex(a.Size, Index);
+		BArray.ThrowOutOfArrayIndex(a.Size, Index);
 	}
 
 	public final void Add(boolean Value) {

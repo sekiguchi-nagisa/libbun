@@ -27,5 +27,5 @@ package libbun.util;
 import libbun.type.BType;
 
 public interface BTypedObject {
-	public BType GetZenType();
+	public BType GetBunType();
 }

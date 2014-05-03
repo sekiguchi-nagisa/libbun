@@ -1,11 +1,10 @@
 package libbun.encode.jvm;
 
 import libbun.type.BType;
+import libbun.util.BArray;
 import libbun.util.BBooleanArray;
 import libbun.util.BFloatArray;
 import libbun.util.BIntArray;
-import libbun.util.ZObjectArray;
-import libbun.util.BStringArray;
 
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -30,10 +29,7 @@ public class LibAsm {
 		if(zParamType.IsFloatType()) {
 			return BFloatArray.class;
 		}
-		if(zParamType.IsStringType()) {
-			return BStringArray.class;
-		}
-		return ZObjectArray.class;
+		return BArray.class;
 	}
 
 	static Class<?> AsElementClass(BType zType) {
@@ -46,9 +42,6 @@ public class LibAsm {
 		}
 		if(zParamType.IsFloatType()) {
 			return double.class;
-		}
-		if(zParamType.IsStringType()) {
-			return String.class;
 		}
 		return Object.class;
 	}
@@ -64,10 +57,6 @@ public class LibAsm {
 		if(zParamType.IsFloatType()) {
 			return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(double[].class)});
 		}
-		if(zParamType.IsStringType()) {
-			return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(String[].class)});
-		}
-
 		return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(Object[].class)});
 	}
 
