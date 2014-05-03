@@ -777,7 +777,7 @@ class PegNewObject extends PegPredicate {
 			}
 			stack = sourceContext.getStackPosition(this);
 		}
-		PegObject newnode = sourceContext.newPegNode(this, sourceContext.getPosition(), 0);
+		PegParsedNode newnode = sourceContext.newPegNode(this, sourceContext.getPosition(), 0);
 		if(this.leftJoin) {
 			sourceContext.push(this, newnode, 0, parentNode);
 		}
@@ -796,7 +796,7 @@ class PegNewObject extends PegPredicate {
 					}
 				}
 			}
-			if(newnode.endIndex == 0) {
+			if(newnode.endIndex == 0 || newnode.elementList == null) {
 				newnode.endIndex = sourceContext.getPosition();
 			}
 		}

@@ -337,8 +337,8 @@ public final class ParserContext  {
 		this.pushImpl(trace, "", 'p', parentNode, index, node);
 	}
 
-	public PegObject newPegNode(Peg created, int startIndex, int endIndex) {
-		PegObject node = new PegParsedNode(created, startIndex, endIndex);
+	public PegParsedNode newPegNode(Peg created, int startIndex, int endIndex) {
+		PegParsedNode node = new PegParsedNode(created, startIndex, endIndex);
 		node.debugSource = this.debugToken;
 		this.objectCount = this.objectCount + 1;
 		return node;
