@@ -1,6 +1,6 @@
 
 
-Value   <- {[0-9.]+} / '(' Expr ')'
+Value   <- {[0-9]+} / '(' Expr ')'
 Product <- Expr {+ (('*' / '/') Expr)}*
 Sum     <- Expr {+ (('+' / '-') Expr)}*
 Expr    <- Product / Sum / Value

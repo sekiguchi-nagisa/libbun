@@ -4,13 +4,13 @@ import libbun.encode.LibBunSourceBuilder;
 import libbun.parser.BToken;
 import libbun.util.BArray;
 
-public abstract class PegNode {
+public abstract class PegObject {
 	BToken debugSource;
 	Peg createdPeg;
 	int startIndex;
 	int endIndex;
 
-	PegNode(Peg createdPeg, int startIndex, int endIndex) {
+	PegObject(Peg createdPeg, int startIndex, int endIndex) {
 		this.createdPeg = createdPeg;
 		this.startIndex = startIndex;
 		this.endIndex   = endIndex;
@@ -20,7 +20,7 @@ public abstract class PegNode {
 		return this instanceof PegFailureNode;
 	}
 
-	public abstract void set(int index, PegNode childNode);
+	public abstract void set(int index, PegObject childNode);
 	abstract void stringfy(BToken source, LibBunSourceBuilder sb);
 
 	String toString(BToken source) {
@@ -31,8 +31,8 @@ public abstract class PegNode {
 
 }
 
-class PegParsedNode extends PegNode {
-	BArray<PegNode> elementList;
+class PegParsedNode extends PegObject {
+	BArray<PegObject> elementList;
 
 	PegParsedNode(Peg createdPeg, int startIndex, int endIndex) {
 		super(createdPeg, startIndex, endIndex);
@@ -40,9 +40,9 @@ class PegParsedNode extends PegNode {
 	}
 
 
-	@Override public void set(int index, PegNode childNode) {
+	@Override public void set(int index, PegObject childNode) {
 		if(this.elementList == null) {
-			this.elementList = new BArray<PegNode>(new PegNode[2]);
+			this.elementList = new BArray<PegObject>(new PegObject[2]);
 		}
 		this.elementList.add(childNode);
 	}
@@ -83,13 +83,13 @@ class PegParsedNode extends PegNode {
 	}
 }
 
-class PegFailureNode extends PegNode {
+class PegFailureNode extends PegObject {
 	String errorMessage;
 	PegFailureNode(Peg createdPeg, int startIndex, String errorMessage) {
 		super(createdPeg, startIndex, startIndex);
 		this.errorMessage = errorMessage;
 	}
-	@Override public void set(int index, PegNode childNode) {
+	@Override public void set(int index, PegObject childNode) {
 
 	}
 
@@ -98,7 +98,7 @@ class PegFailureNode extends PegNode {
 	}
 
 	@Override void stringfy(BToken source, LibBunSourceBuilder sb) {
-		sb.AppendNewLine(this.toString() + "   ## " + this.createdPeg);
+		sb.AppendNewLine(this.debugSource.Source.FormatErrorMarker("error", this.debugSource.StartIndex, this.errorMessage + "   ## by " + this.createdPeg));
 	}
 
 }

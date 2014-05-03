@@ -1,6 +1,5 @@
 package libbun.parser.peg;
 
-import libbun.ast.BNode;
 import libbun.parser.BToken;
 import libbun.parser.LibBunLogger;
 import libbun.parser.ParserSource;
@@ -11,12 +10,15 @@ import libbun.util.LibBunSystem;
 public final class PegParser {
 	public LibBunLogger logger;
 	PegParser stackedParser;
-	private int serialNumberCount = 1;
+	private int priorityCount = 1;
 	BunMap<Peg>  pegMap;
-	BunMap<BNode>    nodeMap;
-	BunMap<Peg>  pegCache = null;
+	//	BunMap<BNode>    nodeMap;
+	BunMap<Peg>      pegCache = null;
 	BunMap<String>   keywordCache = null;
 	BunMap<String>   firstCharCache = null;
+
+	boolean enableFirstCharChache = true;
+	boolean enableMemo = true;
 
 	public PegParser(LibBunLogger logger, PegParser StackedParser) {
 		this.logger = logger;
@@ -26,7 +28,7 @@ public final class PegParser {
 
 	public void Init() {
 		this.pegMap = new BunMap<Peg>(null);
-		this.nodeMap = new BunMap<BNode>(null);
+		//		this.nodeMap = new BunMap<BNode>(null);
 	}
 
 	public PegParser Pop() {
@@ -53,7 +55,7 @@ public final class PegParser {
 			token.StartIndex = sourceContext.consume(1);
 			token.EndIndex = token.StartIndex;
 		}
-		this.check();
+		this.resetCache();
 		return true;
 	}
 
@@ -77,112 +79,127 @@ public final class PegParser {
 			this.setPegRule(name, ((PegChoice) e).firstExpr);
 		}
 		else {
-			this.setImpl(name, e);
+			this.setUnchoicedPeg(name, e);
 		}
 	}
 
-	private void setImpl(String name, Peg e) {
+	private void setUnchoicedPeg(String name, Peg e) {
 		String key = name;
-		if(e instanceof PegLabelExpr) {
-			String label = ((PegLabelExpr) e).symbol;
+		if(e instanceof PegLabel) {
+			String label = ((PegLabel) e).symbol;
 			//System.out.println("first name: " + name + ", " + label);
 			if(label.equals(name) && e.nextExpr != null) {
-				key = "+" + key;  // left recursion
-				e = e.nextExpr;
+				key = this.nameRightJoinName(key);  // left recursion
+				//e = e.nextExpr;
 			}
 		}
 		//System.out.println("'"+ key + "' <- " + e + " ## first_chars=" + e.firstChars());
-		e.serialNumber = this.serialNumberCount;
-		this.serialNumberCount = this.serialNumberCount + 1;
+		e.serialNumber = this.priorityCount;
+		this.priorityCount = this.priorityCount + 1;
+		this.insertOrderedPeg(this.pegMap, key, e);
+	}
+
+	private String nameRightJoinName(String key) {
+		return "+" + key;
+	}
+
+	private void insertOrderedPeg(BunMap<Peg> map, String key, Peg e) {
 		Peg defined = this.pegMap.GetValue(key, null);
 		if(defined != null) {
-			e = new PegChoice(null, e, defined);
+			e = this.insert(defined, e);
 		}
-		this.pegMap.put(key, e);
+		map.put(key, e);
+	}
+
+	private Peg insert(Peg top, Peg added) {
+		if(top instanceof PegChoice) {
+			Peg e1 = ((PegChoice) top).firstExpr;
+			Peg e2 = ((PegChoice) top).secondExpr;
+			if(e1.serialNumber == added.serialNumber || e2.serialNumber == added.serialNumber) {
+				return top;// drop same priority;
+			}
+			if(added.serialNumber > e1.serialNumber) {
+				return new PegChoice(null, added, top);
+			}
+			((PegChoice) top).secondExpr = this.insert(e2, added);
+			return top;
+		}
+		if(added.serialNumber > top.serialNumber) {
+			return new PegChoice(null, added, top);
+		}
+		if(added.serialNumber < top.serialNumber) {
+			return new PegChoice(null, top, added);
+		}
+		return top; // drop same priority;
 	}
 
 	private void initCache() {
 		this.pegCache = new BunMap<Peg>(null);
 		this.keywordCache = new BunMap<String>(null);
 		this.firstCharCache = new BunMap<String>(null);
+		this.firstCharCache.put("0", "");
 	}
 
-	public final void check() {
+	public final void resetCache() {
 		this.initCache();
 		BArray<String> list = this.pegMap.keys();
 		for(int i = 0; i < list.size(); i++) {
 			String key = list.ArrayValues[i];
 			Peg e = this.pegMap.GetValue(key, null);
-			e.checkAll(this, 0);
-			this.check(key, e);
+			e.checkAll(this, key, 0);
 			System.out.println(e.toPrintableString(key));
+		}
+		for(int i = 0; i < list.size(); i++) {
+			String key = list.ArrayValues[i];
+			Peg e = this.pegMap.GetValue(key, null);
+			this.setFirstCharCache(key, e);
 		}
 		list = this.keywordCache.keys();
 		for(int i = 0; i < list.size(); i++) {
 			String key = list.ArrayValues[i];
-			System.out.println("keyword: " + key);
+			//System.out.println("keyword: " + key);
 		}
 		list = this.firstCharCache.keys();
 		for(int i = 0; i < list.size(); i++) {
 			String key = list.ArrayValues[i];
-			System.out.println("cache: " + key);
+			//System.out.println("cache: '" + key + "'");
 		}
-
-		//		list = this.pegCache.keys();
-		//		for(int i = 0; i < list.size(); i++) {
-		//			String key = list.ArrayValues[i];
-		//			PegExpr e = this.pegCache.GetValue(key, null);
-		//			System.out.println("" + key + " <- " + e);
-		//		}
-	}
-
-	private boolean contains(Peg defined, Peg e) {
-		if(defined instanceof PegChoice) {
-			if(this.contains(((PegChoice) defined).firstExpr, e)) {
-				return true;
-			}
-			return this.contains(((PegChoice) defined).secondExpr, e);
-		}
-		return defined == e;
-	}
-
-	private void setcache(String key, Peg e) {
-		Peg defined = this.pegCache.GetValue(key, null);
-		if(defined != null) {
-			if(this.contains(defined, e)) {
-				return;
-			}
-			if(e.serialNumber < defined.serialNumber) {
-				e = new PegChoice(null, defined, e);
-			}
-			else {
-				e = new PegChoice(null, e, defined);
-			}
-		}
-		//System.out.println("duplicated key='"+key+"': " + e + " #" + e.SerialNumber);
-		this.pegCache.put(key, e);
-	}
-
-	private void setcache(String key, String chars, Peg e) {
-		if(chars == null || chars.length() == 0) {
-			this.setcache(key, e);
-			//System.out.println("uncached key key='"+key+"': " + e + " " + e.getClass());
-		}
-		else {
-			for(int i = 0; i < chars.length(); i++) {
-				this.setcache(key + '$' + chars.charAt(i), e);
-			}
+		list = this.pegCache.keys();
+		for(int i = 0; i < list.size(); i++) {
+			String key = list.ArrayValues[i];
+			Peg e = this.pegCache.GetValue(key, null);
+			//System.out.println("" + key + " <- " + e);
 		}
 	}
 
-	private void check(String key, Peg e) {
-		//		System.out.println(">> key='"+key+"': " + e);
+	public void setFirstCharSet(String ch, Peg e) {
+		if(ch.length() == 1) {
+			this.firstCharCache.put(ch, ch);
+		}
+	}
+
+	private void setFirstCharCache(String key, Peg e) {
 		if(e instanceof PegChoice) {
-			this.check(key, ((PegChoice) e).firstExpr);
-			this.check(key, ((PegChoice) e).secondExpr);
+			this.setFirstCharCache(key, ((PegChoice) e).firstExpr);
+			this.setFirstCharCache(key, ((PegChoice) e).secondExpr);
 			return;
 		}
-		this.setcache(key, e.firstChars(this.pegMap), e);
+		String chars = e.firstChars(this.pegMap);
+		//		System.out.println("key='"+key+"' " + e + "  chars='"+chars+"'");
+		if(chars == null || chars.length() == 0) {
+			BArray<String> list = this.firstCharCache.keys();
+			for(int i = 0; i < list.size(); i++) {
+				String ch = list.ArrayValues[i];
+				this.insertOrderedPeg(this.pegCache, key + "$" + ch, e);
+			}
+		}
+		for(int i = 0; i < chars.length(); i++) {
+			String ch = "" + chars.charAt(i);
+			if(this.firstCharCache.HasKey(ch)) {
+				//				System.out.println("key='"+key+"$" + ch + "' " + e + "  chars='"+chars+"'");
+				this.insertOrderedPeg(this.pegCache, key + "$" + ch, e);
+			}
+		}
 	}
 
 	public final boolean hasPattern(String name) {
@@ -190,37 +207,16 @@ public final class PegParser {
 	}
 
 	public final Peg getPattern(String name, String firstChar) {
-		Peg p = this.pegCache.GetValue(name, null);
-		if(p != null) {
-			return this.pegMap.GetValue(name, null);
+		if(this.enableFirstCharChache) {
+			if(this.firstCharCache.HasKey(firstChar)) {
+				return this.pegCache.GetValue(name+"$"+firstChar, null);
+			}
 		}
-		return this.pegCache.GetValue(name+"$"+firstChar, null);
+		return this.pegMap.GetValue(name, null);
 	}
+
 	public final Peg getRightPattern(String name, String firstChar) {
-		return this.getPattern("+"+ name, firstChar);
+		return this.getPattern(this.nameRightJoinName(name), firstChar);
 	}
-
-	public final void setNode(String name, BNode node) {
-		this.nodeMap.put(name, node);
-	}
-
-	public final BNode newNode(String name, BNode parent) {
-		BNode node = this.nodeMap.GetValue(name, null);
-		if(node instanceof PegBunNode) {
-			return node;
-		}
-		if(node != null) {
-			BNode newnode = node.Dup(false, parent);
-			assert(newnode.getClass() == node.getClass());
-			//System.out.println("new node: " + name + ", " + newnode);
-			newnode.ParentNode = parent;
-			return newnode;
-		}
-		//System.out.println("undefined node: " + name);
-		return new PegBunNode(parent, 0);
-	}
-
-
-
 
 }

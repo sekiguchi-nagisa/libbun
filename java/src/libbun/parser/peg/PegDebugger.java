@@ -2,19 +2,13 @@ package libbun.parser.peg;
 
 import java.io.IOException;
 
-import libbun.ast.BNode;
-import libbun.ast.expression.GetNameNode;
-import libbun.ast.literal.BunBooleanNode;
-import libbun.ast.literal.BunFloatNode;
-import libbun.ast.literal.BunIntNode;
-import libbun.ast.literal.BunNullNode;
-import libbun.ast.literal.BunStringNode;
 import libbun.parser.BToken;
 import libbun.parser.LibBunConst;
+import libbun.parser.ParserSource;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
-public class PegBunGrammar {
+public class PegDebugger {
 	public final static void test(String FileName) {
 		PegParser p = new PegParser(null, null);
 		//		p.setPegRule("number", new PegFunctionExpr(new NumberLiteral()));
@@ -41,14 +35,14 @@ public class PegBunGrammar {
 	public final static void PerformShell(PegParser p) {
 		LibBunSystem._PrintLine(LibBunConst.ProgName + LibBunConst.Version + " (" + LibBunConst.CodeName + ") on " + LibBunSystem._GetPlatform());
 		LibBunSystem._PrintLine(LibBunConst.Copyright);
-		LibBunSystem._PrintLine("PEG debug special!!");
+		LibBunSystem._PrintLine("PEG debugger!!");
 		@Var int linenum = 1;
 		@Var String Line = null;
 		while ((Line = ReadLine2(">>> ", "    ")) != null) {
 			try {
-				ParserContext source = new ParserContext(p, Line);
+				ParserContext source = new ParserContext(p, new ParserSource("(stdin)", linenum, Line, null), 0, Line.length());
 				BToken token = source.newToken(0, Line.length());
-				PegNode node = source.parsePegNode(new PegParsedNode(null, 0, 0), "Stmt");
+				PegObject node = source.parsePegNode(new PegParsedNode(null, 0, 0), "Stmt");
 				if(node != null) {
 					System.out.println("parsed: " + node.toString(token));
 				}
@@ -58,8 +52,7 @@ public class PegBunGrammar {
 				if(source.hasChar()) {
 					System.out.println("uncosumed: '" + source + "'");
 				}
-				System.out.println("hit: " + source.memoHit + ", miss: " + source.memoMiss);
-
+				System.out.println("hit: " + source.memoHit + ", miss: " + source.memoMiss + ", object=" + source.objectCount + ", error=" + source.errorCount);
 				linenum = linenum + 1;
 			}
 			catch (Exception e) {
@@ -145,67 +138,5 @@ public class PegBunGrammar {
 		}
 		return level;
 	}
-}
-
-
-class ConstLiteral extends PegFunction {
-	@Override public BNode Invoke(BNode parentNode, ParserContext sourceContext) {
-		BToken token = sourceContext.newToken();
-		if(sourceContext.sliceMatchedText(token, "null")) {
-			return new BunNullNode(parentNode, token);
-		}
-		if(sourceContext.sliceMatchedText(token, "true")) {
-			return new BunBooleanNode(parentNode, token, true);
-		}
-		if(sourceContext.sliceMatchedText(token, "false")) {
-			return new BunBooleanNode(parentNode, token, true);
-		}
-		return null;
-	}
-}
-
-class NumberLiteral extends PegFunction {
-	@Override public BNode Invoke(BNode parentNode, ParserContext sourceContext) {
-		BToken token = sourceContext.newToken();
-		if(!sourceContext.sliceNumber(token)) {
-			return null;
-		}
-		if(sourceContext.sliceMatchedText(token, ".")) {
-			sourceContext.sliceNumber(token);
-			return new BunFloatNode(parentNode, token, LibBunSystem._ParseFloat(token.GetText()));
-		}
-		//System.out.println("token: " + token);
-		return new BunIntNode(parentNode, token, LibBunSystem._ParseInt(token.GetText()));
-	}
-}
-
-class StringLiteral extends PegFunction {
-	@Override public BNode Invoke(BNode parentNode, ParserContext sourceContext) {
-		BToken token = sourceContext.newToken();
-		char quote = sourceContext.nextChar();
-		if(sourceContext.sliceQuotedTextUntil(token, quote, "\n")) {
-			token.EndIndex = token.EndIndex + 1;
-			//System.out.println("token: " + token.GetText());
-			return new BunStringNode(parentNode, token, LibBunSystem._UnquoteString(token.GetText()));
-		}
-		return null;
-	}
-}
-
-class Variable extends PegFunction {
-	@Override public BNode Invoke(BNode parentNode, ParserContext sourceContext) {
-		BToken token = sourceContext.newToken();
-		char ch = sourceContext.getChar(-1);
-		if(LibBunSystem._IsSymbol(ch)) {  // check before token is not symbol
-			System.out.println("not ahead symbol");
-			return null;
-		}
-		if(sourceContext.sliceSymbol(token, "_")) {
-			return new GetNameNode(parentNode, token, token.GetText());
-		}
-		System.out.println("not symbol");
-		return null;
-	}
-
 }
 

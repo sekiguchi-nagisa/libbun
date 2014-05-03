@@ -53,10 +53,10 @@ public final class ParserContext  {
 	}
 
 	public void rollback(int pos) {
-		//		if(pos == 0 && this.currentPosition > pos) {
-		//			System.out.println("rollback first");
-		//			new Exception().printStackTrace();
-		//		}
+		if(pos == 0 && this.currentPosition > pos) {
+			System.out.println("backtracking");
+			new Exception().printStackTrace();
+		}
 		this.currentPosition = pos;
 	}
 
@@ -215,12 +215,7 @@ public final class ParserContext  {
 	}
 
 	public String getFirstChar() {
-		this.skipWhiteSpace(this.IsAllowSkipIndent);
 		return String.valueOf(this.getChar());
-	}
-
-	public BNode newNode(String NodeName, BNode ParentNode) {
-		return this.parser.newNode(NodeName, ParentNode);
 	}
 
 	public boolean isLeftRecursion(String PatternName) {
@@ -241,16 +236,18 @@ public final class ParserContext  {
 	//		return null;
 	//	}
 
-	private final BunMap<PegNode> memoMap = new BunMap<PegNode>(null);
-	private final PegNode trueNode = new PegParsedNode(null, 0, 0);
+	private final BunMap<PegObject> memoMap = new BunMap<PegObject>(null);
+	private final PegObject trueNode = new PegParsedNode(null, 0, 0);
 	int memoHit = 0;
 	int memoMiss = 0;
 	int memoSize = 0;
+	int objectCount = 0;
+	int errorCount = 0;
 
-	public final PegNode parsePegNode(PegNode parentNode, String pattern) {
+	public final PegObject parsePegNode(PegObject parentNode, String pattern) {
 		int pos = this.getPosition();
 		String key = pattern + ":" + pos;
-		PegNode node = this.memoMap.GetValue(key, null);
+		PegObject node = this.memoMap.GetValue(key, null);
 		if(node != null) {
 			this.memoHit = this.memoHit + 1;
 			if(node == this.trueNode) {
@@ -259,16 +256,15 @@ public final class ParserContext  {
 			return node;
 		}
 		Peg e = this.parser.getPattern(pattern, this.getFirstChar());
-		this.memoMiss = this.memoMiss + 1;
 		//System.out.println("matching " + parentNode + "   " + pattern + "... " + e);
 		if(e != null) {
 			node = e.lazyMatchAll(parentNode, this);
+			this.memoMiss = this.memoMiss + 1;
 		}
 		else {
-			node = this.newErrorNode(null, "undefined label " + pattern);
+			LibBunSystem._Exit(1, "undefined label " + pattern + " '" + this.getFirstChar() + "'");
 		}
 		//System.out.println("matched " + parentNode + "   " + pattern + "... " + node);
-		System.out.println("push: " + key);
 		if(node == parentNode) {
 			this.memoMap.put(key, this.trueNode);
 			return node;
@@ -278,7 +274,7 @@ public final class ParserContext  {
 	}
 
 
-	public PegNode parseRightPegNode(PegNode left, String symbol) {
+	public PegObject parseRightPegNode(PegObject left, String symbol) {
 		return this.parsePegNode(left, "+"+symbol);
 	}
 
@@ -337,19 +333,21 @@ public final class ParserContext  {
 		}
 	}
 
-	public void push(Peg trace, PegNode parentNode, int index, PegNode node) {
+	public void push(Peg trace, PegObject parentNode, int index, PegObject node) {
 		this.pushImpl(trace, "", 'p', parentNode, index, node);
 	}
 
-	public PegNode newPegNode(Peg created, int startIndex, int endIndex) {
-		PegNode node = new PegParsedNode(created, startIndex, endIndex);
+	public PegObject newPegNode(Peg created, int startIndex, int endIndex) {
+		PegObject node = new PegParsedNode(created, startIndex, endIndex);
 		node.debugSource = this.debugToken;
+		this.objectCount = this.objectCount + 1;
 		return node;
 	}
 
-	public PegNode newErrorNode(Peg created, String msg) {
-		PegNode node = new PegFailureNode(created, this.currentPosition, msg);
+	public PegObject newErrorNode(Peg created, String msg) {
+		PegObject node = new PegFailureNode(created, this.currentPosition, msg);
 		node.debugSource = this.debugToken;
+		this.errorCount = this.errorCount + 1;
 		return node;
 	}
 

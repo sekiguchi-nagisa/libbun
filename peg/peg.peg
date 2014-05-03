@@ -1,0 +1,17 @@
+
+_          <- [ \t]+
+Label      <- {[A-z0-9_]+}
+String     <- {"'" (!"'" .)* "'"} / {'"' (!'"' .)* '"'}
+Character  <- {'[' (!']' .)* ']'}
+Any        <- {'.'}
+
+Term       <- {'(' Expr ')'} / {'{' Expr '}'} / {'{+' _ Expr '}'} / String / Character / Any / Label
+
+TermNtime  <- Term {+ ('*' / '+' / '?')}
+Predicated  <- {('&' / '!' / '$') TermNtime}
+Sequence   <- {Predicated (_ Predicated)+}
+Choice     <- {Sequence ( _ '/' _ Sequence)+}
+Expr       <- Choice / Sequence / Predicated / TermNtime / Term
+Stmt       <- {Label _ '<-' _ Expr}
+
+

@@ -28,7 +28,7 @@ import java.io.IOException;
 
 import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunConst;
-import libbun.parser.peg.PegBunGrammar;
+import libbun.parser.peg.PegDebugger;
 import libbun.util.BStringArray;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
@@ -143,7 +143,7 @@ public class Main {
 	public final static void InvokeLibBun(String[] Args) {
 		ParseCommand(Args);
 		if(PegFileName != null) {
-			PegBunGrammar.test(PegFileName);
+			PegDebugger.test(PegFileName);
 		}
 		@Var LibBunGenerator Generator = LibBunSystem._InitGenerator(Target, Parser);
 		if(InputFileName != null) {
