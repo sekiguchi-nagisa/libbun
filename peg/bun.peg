@@ -1,0 +1,68 @@
+_       <- ([ \t] / Comment)*
+__      <- [ \t\n]+
+Comment <- '/*' (!'*/' .)*  '*/'
+Comment <- '//' (!'\n' .)*
+
+Name   <- {[A-z_] [A-z0-9_]* '::' [A-z0-9_]+}
+Num    <- {[0-9]+ ('.'[0-9]+)?}
+String <- {'"' (!'"' .)* '"}
+Const  <- 'null' / 'true' / 'false'
+
+Type   <- Name
+Type   <- Type {+ '[]'}
+Type   <- Type {+ '<' $0=Type (',' $1=Type)* '>'}
+
+Value  <- Num / String / Const / Name / Type
+
+Term <- Value
+
+Term <- {'+' $Term}
+Term <- {'-' $Term}
+Term <- {'!' $Term}
+Term <- {'(' $Expr ')'}
+Term <- {'(' Type ')' $Expr}
+
+Term <- {'new' $Type '(' ($Expr (',' $Expr)*)? ')'}
+Term <- {'[' ($Expr (',' $Expr)*)? ']'}
+
+Expr <- Term
+Expr <- Expr {+ '&&' $Expr}
+Expr <- Expr {+ '||' $Expr}
+
+Expr <- Expr {+ '==' $Expr}
+Expr <- Expr {+ '!=' $Expr}
+Expr <- Expr {+ '<'  $Expr}
+Expr <- Expr {+ '>'  $Expr}
+Expr <- Expr {+ '<=' $Expr}
+Expr <- Expr {+ '>=' $Expr}
+
+Expr <- Expr {+ '+' $Expr}
+Expr <- Expr {+ '-' $Expr}
+Expr <- Expr {+ '*' $Expr}
+Expr <- Expr {+ '/' $Expr}
+Expr <- Expr {+ '%' $Expr}
+
+Expr <- Expr {+ '(' ($Expr (',' $Expr)*)? ')')}
+Expr <- Expr {+ '.' $Name}
+Expr <- Expr {+ '.' $Name '('  ($Expr (',' $Expr)*)?  ')'}
+Expr <- Expr {+ '[' $Expr ']'}
+
+Stmt <- Expr
+
+LValue <- Name / Expr {+ '.' $Name} / Expr {+ '[' $Expr ']'}
+Stmt <- LValue '=' Expr
+
+if    <- {'if' '(' $Expr ')' $Block ('else' $(if / Block))?}
+Stmt  <- if
+Stmt  <- {'while' '(' $Expr ')' $Block}
+Stmt  <- {'break'}
+Stmt  <- {'try' $Block ('catch' '(' $Name ')' $Block)? ('finally' $Block)?}
+Stmt  <- {'throw' $Expr}
+Stmt  <- {'return' ($Expr)?}
+Stmt  <- {'var' $Name (':' $Type)? '=' $Expr ('in' $Block)?}
+Stmt  <- {'let' $Name (':' $Type)? '=' $Expr ('in' $Block)?}
+Stmt  <- {'function' $Name '(' ($Param (',' $Param)*)? ')' (':' $Type)? $Block}
+Param <- {$Name (':' $Type)?}
+
+Block <- {'{' (($Stmt / ';'* / _ / $Error))* '}'}
+
