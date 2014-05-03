@@ -43,9 +43,6 @@ public class LibAsm {
 		if(zParamType.IsFloatType()) {
 			return double.class;
 		}
-		if(zParamType.IsStringType()) {
-			return String.class;
-		}
 		return Object.class;
 	}
 
@@ -60,10 +57,6 @@ public class LibAsm {
 		if(zParamType.IsFloatType()) {
 			return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(double[].class)});
 		}
-		if(zParamType.IsStringType()) {
-			return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(String[].class)});
-		}
-
 		return Type.getMethodDescriptor(AsmType(void.class), new Type[] {AsmType(int.class), AsmType(Object[].class)});
 	}
 

@@ -48,6 +48,7 @@ define _ "libbun/encode/jvm/JavaCommonApi.FloatArrayToString($[0])" : Func<float
 
 // Map
 define hasKey "libbun/encode/jvm/JavaCommonApi.HasKey($[0],$[1])" : Func<Map<α>,String,boolean>;
+define keys "libbun/encode/jvm/JavaCommonApi.Keys($[0])" : Func<Map<α>,String[]>;
 define _ "libbun/encode/jvm/JavaCommonApi.MapToString($[0])" : Func<Map<α>,String>;
 
 // Object

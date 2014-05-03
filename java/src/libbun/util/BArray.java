@@ -12,7 +12,7 @@ public class BArray<T> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public BArray(int TYpeId, T[] Values) {
+	public BArray(int TypeId, T[] Values) {
 		if(Values == null || Values.length == 0) {
 			this.ArrayValues = (T[]) new Object[1];
 			this.Size = 0;
@@ -25,13 +25,22 @@ public class BArray<T> {
 
 	@Override public String toString() {
 		StringBuilder sBuilder = new StringBuilder();
+		sBuilder.append("[");
 		for(int i = 0; i < this.size(); i++) {
 			if(i > 0) {
 				sBuilder.append(", ");
 			}
-			sBuilder.append(this.ArrayValues[i].toString());
+			sBuilder.append(this.Stringify(this.ArrayValues[i]));
 		}
+		sBuilder.append("]");
 		return sBuilder.toString();
+	}
+
+	protected String Stringify(Object Value) {
+		if(Value instanceof String) {
+			return LibBunSystem._QuoteString((String) Value);
+		}
+		return (String) Value;
 	}
 
 	public final int size() {

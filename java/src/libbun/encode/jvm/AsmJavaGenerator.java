@@ -381,8 +381,6 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		return null;
 	}
 
-
-
 	@Override public void VisitNullNode(BunNullNode Node) {
 		this.AsmBuilder.visitInsn(Opcodes.ACONST_NULL);
 	}
@@ -447,14 +445,6 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		}
 	}
 
-	//	@Override public void VisitNewArrayNode(ZNewArrayNode Node) {
-	//		this.Debug("TODO");
-	//		this.AsmBuilder.visitInsn(Opcodes.ACONST_NULL);
-	//		//		this.CurrentBuilder.LoadConst(Node.Type);
-	//		//		this.CurrentBuilder.LoadNewArray(this, 0, Node.NodeList);
-	//		//		this.CurrentBuilder.InvokeMethodCall(Node.Type, JLib.NewArray);
-	//	}
-
 	@Override public void VisitNewObjectNode(NewObjectNode Node) {
 		if(Node.IsUntyped()) {
 			this.VisitErrorNode(new ErrorNode(Node, "no class for new operator"));
@@ -503,19 +493,6 @@ public class AsmJavaGenerator extends LibBunGenerator {
 	public void VisitStaticFieldNode(JavaStaticFieldNode Node) {
 		this.AsmBuilder.visitFieldInsn(Opcodes.GETSTATIC, Type.getInternalName(Node.StaticClass), Node.FieldName, this.GetJavaClass(Node.Type));
 	}
-
-	//	@Override public void VisitGlobalNameNode(ZFuncNameNode Node) {
-	//		if(Node.IsFuncNameNode()) {
-	//			this.AsmBuilder.visitFieldInsn(Opcodes.GETSTATIC, this.NameFunctionClass(Node.GlobalName, Node.FuncType), "f", this.GetJavaClass(Node.Type));
-	//		}
-	//		else if(!Node.IsUntyped()) {
-	//			this.AsmBuilder.visitFieldInsn(Opcodes.GETSTATIC, this.NameGlobalNameClass(Node.GlobalName), "_", this.GetJavaClass(Node.Type));
-	//		}
-	//		else {
-	//			ZLogger._LogError(Node.SourceToken, "undefined symbol: " + Node.GlobalName);
-	//			this.AsmBuilder.visitInsn(Opcodes.ACONST_NULL);
-	//		}
-	//	}
 
 	protected void VisitGlobalNameNode(GetNameNode Node) {
 		if(Node.ResolvedNode instanceof BunLetVarNode) {

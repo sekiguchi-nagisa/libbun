@@ -189,6 +189,10 @@ public class JavaCommonApi {
 		return x.HasKey(y);
 	}
 
+	public final static <T> BArray<String> Keys(BunMap<T> x) {
+		return x.keys();
+	}
+
 	public final static <T> String MapToString(BunMap<T> x) {
 		return x.toString();
 	}
