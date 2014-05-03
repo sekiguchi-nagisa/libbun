@@ -29,7 +29,7 @@ import java.io.IOException;
 import libbun.encode.LibBunGenerator;
 import libbun.parser.LibBunConst;
 import libbun.parser.peg.PegDebugger;
-import libbun.util.BStringArray;
+import libbun.util.BArray;
 import libbun.util.LibBunSystem;
 import libbun.util.Var;
 
@@ -54,7 +54,7 @@ public class Main {
 	// -i
 	private static boolean ShellMode = false;
 
-	private static BStringArray ARGV = null;
+	private static BArray<String> ARGV = null;
 
 	//
 	private static String InputFileName = null;
@@ -120,12 +120,12 @@ public class Main {
 		if(GivenParser != null) {
 			Parser = GivenParser;
 		}
-		ARGV = new BStringArray();
+		ARGV = new BArray<String>(new String[4]);
 		while (Index < Args.length) {
-			ARGV.Add(Args[Index]);
+			ARGV.add(Args[Index]);
 			Index += 1;
 		}
-		if (ARGV.Size() > 0) {
+		if (ARGV.size() > 0) {
 			InputFileName = ARGV.ArrayValues[0];
 		}
 		else {

@@ -38,7 +38,7 @@ public class BunObject implements BTypedObject {
 		this.ZenType = BTypePool.TypeOf(TypeId);
 	}
 
-	@Override public final BType GetZenType() {
+	@Override public final BType GetBunType() {
 		return this.ZenType;
 	}
 

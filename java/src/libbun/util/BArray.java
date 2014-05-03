@@ -7,21 +7,41 @@ public class BArray<T> {
 	@BField public T[] ArrayValues;
 
 	public BArray(T[] Values) {
-		//super(0);
 		this.ArrayValues = Values;
 		this.Size = 0;
 	}
 
-	//	@Override protected void Stringfy(StringBuilder sb) {
-	//		sb.append("[");
-	//		for(int i = 0; i < this.Size; i++) {
-	//			if(i > 0) {
-	//				sb.append(", ");
-	//			}
-	//			this.AppendStringBuffer(sb, this.ArrayValues[i]);
-	//		}
-	//		sb.append("]");
-	//	}
+	@SuppressWarnings("unchecked")
+	public BArray(int TypeId, T[] Values) {
+		if(Values == null || Values.length == 0) {
+			this.ArrayValues = (T[]) new Object[1];
+			this.Size = 0;
+		}
+		else {
+			this.ArrayValues = Values;
+			this.Size = Values.length;
+		}
+	}
+
+	@Override public String toString() {
+		StringBuilder sBuilder = new StringBuilder();
+		sBuilder.append("[");
+		for(int i = 0; i < this.size(); i++) {
+			if(i > 0) {
+				sBuilder.append(", ");
+			}
+			sBuilder.append(this.Stringify(this.ArrayValues[i]));
+		}
+		sBuilder.append("]");
+		return sBuilder.toString();
+	}
+
+	protected String Stringify(Object Value) {
+		if(Value instanceof String) {
+			return LibBunSystem._QuoteString((String) Value);
+		}
+		return (String) Value;
+	}
 
 	public final int size() {
 		return this.Size;
@@ -92,7 +112,4 @@ public class BArray<T> {
 	public static void ThrowOutOfArrayIndex(int Size, long Index) {
 		throw new RuntimeException("out of array index " + Index + " < " + Size);
 	}
-
-
-
 }

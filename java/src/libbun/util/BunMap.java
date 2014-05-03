@@ -29,16 +29,14 @@ import java.util.HashMap;
 import libbun.type.BType;
 
 
-public final class BunMap <T> extends BunObject {
+public final class BunMap <T> {
 	final HashMap<String, T>	Map;
 
 	public BunMap(BType ElementType) {
-		super(0);
 		this.Map = new HashMap<String, T>();
 	}
 
 	public BunMap(int TypeId, T[] Literal) {
-		super(TypeId);
 		this.Map = new HashMap<String, T>();
 		@Var int i = 0;
 		while(i < Literal.length) {
@@ -47,17 +45,28 @@ public final class BunMap <T> extends BunObject {
 		}
 	}
 
-	@Override protected void Stringfy(StringBuilder sb) {
-		@Var int i = 0;
-		sb.append("{");
+	@Override public String toString() {
+		StringBuilder sBuilder = new StringBuilder();
+		sBuilder.append("{");
+		int i = 0;
 		for(String Key : this.Map.keySet()) {
 			if(i > 0) {
-				sb.append(", ");
+				sBuilder.append(", ");
 			}
-			this.AppendStringBuffer(sb, Key, this.Map.get(Key));
-			i = i + 1;
+			sBuilder.append(this.Stringify(Key));
+			sBuilder.append(" : ");
+			sBuilder.append(this.Stringify(this.Map.get(Key)));
+			i++;
 		}
-		sb.append("}");
+		sBuilder.append("}");
+		return sBuilder.toString();
+	}
+
+	protected String Stringify(Object Value) {
+		if(Value instanceof String) {
+			return LibBunSystem._QuoteString((String) Value);
+		}
+		return Value.toString();
 	}
 
 	public final void put(String Key, T Value) {

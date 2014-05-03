@@ -45,15 +45,10 @@ define clear "libbun/encode/jvm/JavaCommonApi.FloatArrayClear($[0],$[1])" : Func
 define add "libbun/encode/jvm/JavaCommonApi.FloatArrayAdd($[0],$[1])" : Func<float[],int,void>;
 define insert "libbun/encode/jvm/JavaCommonApi.FloatArrayInsert($[0],$[1],$[2])" : Func<float[],int,float,void>;
 define _ "libbun/encode/jvm/JavaCommonApi.FloatArrayToString($[0])" : Func<float[],String>;
-// StringArray
-define size "libbun/encode/jvm/JavaCommonApi.StringArraySize($[0])" : Func<String[],int>;
-define clear "libbun/encode/jvm/JavaCommonApi.StringArrayClear($[0],$[1])" : Func<String[],int,void>;
-define add "libbun/encode/jvm/JavaCommonApi.StringArrayAdd($[0],$[1])" : Func<String[],String,void>;
-define insert "libbun/encode/jvm/JavaCommonApi.StringArrayInsert($[0],$[1],$[2])" : Func<String[],int,String,void>;
-define _ "libbun/encode/jvm/JavaCommonApi.StringArrayToString($[0])" : Func<String[],String>;
 
 // Map
 define hasKey "libbun/encode/jvm/JavaCommonApi.HasKey($[0],$[1])" : Func<Map<α>,String,boolean>;
+define keys "libbun/encode/jvm/JavaCommonApi.Keys($[0])" : Func<Map<α>,String[]>;
 define _ "libbun/encode/jvm/JavaCommonApi.MapToString($[0])" : Func<Map<α>,String>;
 
 // Object
