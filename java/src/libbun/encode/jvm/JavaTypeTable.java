@@ -41,8 +41,6 @@ import libbun.util.BFloatArray;
 import libbun.util.BFunction;
 import libbun.util.BIntArray;
 import libbun.util.ZNativeType;
-import libbun.util.ZObjectArray;
-import libbun.util.BStringArray;
 
 
 public class JavaTypeTable {
@@ -57,17 +55,15 @@ public class JavaTypeTable {
 		JavaTypeTable.SetTypeTable(BType.FloatType, double.class);
 		JavaTypeTable.SetTypeTable(BType.StringType, String.class);
 		JavaTypeTable.SetTypeTable(BFuncType._FuncType, BFunction.class);
-		JavaTypeTable.SetTypeTable(BGenericType._ArrayType, ZObjectArray.class);
+		JavaTypeTable.SetTypeTable(BGenericType._ArrayType, BArray.class);
 		JavaTypeTable.SetTypeTable(BGenericType._MapType, BunMap.class);
 
 		BType BooleanArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.BooleanType);
 		BType IntArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.IntType);
 		BType FloatArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.FloatType);
-		BType StringArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.StringType);
 		JavaTypeTable.SetTypeTable(BooleanArrayType, BBooleanArray.class);
 		JavaTypeTable.SetTypeTable(IntArrayType, BIntArray.class);
 		JavaTypeTable.SetTypeTable(FloatArrayType, BFloatArray.class);
-		JavaTypeTable.SetTypeTable(StringArrayType, BStringArray.class);
 
 		JavaTypeTable.SetTypeTable(BType.BooleanType, Boolean.class);
 		JavaTypeTable.SetTypeTable(BType.IntType, Long.class);

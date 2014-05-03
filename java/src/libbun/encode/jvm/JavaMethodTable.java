@@ -102,18 +102,15 @@ public class JavaMethodTable {
 		BType BooleanArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.BooleanType);
 		BType IntArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.IntType);
 		BType FloatArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.FloatType);
-		BType StringArrayType = BTypePool._GetGenericType1(BGenericType._ArrayType, BType.StringType);
 
-		Import(BGenericType._ArrayType, "[]", BType.IntType, libbun.util.ZObjectArray.class, "GetIndex");
-		Import(BGenericType._ArrayType, "[]=", BType.IntType, libbun.util.ZObjectArray.class, "SetIndex", Object.class);
+		Import(BGenericType._ArrayType, "[]", BType.IntType, libbun.util.BArray.class, "GetIndex");
+		Import(BGenericType._ArrayType, "[]=", BType.IntType, libbun.util.BArray.class, "SetIndex", Object.class);
 		Import(BooleanArrayType, "[]", BType.IntType, libbun.util.BBooleanArray.class, "GetIndex");
 		Import(BooleanArrayType, "[]=", BType.IntType, libbun.util.BBooleanArray.class, "SetIndex", boolean.class);
 		Import(IntArrayType, "[]", BType.IntType, libbun.util.BIntArray.class, "GetIndex");
 		Import(IntArrayType, "[]=", BType.IntType, libbun.util.BIntArray.class, "SetIndex", long.class);
 		Import(FloatArrayType, "[]", BType.IntType, libbun.util.BFloatArray.class, "GetIndex");
 		Import(FloatArrayType, "[]=", BType.IntType, libbun.util.BFloatArray.class, "SetIndex", double.class);
-		Import(StringArrayType, "[]", BType.IntType, libbun.util.BStringArray.class, "GetIndex");
-		Import(StringArrayType, "[]=", BType.IntType, libbun.util.BStringArray.class, "SetIndex", String.class);
 
 		Import(BGenericType._MapType, "[]", BType.StringType, libbun.util.BunMap.class, "GetIndex");
 		Import(BGenericType._MapType, "[]=", BType.StringType, libbun.util.BunMap.class, "SetIndex", Object.class);

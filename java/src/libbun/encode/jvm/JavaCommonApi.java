@@ -1,12 +1,11 @@
 package libbun.encode.jvm;
 
+import libbun.util.BArray;
 import libbun.util.BunMap;
 import libbun.util.SoftwareFaultException;
 import libbun.util.BBooleanArray;
 import libbun.util.BFloatArray;
 import libbun.util.BIntArray;
-import libbun.util.ZObjectArray;
-import libbun.util.BStringArray;
 
 public class JavaCommonApi {
 
@@ -105,23 +104,23 @@ public class JavaCommonApi {
 	}
 
 	// ObjectArray
-	public final static long ObjectArraySize(ZObjectArray x) {
-		return x.Size();
+	public final static <T> long ObjectArraySize(BArray<T> x) {
+		return x.size();
 	}
 
-	public final static void ObjectArrayClear(ZObjectArray x, long y) {
-		x.Clear(y);
+	public final static <T> void ObjectArrayClear(BArray<T> x, long y) {
+		x.clear((int) y);
 	}
 
-	public final static <T> void ObjectArrayAdd(ZObjectArray x, T y) {
-		x.Add(y);
+	public final static <T> void ObjectArrayAdd(BArray<T> x, T y) {
+		x.add(y);
 	}
 
-	public final static <T> void ObjectArrayInsert(ZObjectArray x, long y, T z) {
-		x.Insert(y, z);
+	public final static <T> void ObjectArrayInsert(BArray<T> x, long y, T z) {
+		x.add((int) y, z);
 	}
 
-	public final static String ObjectArrayToString(ZObjectArray x) {
+	public final static <T> String ObjectArrayToString(BArray<T> x) {
 		return x.toString();
 	}
 	// BooleanArray
@@ -182,26 +181,6 @@ public class JavaCommonApi {
 	}
 
 	public final static String FloatArrayToString(BFloatArray x) {
-		return x.toString();
-	}
-	// StringArray
-	public final static long StringArraySize(BStringArray x) {
-		return x.Size();
-	}
-
-	public final static void StringArrayClear(BStringArray x, long y) {
-		x.Clear(y);
-	}
-
-	public final static <T> void StringArrayAdd(BStringArray x, String y) {
-		x.Add(y);
-	}
-
-	public final static <T> void StringArrayInsert(BStringArray x, long y, String z) {
-		x.Insert(y, z);
-	}
-
-	public final static String StringArrayToString(BStringArray x) {
 		return x.toString();
 	}
 

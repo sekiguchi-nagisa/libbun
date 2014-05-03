@@ -14,8 +14,6 @@ import libbun.ast.literal.BunStringNode;
 import libbun.parser.BToken;
 import libbun.parser.BTokenContext;
 import libbun.util.BArray;
-import libbun.util.BStringArray;
-import libbun.util.ZObjectArray;
 
 // you must implement this class if you use shell grammar
 public class ShellUtils {
@@ -152,31 +150,31 @@ public class ShellUtils {
 		}
 	}
 
-	public static long ExecCommandInt(ZObjectArray ArgsList) {
+	public static long ExecCommandInt(BArray<BArray<String>> ArgsList) {
 		return ExecCommand(ArgsList, null);
 	}
 
-	public static boolean ExecCommandBoolean(ZObjectArray ArgsList) {
+	public static boolean ExecCommandBoolean(BArray<BArray<String>> ArgsList) {
 		return ExecCommandInt(ArgsList) == 0;
 	}
 
-	public static String ExecCommandString(ZObjectArray ArgsList) {
+	public static String ExecCommandString(BArray<BArray<String>> ArgsList) {
 		ByteArrayOutputStream StreamBuffer = new ByteArrayOutputStream();
 		ExecCommand(ArgsList, StreamBuffer);
 		return ShellUtils.RemoveNewLine(StreamBuffer.toString());
 	}
 
-	private static int ExecCommand(ZObjectArray ArgsList, OutputStream TargetStream) {
+	private static int ExecCommand(BArray<BArray<String>> ArgsList, OutputStream TargetStream) {
 		StringBuilder ArgBuilder = new StringBuilder();
-		int ListSize = (int) ArgsList.Size();
+		int ListSize = (int) ArgsList.size();
 		for(int i = 0; i < ListSize; i++) {
-			BStringArray Args = (BStringArray) ZObjectArray.GetIndex(ArgsList, i);
-			int Size = (int) Args.Size();
-			if(!MatchRedireSymbol(BStringArray.GetIndex(Args, 0)) && i != 0) {
+			BArray<String> Args = (BArray<String>) BArray.GetIndex(ArgsList, i);
+			int Size = (int) Args.size();
+			if(!MatchRedireSymbol(BArray.GetIndex(Args, 0)) && i != 0) {
 				ArgBuilder.append("| ");
 			}
 			for(int j = 0; j < Size; j++) {
-				ArgBuilder.append(BStringArray.GetIndex(Args, j));
+				ArgBuilder.append(BArray.GetIndex(Args, j));
 				ArgBuilder.append(" ");
 			}
 		}
