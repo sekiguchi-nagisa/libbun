@@ -72,9 +72,8 @@ class PegParsedNode extends PegObject {
 			sb.AppendNewLine(source.substring(this.startIndex, this.endIndex), "   ## by " + this.createdPeg);
 		}
 		else {
-			sb.AppendNewLine("node");
-			sb.OpenIndent(" {            ## by " + this.createdPeg);
-			sb.AppendNewLine("'", source.substring(this.startIndex, this.endIndex), "'");
+			sb.AppendNewLine("node ''", source.substring(this.startIndex, this.endIndex));
+			sb.OpenIndent("'' {            ## by " + this.createdPeg);
 			for(int i = 0; i < this.elementList.size(); i++) {
 				this.elementList.ArrayValues[i].stringfy(source, sb);
 			}

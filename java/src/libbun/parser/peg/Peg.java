@@ -374,7 +374,7 @@ class PegToken extends PegAbstractSymbol {
 			}
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "expected " + this.symbol, hasNextChoice);
+		return sourceContext.newExpectedErrorNode(this, this, hasNextChoice);
 	}
 
 	@Override public String firstChars(BunMap<Peg> m) {
@@ -404,7 +404,7 @@ class PegAny extends PegAbstractSymbol {
 			sourceContext.consume(1);
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "no more characters", hasNextChoice);
+		return sourceContext.newExpectedErrorNode(this, this, hasNextChoice);
 	}
 
 	@Override boolean check(PegParser p, String leftName, int order) {
@@ -431,7 +431,7 @@ class PegCharacter extends PegAbstractSymbol {
 		char ch = sourceContext.getChar();
 		//System.out.println("? ch = " + ch + " in " + this.charSet + " at pos = " + sourceContext.getPosition());
 		if(this.charSet.indexOf(ch) == -1) {
-			return sourceContext.newErrorNode(this, "unexpected character: '" + ch + "'", hasNextChoice);
+			return sourceContext.newExpectedErrorNode(this, this, hasNextChoice);
 		}
 		sourceContext.consume(1);
 		return parentNode;
@@ -652,7 +652,7 @@ class PegNotPredicate extends PegPredicate {
 		if(node.isErrorNode()) {
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "unexpected " + this.groupfy(this.innerExpr), hasNextChoice);
+		return sourceContext.newUnexpectedErrorNode(this, this.innerExpr, hasNextChoice);
 	}
 }
 
@@ -823,7 +823,7 @@ class PegFunctionExpr extends Peg {
 	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject node = this.f.Invoke(parentNode, sourceContext);
 		if(node == null) {
-			return sourceContext.newErrorNode(this, "function " + this.f + " failed", hasNextChoice);
+			return sourceContext.newFunctionErrorNode(this, this.f, hasNextChoice);
 		}
 		node.createdPeg = this;
 		return node;

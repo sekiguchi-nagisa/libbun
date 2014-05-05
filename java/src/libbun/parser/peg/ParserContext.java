@@ -371,14 +371,22 @@ public final class ParserContext  {
 		if(hasNextChoice) {
 			return this.defaultFailureNode;
 		}
-		else {
-			PegObject node = new PegFailureNode(created, this.currentPosition, "expected " + e.stringfy());
-			node.debugSource = this.debugToken;
-			this.errorCount = this.errorCount + 1;
-			return node;
-		}
+		return this.newErrorNode(created, "expected " + e.stringfy(), false);
 	}
 
+	public PegObject newUnexpectedErrorNode(Peg created, Peg e, boolean hasNextChoice) {
+		if(hasNextChoice) {
+			return this.defaultFailureNode;
+		}
+		return this.newErrorNode(created, "unexpected " + e.stringfy(), false);
+	}
+
+	public PegObject newFunctionErrorNode(Peg created, PegFunction f, boolean hasNextChoice) {
+		if(hasNextChoice) {
+			return this.defaultFailureNode;
+		}
+		return this.newErrorNode(created, "function  " + f + " was failed", false);
+	}
 
 }
 
