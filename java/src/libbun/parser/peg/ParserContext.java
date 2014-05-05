@@ -244,7 +244,7 @@ public final class ParserContext  {
 	int objectCount = 0;
 	int errorCount = 0;
 
-	public final PegObject parsePegNode(PegObject parentNode, String pattern) {
+	public final PegObject parsePegNodeMemo(PegObject parentNode, String pattern, boolean hasNextChoice) {
 		int pos = this.getPosition();
 		String key = pattern + ":" + pos;
 		PegObject node = this.memoMap.GetValue(key, null);
@@ -258,7 +258,7 @@ public final class ParserContext  {
 		Peg e = this.parser.getPattern(pattern, this.getFirstChar());
 		//System.out.println("matching " + parentNode + "   " + pattern + "... " + e);
 		if(e != null) {
-			node = e.lazyMatchAll(parentNode, this);
+			node = e.lazyMatchAll(parentNode, this, hasNextChoice);
 			this.memoMiss = this.memoMiss + 1;
 		}
 		else {
@@ -273,9 +273,18 @@ public final class ParserContext  {
 		return node;
 	}
 
+	public final PegObject parsePegNode(PegObject parentNode, String pattern, boolean hasNextChoice) {
+		Peg e = this.parser.getPattern(pattern, this.getFirstChar());
+		if(e != null) {
+			return e.lazyMatchAll(parentNode, this, hasNextChoice);
+		}
+		LibBunSystem._Exit(1, "undefined label " + pattern + " '" + this.getFirstChar() + "'");
+		return null;
+	}
+
 
 	public PegObject parseRightPegNode(PegObject left, String symbol) {
-		return this.parsePegNode(left, "+"+symbol);
+		return this.parsePegNode(left, this.parser.nameRightJoinName(symbol), true);
 	}
 
 	public BNode createExpectedErrorNode(BNode parentNode, BToken token, String text) {
@@ -344,11 +353,30 @@ public final class ParserContext  {
 		return node;
 	}
 
-	public PegObject newErrorNode(Peg created, String msg) {
-		PegObject node = new PegFailureNode(created, this.currentPosition, msg);
-		node.debugSource = this.debugToken;
-		this.errorCount = this.errorCount + 1;
-		return node;
+	private final PegObject defaultFailureNode = new PegFailureNode(null, 0, "failure");
+
+	public PegObject newErrorNode(Peg created, String msg, boolean hasNextChoice) {
+		if(hasNextChoice) {
+			return this.defaultFailureNode;
+		}
+		else {
+			PegObject node = new PegFailureNode(created, this.currentPosition, msg);
+			node.debugSource = this.debugToken;
+			this.errorCount = this.errorCount + 1;
+			return node;
+		}
+	}
+
+	public PegObject newExpectedErrorNode(Peg created, Peg e, boolean hasNextChoice) {
+		if(hasNextChoice) {
+			return this.defaultFailureNode;
+		}
+		else {
+			PegObject node = new PegFailureNode(created, this.currentPosition, "expected " + e.stringfy());
+			node.debugSource = this.debugToken;
+			this.errorCount = this.errorCount + 1;
+			return node;
+		}
 	}
 
 

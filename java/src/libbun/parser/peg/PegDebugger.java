@@ -42,13 +42,8 @@ public class PegDebugger {
 			try {
 				ParserContext source = new ParserContext(p, new ParserSource("(stdin)", linenum, Line, null), 0, Line.length());
 				BToken token = source.newToken(0, Line.length());
-				PegObject node = source.parsePegNode(new PegParsedNode(null, 0, 0), "Stmt");
-				if(node != null) {
-					System.out.println("parsed: " + node.toString(token));
-				}
-				else {
-					System.out.println("parsed: " + node);
-				}
+				PegObject node = source.parsePegNode(new PegParsedNode(null, 0, 0), "Stmt", false/*hasNextChoice*/);
+				System.out.println("parsed: " + node.toString(token));
 				if(source.hasChar()) {
 					System.out.println("uncosumed: '" + source + "'");
 				}

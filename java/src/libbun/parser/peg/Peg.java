@@ -1,6 +1,5 @@
 package libbun.parser.peg;
 
-import libbun.ast.BNode;
 import libbun.parser.BToken;
 import libbun.util.BunMap;
 import libbun.util.LibBunSystem;
@@ -30,32 +29,28 @@ public abstract class Peg {
 		return e;
 	}
 
-	protected final BNode match(BNode ParentNode, ParserContext Context) {
-		return null;
-	}
-
-	PegObject lazyMatchAll(PegObject parentNode, ParserContext sourceContext) {
+	PegObject lazyMatchAll(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		Peg e = this;
 		PegObject node = parentNode;
 		while(e.nextExpr != null) {
-			node = e.debugMatch(node, sourceContext);
+			node = e.lazyMatch(node, sourceContext, hasNextChoice);
 			if(node.isErrorNode()) {
 				return node;
 			}
 			e = e.nextExpr;
 		}
-		return e.debugMatch(node, sourceContext);
+		return e.lazyMatch(node, sourceContext, hasNextChoice);
 	}
 
-	protected PegObject debugMatch(PegObject node, ParserContext sourceContext) {
-		PegObject node2 = this.lazyMatch(node, sourceContext);
+	protected PegObject debugMatch(PegObject node, ParserContext sourceContext, boolean hasNextChoice) {
+		PegObject node2 = this.lazyMatch(node, sourceContext, hasNextChoice);
 		if(!node2.isErrorNode()) {
 			String line = sourceContext.debugToken.Source.FormatErrorMarker("matched", sourceContext.getPosition(), "...");
 			this.debug(line + "\n\tnode " + node + " => " + node2 + ".    ");
 		}
 		return node2;
 	}
-	protected abstract PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext);
+	protected abstract PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice);
 
 	public String firstChars(BunMap<Peg> m) {
 		return "";
@@ -340,7 +335,7 @@ public abstract class Peg {
 	}
 
 	protected void debug(String msg) {
-		System.out.println("debug: " + msg + "   by " + this);
+		System.out.println("debug: " + msg + "   by " + this.stringfy() + " <" + this + ">");
 	}
 
 	protected void debugMatched(String msg) {
@@ -368,9 +363,10 @@ class PegToken extends PegAbstractSymbol {
 		return LibBunSystem._QuoteString("'", this.symbol, "'");
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
-		//		sourceContext.skipWhiteSpace(false);
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
+		//sourceContext.skipWhiteSpace(false);
 		BToken token = sourceContext.newToken();
+		//System.out.println("? ch = " + sourceContext.getChar() + " in " + this.symbol + " at pos = " + sourceContext.getPosition());
 		if(sourceContext.sliceMatchedText(token, this.symbol)) {
 			if(parentNode.endIndex == 0) {
 				parentNode.startIndex = token.StartIndex;
@@ -378,7 +374,7 @@ class PegToken extends PegAbstractSymbol {
 			}
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "expected " + this.symbol);
+		return sourceContext.newErrorNode(this, "expected " + this.symbol, hasNextChoice);
 	}
 
 	@Override public String firstChars(BunMap<Peg> m) {
@@ -403,12 +399,12 @@ class PegAny extends PegAbstractSymbol {
 		return ".";
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		if(sourceContext.hasChar()) {
 			sourceContext.consume(1);
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "no more characters");
+		return sourceContext.newErrorNode(this, "no more characters", hasNextChoice);
 	}
 
 	@Override boolean check(PegParser p, String leftName, int order) {
@@ -431,10 +427,11 @@ class PegCharacter extends PegAbstractSymbol {
 		token = token.replaceAll("\\-", "-");
 		this.charSet = token;
 	}
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		char ch = sourceContext.getChar();
+		//System.out.println("? ch = " + ch + " in " + this.charSet + " at pos = " + sourceContext.getPosition());
 		if(this.charSet.indexOf(ch) == -1) {
-			return sourceContext.newErrorNode(this, "unexpected character: '" + ch + "'");
+			return sourceContext.newErrorNode(this, "unexpected character: '" + ch + "'", hasNextChoice);
 		}
 		sourceContext.consume(1);
 		return parentNode;
@@ -510,8 +507,8 @@ class PegLabel extends PegAbstractSymbol {
 		return result;
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
-		PegObject left = sourceContext.parsePegNode(parentNode, this.symbol);
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
+		PegObject left = sourceContext.parsePegNode(parentNode, this.symbol, hasNextChoice);
 		if(left.isErrorNode()) {
 			return left;
 		}
@@ -549,10 +546,10 @@ class PegOptionalExpr extends PegPredicate {
 	@Override protected String stringfy() {
 		return this.groupfy(this.innerExpr) + "?";
 	}
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject node = parentNode;
 		int stackPosition = sourceContext.getStackPosition(this);
-		node = this.innerExpr.lazyMatchAll(node, sourceContext);
+		node = this.innerExpr.lazyMatchAll(node, sourceContext, true);
 		if(node.isErrorNode()) {
 			sourceContext.popBack(stackPosition, Peg._BackTrack);
 			node = parentNode;
@@ -584,11 +581,15 @@ class PegOneMoreExpr extends PegPredicate {
 			return this.groupfy(this.innerExpr) + "+";
 		}
 	}
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject prevNode = parentNode;
 		int count = 0;
 		while(true) {
-			PegObject node = this.innerExpr.lazyMatchAll(prevNode, sourceContext);
+			boolean aChoice = true;
+			if(count < this.min) {
+				aChoice = hasNextChoice;
+			}
+			PegObject node = this.innerExpr.lazyMatchAll(prevNode, sourceContext, aChoice);
 			if(node.isErrorNode()) {
 				break;
 			}
@@ -599,7 +600,7 @@ class PegOneMoreExpr extends PegPredicate {
 			count = count + 1;
 		}
 		if(count < this.min) {
-			return sourceContext.newErrorNode(this, "requiring at most " + this.min + " times");
+			return sourceContext.newExpectedErrorNode(this, this.innerExpr, hasNextChoice);
 		}
 		//System.out.println("prevNode: " + prevNode + "s,e=" + prevNode.startIndex + ", " + prevNode.endIndex);
 		return prevNode;
@@ -622,10 +623,10 @@ class PegAndPredicate extends PegPredicate {
 	@Override protected String stringfy() {
 		return "&" + this.groupfy(this.innerExpr);
 	}
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject node = parentNode;
 		int stackPosition = sourceContext.getStackPosition(this);
-		node = this.innerExpr.lazyMatchAll(node, sourceContext);
+		node = this.innerExpr.lazyMatchAll(node, sourceContext, true);
 		sourceContext.popBack(stackPosition, Peg._BackTrack);
 		return node;
 	}
@@ -643,15 +644,15 @@ class PegNotPredicate extends PegPredicate {
 		return "!" + this.groupfy(this.innerExpr);
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject node = parentNode;
 		int stackPosition = sourceContext.getStackPosition(this);
-		node = this.innerExpr.lazyMatchAll(node, sourceContext);
+		node = this.innerExpr.lazyMatchAll(node, sourceContext, hasNextChoice);
 		sourceContext.popBack(stackPosition, Peg._BackTrack);
 		if(node.isErrorNode()) {
 			return parentNode;
 		}
-		return sourceContext.newErrorNode(this, "unexpected " + this.groupfy(this.innerExpr));
+		return sourceContext.newErrorNode(this, "unexpected " + this.groupfy(this.innerExpr), hasNextChoice);
 	}
 }
 
@@ -668,19 +669,19 @@ class PegChoice extends Peg {
 		return this.firstExpr + " / " + this.secondExpr;
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		Peg e = this;
 		int stackPosition = sourceContext.getStackPosition(this);
 		while(e instanceof PegChoice) {
 			PegObject node = parentNode;
-			node = ((PegChoice) e).firstExpr.lazyMatchAll(node, sourceContext);
+			node = ((PegChoice) e).firstExpr.lazyMatchAll(node, sourceContext, true);
 			if(!node.isErrorNode()) {
 				return node;
 			}
 			sourceContext.popBack(stackPosition, Peg._BackTrack);
 			e = ((PegChoice) e).secondExpr;
 		}
-		return this.secondExpr.lazyMatchAll(parentNode, sourceContext);
+		return this.secondExpr.lazyMatchAll(parentNode, sourceContext, hasNextChoice);
 	}
 
 	@Override public String firstChars(BunMap<Peg> m) {
@@ -730,9 +731,9 @@ class PegPushExpr extends Peg {
 		return this.innerExpr.checkAll(p, leftName, order);
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		int pos = sourceContext.getPosition();
-		PegObject node = this.innerExpr.lazyMatchAll(parentNode, sourceContext);
+		PegObject node = this.innerExpr.lazyMatchAll(parentNode, sourceContext, hasNextChoice);
 		if(node.isErrorNode()) {
 			return node;
 		}
@@ -765,12 +766,12 @@ class PegNewObject extends PegPredicate {
 		return s + this.innerExpr + "}"; // + this.nodeName;
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		// prefetch first node..
 		//sourceContext.skipWhiteSpace(true);
 		int stack = sourceContext.getStackPosition(this);
 		if(this.innerExpr instanceof PegToken) {
-			PegObject node = this.innerExpr.lazyMatch(parentNode, sourceContext);
+			PegObject node = this.innerExpr.lazyMatch(parentNode, sourceContext, hasNextChoice);
 			sourceContext.popBack(stack, Peg._BackTrack);
 			if(node.isErrorNode()) {
 				return node;
@@ -781,7 +782,7 @@ class PegNewObject extends PegPredicate {
 		if(this.leftJoin) {
 			sourceContext.push(this, newnode, 0, parentNode);
 		}
-		PegObject node = this.innerExpr.lazyMatchAll(newnode, sourceContext);
+		PegObject node = this.innerExpr.lazyMatchAll(newnode, sourceContext, hasNextChoice);
 		if(node.isErrorNode()) {
 			sourceContext.popBack(stack, Peg._BackTrack);
 			return node;
@@ -819,10 +820,10 @@ class PegFunctionExpr extends Peg {
 		return "(peg function " + this.f + ")";
 	}
 
-	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext) {
+	@Override public PegObject lazyMatch(PegObject parentNode, ParserContext sourceContext, boolean hasNextChoice) {
 		PegObject node = this.f.Invoke(parentNode, sourceContext);
 		if(node == null) {
-			return sourceContext.newErrorNode(this, "function " + this.f + " failed");
+			return sourceContext.newErrorNode(this, "function " + this.f + " failed", hasNextChoice);
 		}
 		node.createdPeg = this;
 		return node;

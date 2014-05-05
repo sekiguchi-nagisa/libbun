@@ -99,7 +99,7 @@ public final class PegParser {
 		this.insertOrderedPeg(this.pegMap, key, e);
 	}
 
-	private String nameRightJoinName(String key) {
+	String nameRightJoinName(String key) {
 		return "+" + key;
 	}
 

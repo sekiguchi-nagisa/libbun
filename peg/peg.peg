@@ -5,12 +5,12 @@ String     <- {"'" (!"'" .)* "'"} / {'"' (!'"' .)* '"'}
 Character  <- {'[' (!']' .)* ']'}
 Any        <- {'.'}
 
-Term       <- {'(' Expr ')'} / {'{' Expr '}'} / {'{+' _ Expr '}'} / String / Character / Any / Label
+Term       <- '(' Expr ')' / {'{' $Expr '}'} / {'{+' _ $Expr '}'} / String / Character / Any / Label
 
 TermNtime  <- Term {+ ('*' / '+' / '?')}?
 Predicated  <- {('&' / '!' / '$') $TermNtime} / TermNtime
-Sequence   <- {$Predicated (_ $Predicated)+} / Predicated
-Choice     <- {$Sequence ( _ '/' _ $Sequence)+} / Sequence
+Sequence   <- Predicated {+ _ $Predicated}*
+Choice     <- Sequence {+ _ '/' _ $Sequence}*
 Expr       <- Choice
 Stmt       <- {$Label _ '<-' _ $Expr}
 
