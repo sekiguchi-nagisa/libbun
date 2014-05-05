@@ -800,15 +800,27 @@ public class BunTypeSafer extends LibBunTypeChecker {
 	}
 
 	@Override public void VisitThrowNode(BunThrowNode Node) {
-		if(Node.ParentNode != null && Node.ParentNode.ParentNode != null &&
-				Node.ParentNode.ParentNode instanceof BunFunctionNode) {
-			@Var BunFunctionNode FuncNode = (BunFunctionNode) Node.ParentNode.ParentNode;
-			if(FuncNode == Node.GetDefiningFunctionNode()) {
-				this.CurrentFunctionNode.SetReturnType(BType.VoidType);
-			}
+		BunFunctionNode FuncNode = this.FindParentFuncNode(Node);
+		if(FuncNode != null && FuncNode == Node.GetDefiningFunctionNode()) {
+			this.CurrentFunctionNode.SetReturnType(BType.VoidType);
 		}
 		this.CheckTypeAt(Node, BunThrowNode._Expr, BType.VarType);
 		this.ReturnTypeNode(Node, BType.VoidType);
+	}
+
+	private BunFunctionNode FindParentFuncNode(BNode Node) {
+		if(Node == null) {
+			return null;
+		}
+		if(Node instanceof BunBlockNode && !(Node instanceof BunVarBlockNode)) {
+			if(Node.ParentNode != null && Node.ParentNode instanceof BunFunctionNode) {
+				return (BunFunctionNode) Node.ParentNode;
+			}
+		}
+		else {
+			return this.FindParentFuncNode(Node.ParentNode);
+		}
+		return null;
 	}
 
 	@Override public void VisitTryNode(BunTryNode Node) {

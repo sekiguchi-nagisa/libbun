@@ -2,7 +2,7 @@ package libbun.encode.jvm;
 
 import libbun.util.BArray;
 import libbun.util.BunMap;
-import libbun.util.SoftwareFaultException;
+import libbun.util.SoftwareFault;
 import libbun.util.BBooleanArray;
 import libbun.util.BFloatArray;
 import libbun.util.BIntArray;
@@ -11,7 +11,7 @@ public class JavaCommonApi {
 
 	public final static void Assert(boolean x, String Location) {
 		if(!x) {
-			Exception e = new SoftwareFaultException("failed: " + Location);
+			Exception e = new SoftwareFault("failed: " + Location);
 			e.printStackTrace();
 			System.err.println("REC assert 0 @" + Location);
 			System.exit(1);
@@ -200,6 +200,13 @@ public class JavaCommonApi {
 	// Object
 	public final static String ObjectToString(Object x) {
 		return x.toString();
+	}
+
+	public static SoftwareFault ToFault(Throwable t) {
+		if(t instanceof SoftwareFault) {
+			return (SoftwareFault) t;
+		}
+		return new SoftwareFault(t);
 	}
 
 	//	public final static JavaStaticFunc ConvertToNativeFunc(Method jMethod) {

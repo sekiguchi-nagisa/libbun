@@ -34,6 +34,7 @@ import libbun.type.BType;
 import libbun.type.BTypePool;
 import libbun.util.BunMap;
 import libbun.util.LibBunSystem;
+import libbun.util.SoftwareFault;
 import libbun.util.Var;
 import libbun.util.BArray;
 import libbun.util.BBooleanArray;
@@ -78,6 +79,8 @@ public class JavaTypeTable {
 		JavaTypeTable.SetTypeTable(BType.FloatType, Float.class);
 		JavaTypeTable.SetTypeTable(BType.StringType, char.class);
 		JavaTypeTable.SetTypeTable(BType.StringType, Character.class);
+
+		JavaTypeTable.GetBunType(SoftwareFault.class);
 	}
 
 	public static void SetTypeTable(BType zType, Class<?> c) {

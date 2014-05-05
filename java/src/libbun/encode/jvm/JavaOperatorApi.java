@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import libbun.type.BType;
-import libbun.util.SoftwareFaultException;
+import libbun.util.SoftwareFault;
 import libbun.util.Var;
 import libbun.util.BunMap;
 
@@ -264,7 +264,7 @@ public final class JavaOperatorApi {
 	}
 
 	public static Object ThrowError(String Message) {
-		throw new SoftwareFaultException("SoftwareFault: " + Message);
+		throw new SoftwareFault("SoftwareFault: " + Message);
 	}
 
 	//	public static <T> T GetIndex(ZenArray<T> x, long y) {
@@ -326,7 +326,7 @@ public final class JavaOperatorApi {
 			}
 		}
 		catch(Exception e) {
-			throw new SoftwareFaultException("undefined field: " + name);
+			throw new SoftwareFault("undefined field: " + name);
 		}
 	}
 
@@ -342,7 +342,7 @@ public final class JavaOperatorApi {
 			}
 		}
 		catch(Exception e) {
-			throw new SoftwareFaultException("undefined field: " + name);
+			throw new SoftwareFault("undefined field: " + name);
 		}
 	}
 
@@ -354,10 +354,10 @@ public final class JavaOperatorApi {
 					return ms[i].invoke(x, y);
 				}
 			}
-			throw new SoftwareFaultException("undefined method " + name + " of " + x.getClass().getSimpleName());
+			throw new SoftwareFault("undefined method " + name + " of " + x.getClass().getSimpleName());
 		}
 		catch(Exception e) {
-			throw new SoftwareFaultException("mismatched method " + name + " of " + x.getClass().getSimpleName());
+			throw new SoftwareFault("mismatched method " + name + " of " + x.getClass().getSimpleName());
 		}
 	}
 

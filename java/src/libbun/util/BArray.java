@@ -40,7 +40,7 @@ public class BArray<T> {
 		if(Value instanceof String) {
 			return LibBunSystem._QuoteString((String) Value);
 		}
-		return (String) Value;
+		return Value.toString();
 	}
 
 	public final int size() {
@@ -110,6 +110,6 @@ public class BArray<T> {
 	}
 
 	public static void ThrowOutOfArrayIndex(int Size, long Index) {
-		throw new RuntimeException("out of array index " + Index + " < " + Size);
+		throw new SoftwareFault("out of array index " + Index + " < " + Size);
 	}
 }

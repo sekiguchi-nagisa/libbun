@@ -141,6 +141,7 @@ import libbun.util.BTokenFunction;
 import libbun.util.BunMap;
 import libbun.util.BunObject;
 import libbun.util.LibBunSystem;
+import libbun.util.SoftwareFault;
 import libbun.util.Var;
 
 import org.objectweb.asm.Label;
@@ -916,12 +917,12 @@ public class AsmJavaGenerator extends LibBunGenerator {
 	}
 
 	@Override public void VisitThrowNode(BunThrowNode Node) { //TODO: exception wrapper
-		String ClassName = Type.getInternalName(RuntimeException.class);
+		String ClassName = Type.getInternalName(SoftwareFault.class);
 		this.AsmBuilder.SetLineNumber(Node);
 		this.AsmBuilder.visitTypeInsn(NEW, ClassName);
 		this.AsmBuilder.visitInsn(DUP);
-		this.AsmBuilder.PushNode(this.GetJavaClass(BType.StringType), Node.ExprNode());
-		String Desc = Type.getMethodDescriptor(Type.getType(void.class), new Type[] { Type.getType(String.class)});
+		this.AsmBuilder.PushNode(Object.class, Node.ExprNode());
+		String Desc = Type.getMethodDescriptor(Type.getType(void.class), new Type[] { Type.getType(Object.class)});
 		this.AsmBuilder.visitMethodInsn(INVOKESPECIAL, ClassName, "<init>", Desc);
 		this.AsmBuilder.visitInsn(ATHROW);
 	}
@@ -936,14 +937,16 @@ public class AsmJavaGenerator extends LibBunGenerator {
 		this.AsmBuilder.visitLabel(TryCatchLabel.EndTryLabel);
 		this.AsmBuilder.visitJumpInsn(GOTO, TryCatchLabel.FinallyLabel);
 		// catch block
-		if(Node.HasCatchBlockNode()) {	//TODO: exception wrapper
+		if(Node.HasCatchBlockNode()) {
 			Label CatchLabel = new Label();
 			AsmTryCatchLabel Label = this.TryCatchLabel.peek();
-			Class<?> ExceptionClass = Exception.class;
-			String ThrowType = this.AsmType(JavaTypeTable.GetBunType(ExceptionClass)).getInternalName();
-			this.AsmBuilder.visitTryCatchBlock(Label.BeginTryLabel, Label.EndTryLabel, CatchLabel, ThrowType);
+			Class<?> ExceptionClass = SoftwareFault.class;
+			this.AsmBuilder.visitTryCatchBlock(Label.BeginTryLabel, Label.EndTryLabel, CatchLabel, null);
 			this.AsmBuilder.AddLocal(ExceptionClass, Node.ExceptionName());
 			this.AsmBuilder.visitLabel(CatchLabel);
+			// wrap Exception in SoftWareFault
+			String Desc = Type.getMethodDescriptor(Type.getType(ExceptionClass), new Type[] {Type.getType(Throwable.class)});
+			this.AsmBuilder.visitMethodInsn(INVOKESTATIC, Type.getInternalName(JavaCommonApi.class), "ToFault", Desc);
 			this.AsmBuilder.StoreLocal(Node.ExceptionName());
 			Node.CatchBlockNode().Accept(this);
 			this.AsmBuilder.visitJumpInsn(GOTO, Label.FinallyLabel);

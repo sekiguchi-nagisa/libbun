@@ -106,7 +106,11 @@ public final class BunMap <T> {
 	}
 
 	public final static <T> T GetIndex(BunMap<T> aMap, String Key) {
-		return aMap.Map.get(Key);
+		T Value =  aMap.Map.get(Key);
+		if(Value == null) {
+			throw new SoftwareFault("Key not found: " + Key);
+		}
+		return Value;
 	}
 
 	public final static <T> void SetIndex(BunMap<T> aMap, String Key, T Value) {
