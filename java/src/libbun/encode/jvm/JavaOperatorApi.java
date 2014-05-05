@@ -263,7 +263,7 @@ public final class JavaOperatorApi {
 		return String.valueOf(x.charAt((int)y));
 	}
 
-	public static Object ThrowError(String Message) {
+	public static void ThrowError(String Message) {
 		throw new SoftwareFault("SoftwareFault: " + Message);
 	}
 
